@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from "react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Search, MoreVertical } from "lucide-react"
+import { Search } from "lucide-react"
 import { api, type Chat } from "@/lib/api"
 import { cn } from "@/lib/utils"
 

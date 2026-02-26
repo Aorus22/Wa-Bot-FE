@@ -1,11 +1,14 @@
-import { useState, useEffect, useRef, memo } from "react"
+import { useState, useEffect, useRef, memo, useCallback } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Send, Smile, Paperclip, FileText, Video, Phone, MoreVertical } from "lucide-react"
+import { Send, Smile, Paperclip, FileText, Video, Sticker, Star, Trash2 } from "lucide-react"
 import { api, type Chat, type Message } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { toast } from "sonner"
+import EmojiPicker, { Theme, EmojiStyle } from "emoji-picker-react"
+import { useTheme } from "@/components/theme-provider"
 
 interface ChatAreaProps {
 	chat: Chat | null
@@ -14,39 +17,116 @@ interface ChatAreaProps {
 	className?: string
 }
 
-const COMMON_EMOJIS = ["😀", "😃", "😄", "😁", "😆", "😅", "😂", "🤣", "😊", "😇", "🙂", "🙃", "😉", "😌", "😍", "🥰", "😘", "😗", "😙", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", "🧐", "🤓", "😎", "🤩", "🥳", "😏", "😒", "😞", "😔", "😟", "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😢", "😭", "😤", "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😱", "😨", "😰", "😥", "😓", "🤗", "🤔", "🤭", "🤫", "🤥", "😶", "😐", "😑", "😬", "🙄", "😯", "😦", "😧", "😮", "😲", "🥱", "😴", "🤤", "😪", "😵", "🤐", "🥴", "🤢", "🤮", "🤧", "😷", "🤒", "🤕", "🤑", "🤠", "😈", "👿", "👹", "👺", "🤡", "💩", "👻", "💀", "☠️", "👽", "👾", "🤖", "🎃", "😺", "😸", "😹", "😻", "😼", "😽", "🙀", "😿", "😾", "👋", "🤚", "🖐", "✋", "🖖", "👌", "🤏", "✌️", "🤞", "🤟", "🤘", "🤙", "👈", "👉", "👆", "🖕", "👇", "☝️", "👍", "👎", "✊", "👊", "🤛", "🤜", "👏", "🙌", "👐", "🤲", "🤝", "🙏", "✍️", "💅", "🤳", "💪", "🦾", "🦵", "🦿", "🦶", "👂", "🦻", "👃", "🧠", "🦷", "🦴", "👀", "👁", "👅", "👄", "💋", "🩸"]
-
-const EmojiPicker = memo(({ onEmojiSelect }: { onEmojiSelect: (emoji: string) => void }) => {
+const EmojiPickerComponent = memo(({ onEmojiSelect }: { onEmojiSelect: (emoji: string) => void }) => {
+	const { theme } = useTheme()
+	const isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
 	const [rendered, setRendered] = useState(false)
 
 	useEffect(() => {
-		// Wait for popover animation to finish (200ms) before rendering emojis
-		const timer = setTimeout(() => setRendered(true), 250)
+		const timer = setTimeout(() => setRendered(true), 200)
 		return () => clearTimeout(timer)
 	}, [])
 
 	return (
-		<div className="grid grid-cols-8 gap-1 h-[250px] w-full overflow-y-auto p-2 scrollbar-none transform-gpu">
+		<div className="h-[400px] w-full transform-gpu flex items-center justify-center bg-background">
 			{!rendered ? (
-				<div className="col-span-8 flex items-center justify-center h-full">
-					<div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
-				</div>
+				<div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
 			) : (
-				COMMON_EMOJIS.map(emoji => (
-					<button 
-						key={emoji} 
-						onClick={() => onEmojiSelect(emoji)} 
-						className="h-10 w-10 flex items-center justify-center hover:bg-muted rounded-xl text-xl transition-all active:scale-90 transform-gpu"
-					>
-						{emoji}
-					</button>
-				))
+				<EmojiPicker
+					onEmojiClick={(emojiData) => onEmojiSelect(emojiData.emoji)}
+					theme={isDark ? Theme.DARK : Theme.LIGHT}
+					emojiStyle={EmojiStyle.NATIVE}
+					lazyLoadEmojis={true}
+					width="100%"
+					height="100%"
+					searchPlaceholder="Cari emoji..."
+					previewConfig={{ showPreview: false }}
+					skinTonesDisabled
+				/>
 			)}
 		</div>
 	)
 })
 
-EmojiPicker.displayName = "EmojiPicker"
+EmojiPickerComponent.displayName = "EmojiPickerComponent"
+
+const StickerPicker = memo(({ onStickerSelect }: { onStickerSelect: (sticker: any) => void }) => {
+	const [stickers, setStickers] = useState<any[]>([])
+	const [loading, setLoading] = useState(true)
+	const [rendered, setRendered] = useState(false)
+
+	useEffect(() => {
+		const timer = setTimeout(() => setRendered(true), 200)
+		return () => clearTimeout(timer)
+	}, [])
+
+	const loadStickers = async () => {
+		try {
+			setLoading(true)
+			const data = await api.getFavorites()
+			setStickers(data)
+		} catch (err) {
+			console.error("Failed to load stickers:", err)
+		} finally {
+			setLoading(false)
+		}
+	}
+
+	useEffect(() => {
+		if (rendered) {
+			loadStickers()
+		}
+	}, [rendered])
+
+	const deleteSticker = async (e: React.MouseEvent, id: string) => {
+		e.stopPropagation()
+		try {
+			await api.deleteFavorite(id)
+			toast.success("Sticker removed from favorites")
+			loadStickers()
+		} catch (err) {
+			toast.error("Failed to remove sticker")
+		}
+	}
+
+	return (
+		<div className="h-[300px] w-full overflow-y-auto p-3 scrollbar-none flex items-center justify-center bg-background">
+			{!rendered || (loading && stickers.length === 0) ? (
+				<div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+			) : stickers.length === 0 ? (
+				<div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-2">
+					<p className="text-sm">No favorite stickers found</p>
+					<p className="text-[10px] text-center px-4">Click on a received sticker in chat to add it to your favorites.</p>
+				</div>
+			) : (
+				<div className="grid grid-cols-4 gap-2 w-full content-start h-full">
+					{stickers.map(sticker => (
+						<div key={sticker.id} className="relative group/sticker-item">
+							<button 
+								onClick={() => onStickerSelect(sticker)} 
+								className="aspect-square w-full flex items-center justify-center hover:bg-muted rounded-xl transition-all active:scale-95 group relative p-1"
+							>
+								<img 
+									src={getMediaUrl(sticker.mediaUrl)} 
+									alt="Sticker" 
+									className="max-w-full max-h-full object-contain" 
+								/>
+							</button>
+							<button 
+								onClick={(e) => deleteSticker(e, sticker.id)}
+								className="absolute -top-1 -right-1 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover/sticker-item:opacity-100 transition-opacity shadow-sm z-10"
+							>
+								<Trash2 className="h-3 w-3" />
+							</button>
+						</div>
+					))}
+				</div>
+			)}
+		</div>
+	)
+})
+
+StickerPicker.displayName = "StickerPicker"
 
 // Helper to get full media URL
 const getMediaUrl = (url: string | undefined): string | undefined => {
@@ -94,6 +174,7 @@ export function ChatArea({ chat, incomingMessage, onBack, className }: ChatAreaP
 	const prevChatId = useRef<string | null>(null)
 	const [initialLoad, setInitialLoad] = useState(true)
 	const [isEmojiOpen, setIsEmojiOpen] = useState(false)
+	const [showFavoriteBtn, setShowFavoriteBtn] = useState<string | null>(null)
 
 	// Save scroll position before chat changes
 	useEffect(() => {
@@ -193,7 +274,7 @@ export function ChatArea({ chat, incomingMessage, onBack, className }: ChatAreaP
 		// Split by newline to handle multiline
 		const lines = content.split("\n")
 		return lines.map((line, lineIdx) => {
-			const elements: (string | JSX.Element)[] = []
+			const elements: (string | React.ReactNode)[] = []
 
 			// Patterns for WhatsApp formatting
 			// *bold*, _italic_, ~strikethrough~, ```monospace```, `inline_code`
@@ -363,7 +444,31 @@ export function ChatArea({ chat, incomingMessage, onBack, className }: ChatAreaP
 		}
 	}
 
-	const addEmoji = (emoji: string) => setInputMessage(prev => prev + emoji)
+	const addEmoji = useCallback((emoji: string) => setInputMessage(prev => prev + emoji), [])
+
+	const handleFavoriteSticker = async (messageId: string, mediaUrl: string, isAnimated: boolean) => {
+		try {
+			await api.favoriteSticker(messageId, mediaUrl, isAnimated)
+			toast.success("Sticker added to favorites")
+		} catch (err) {
+			toast.error("Failed to add sticker to favorites")
+		}
+	}
+
+	const handleStickerSelect = useCallback(async (sticker: any) => {
+		if (!chat || sending) return
+		setSending(true)
+		try {
+			await api.sendSticker(chat.id, sticker.mediaUrl, sticker.isAnimated)
+			// Trigger a reload of messages to see the sent sticker
+			setTimeout(async () => await loadMessages(chat.id), 500)
+		} catch (error) {
+			console.error("Failed to send sticker:", error)
+			toast.error("Failed to send sticker")
+		} finally {
+			setSending(false)
+		}
+	}, [chat, sending])
 
 	if (!chat) return null
 	const groupedMessages = groupMessagesByDate(messages)
@@ -460,15 +565,39 @@ export function ChatArea({ chat, incomingMessage, onBack, className }: ChatAreaP
 													</span>
 												)}
 												
-												{isSticker && isMedia ? (
-													<div className="relative group/sticker">
+												{isSticker ? (
+													<div 
+														className="relative group/sticker cursor-pointer"
+														onClick={() => setShowFavoriteBtn(showFavoriteBtn === message.id ? null : message.id)}
+													>
 														<div className="w-[160px] h-[160px] flex items-center justify-center">
-															<img 
-																src={getMediaUrl(message.mediaUrl)} 
-																alt="Sticker" 
-																className="max-w-full max-h-full object-contain" 
-															/>
+															{isMedia ? (
+																<img 
+																	src={getMediaUrl(message.mediaUrl)} 
+																	alt="Sticker" 
+																	className="max-w-full max-h-full object-contain" 
+																/>
+															) : (
+																<div className="w-full h-full bg-muted rounded-xl flex items-center justify-center text-[10px] text-muted-foreground uppercase tracking-widest">
+																	Sticker
+																</div>
+															)}
 														</div>
+														{showFavoriteBtn === message.id && (
+															<button 
+																onClick={(e) => {
+																	e.stopPropagation();
+																	handleFavoriteSticker(message.id, message.mediaUrl || "", false);
+																}}
+																className={cn(
+																	"absolute top-0 p-1.5 bg-background/90 backdrop-blur-md rounded-full shadow-lg transition-all animate-in zoom-in-50 z-10",
+																	isMe ? "left-0" : "right-0"
+																)}
+																title="Add to Favorites"
+															>
+																<Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+															</button>
+														)}
 														<div className={cn(
 															"absolute bottom-1 right-1 px-1.5 py-0.5 rounded-full bg-black/30 backdrop-blur-sm text-[10px] text-white opacity-0 group-hover/sticker:opacity-100 transition-opacity",
 															isMe ? "right-1" : "left-1"
@@ -563,8 +692,19 @@ export function ChatArea({ chat, incomingMessage, onBack, className }: ChatAreaP
 									<Smile className="h-5 w-5" />
 								</Button>
 							</PopoverTrigger>
-							<PopoverContent className="w-[320px] p-0 overflow-hidden shadow-2xl border-border/50 animate-in fade-in zoom-in-95 duration-200 transform-gpu data-[state=closed]:duration-0 data-[state=closed]:animate-none" align="start" side="top">
-								{isEmojiOpen && <EmojiPicker onEmojiSelect={addEmoji} />}
+							<PopoverContent className="w-[400px] p-0 overflow-hidden shadow-2xl border-border/50 animate-in fade-in zoom-in-95 duration-200 transform-gpu data-[state=closed]:duration-0 data-[state=closed]:animate-none" align="start" side="top">
+								{isEmojiOpen && <EmojiPickerComponent onEmojiSelect={addEmoji} />}
+							</PopoverContent>
+						</Popover>
+
+						<Popover>
+							<PopoverTrigger asChild>
+								<Button variant="ghost" size="icon" className="rounded-full text-muted-foreground hover:bg-muted">
+									<Sticker className="h-5 w-5" />
+								</Button>
+							</PopoverTrigger>
+							<PopoverContent className="w-[400px] p-0 overflow-hidden shadow-2xl border-border/50 animate-in fade-in zoom-in-95 duration-200 transform-gpu" align="start" side="top">
+								<StickerPicker onStickerSelect={handleStickerSelect} />
 							</PopoverContent>
 						</Popover>
 						

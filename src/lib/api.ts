@@ -72,6 +72,40 @@ class ApiClient {
 		return this.request<Contact[]>("/contacts")
 	}
 
+	async getFavorites(): Promise<Array<{ id: string; mediaUrl: string; isAnimated: boolean }>> {
+		return this.request<any[]>("/stickers/favorites")
+	}
+
+	async favoriteSticker(messageId: string, mediaUrl: string, isAnimated: boolean): Promise<{ status: string }> {
+		return this.request<{ status: string }>("/stickers/favorite", {
+			method: "POST",
+			body: JSON.stringify({
+				secret: import.meta.env.VITE_API_SECRET || "default-secret",
+				messageId,
+				mediaUrl,
+				isAnimated,
+			}),
+		})
+	}
+
+	async deleteFavorite(id: string): Promise<{ status: string }> {
+		return this.request<{ status: string }>(`/stickers/favorites/${id}`, {
+			method: "DELETE",
+		})
+	}
+
+	async sendSticker(target: string, mediaUrl: string, isAnimated: boolean): Promise<{ status: string }> {
+		return this.request<{ status: string }>("/send-sticker", {
+			method: "POST",
+			body: JSON.stringify({
+				secret: import.meta.env.VITE_API_SECRET || "default-secret",
+				target,
+				mediaUrl,
+				isAnimated,
+			}),
+		})
+	}
+
 	async getStatus(): Promise<{ isLoggedIn: boolean }> {
 		return this.request<{ isLoggedIn: boolean }>("/status")
 	}

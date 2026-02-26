@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { QrCode, Smartphone, Loader2, CheckCircle2, ShieldCheck } from "lucide-react"
+import { Card } from "@/components/ui/card"
+import { Smartphone, Loader2, ShieldCheck } from "lucide-react"
 import { QRCodeSVG } from "qrcode.react"
 
 interface LoginViewProps {
