@@ -64,6 +64,12 @@ class ApiClient {
 		return this.request<Chat[]>("/chats")
 	}
 
+	async markAsRead(chatId: string): Promise<{ status: string }> {
+		return this.request<{ status: string }>(`/chats/${chatId}/read`, {
+			method: "POST",
+		})
+	}
+
 	async getMessages(chatId: string, limit = 100): Promise<Message[]> {
 		return this.request<Message[]>(`/chats/${chatId}/messages?limit=${limit}`)
 	}

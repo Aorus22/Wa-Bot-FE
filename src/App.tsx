@@ -27,7 +27,7 @@ function App() {
 	const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768)
 	const [showSidebar, setShowSidebar] = useState(true)
 	const [incomingMessage, setIncomingMessage] = useState<{ chatId: string; message: Message } | null>(null)
-	const [chatUpdate, setChatUpdate] = useState<{ chatId: string; lastMsg: string; lastTime: number; msgId: string } | null>(null)
+	const [chatUpdate, setChatUpdate] = useState<{ chatId: string; lastMsg: string; lastTime: number; msgId: string; senderName?: string } | null>(null)
 	const processedMsgIds = useRef<Set<string>>(new Set())
 
 	const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
@@ -83,6 +83,7 @@ function App() {
 				lastMsg: payload.content,
 				lastTime: payload.timestamp,
 				msgId: payload.id,
+				senderName: payload.senderName,
 			})
 			break
 		}

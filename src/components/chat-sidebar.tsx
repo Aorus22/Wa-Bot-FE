@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils"
 interface ChatSidebarProps {
 	selectedChatId: string | null
 	onChatSelect: (chat: Chat) => void
-	chatUpdate?: { chatId: string; lastMsg: string; lastTime: number; msgId: string } | null
+	chatUpdate?: { chatId: string; lastMsg: string; lastTime: number; msgId: string; senderName?: string } | null
 	className?: string
 }
 
@@ -51,13 +51,31 @@ export function ChatSidebar({
 			}
 			processedUpdateIds.current.add(chatUpdate.msgId)
 
-			setChats(prevChats =>
-				prevChats.map(chat =>
+			setChats(prevChats => {
+				const chatExists = prevChats.some(c => c.id === chatUpdate.chatId);
+				
+				if (!chatExists) {
+					// Add new chat
+					const newChat: Chat = {
+						id: chatUpdate.chatId,
+						name: chatUpdate.senderName || chatUpdate.chatId,
+						avatar: "",
+						lastMsg: chatUpdate.lastMsg,
+						lastTime: chatUpdate.lastTime,
+						unread: selectedChatId === chatUpdate.chatId ? 0 : 1,
+						isActive: true,
+						isGroup: chatUpdate.chatId.includes("@g.us"),
+					};
+					return [newChat, ...prevChats].sort((a, b) => b.lastTime - a.lastTime);
+				}
+
+				return prevChats.map(chat =>
 					chat.id === chatUpdate.chatId
 						? {
 								...chat,
 								lastMsg: chatUpdate.lastMsg,
 								lastTime: chatUpdate.lastTime,
+								unread: chat.id === selectedChatId ? 0 : chat.unread + 1,
 						  }
 						: chat
 				).sort((a, b) => {
@@ -66,9 +84,24 @@ export function ChatSidebar({
 					if (b.id === chatUpdate.chatId) return 1
 					return b.lastTime - a.lastTime
 				})
-			)
+			})
 		}
-	}, [chatUpdate])
+	}, [chatUpdate, selectedChatId])
+
+	// Clear unread when chat is selected
+	useEffect(() => {
+		if (selectedChatId) {
+			setChats(prevChats =>
+				prevChats.map(chat =>
+					chat.id === selectedChatId
+						? { ...chat, unread: 0 }
+						: chat
+				)
+			)
+			// Mark as read in API (local DB update only)
+			api.markAsRead(selectedChatId).catch(console.error)
+		}
+	}, [selectedChatId])
 
 	const loadChats = async () => {
 		try {
