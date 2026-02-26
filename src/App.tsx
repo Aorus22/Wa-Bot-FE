@@ -28,6 +28,7 @@ function App() {
 	const [showSidebar, setShowSidebar] = useState(true)
 	const [incomingMessage, setIncomingMessage] = useState<{ chatId: string; message: Message } | null>(null)
 	const [chatUpdate, setChatUpdate] = useState<{ chatId: string; lastMsg: string; lastTime: number; msgId: string; senderName?: string } | null>(null)
+	const [statusUpdate, setStatusUpdate] = useState<{ id: string; status: string } | null>(null)
 	const processedMsgIds = useRef<Set<string>>(new Set())
 
 	const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
@@ -87,6 +88,14 @@ function App() {
 			})
 			break
 		}
+		case "message_status":
+			if (message.payload) {
+				setStatusUpdate({
+					id: message.payload.id,
+					status: message.payload.status,
+				})
+			}
+			break
 		}
 	}, [])
 
@@ -232,6 +241,7 @@ function App() {
 								<ChatArea
 									chat={selectedChat}
 									incomingMessage={incomingMessage}
+									statusUpdate={statusUpdate}
 									onBack={isMobileView ? handleBack : undefined}
 									className="w-full h-full"
 								/>

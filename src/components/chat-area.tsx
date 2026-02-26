@@ -13,6 +13,7 @@ import { useTheme } from "@/components/theme-provider"
 interface ChatAreaProps {
 	chat: Chat | null
 	incomingMessage?: { chatId: string; message: Message } | null
+	statusUpdate?: { id: string; status: string } | null
 	onBack?: () => void
 	className?: string
 }
@@ -160,7 +161,7 @@ const getAvatarUrl = (chat: Chat): string | undefined => {
 	return undefined
 }
 
-export function ChatArea({ chat, incomingMessage, onBack, className }: ChatAreaProps) {
+export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, className }: ChatAreaProps) {
 	const [messages, setMessages] = useState<Message[]>([])
 	const [inputMessage, setInputMessage] = useState("")
 	const [loading, setLoading] = useState(false)
@@ -175,6 +176,21 @@ export function ChatArea({ chat, incomingMessage, onBack, className }: ChatAreaP
 	const [initialLoad, setInitialLoad] = useState(true)
 	const [isEmojiOpen, setIsEmojiOpen] = useState(false)
 	const [showFavoriteBtn, setShowFavoriteBtn] = useState<string | null>(null)
+
+	// Listen for message status updates
+	useEffect(() => {
+		if (statusUpdate && chat) {
+			setMessages(prev => {
+				const updated = prev.map(msg => 
+					msg.id === statusUpdate.id 
+						? { ...msg, status: statusUpdate.status } 
+						: msg
+				)
+				messageCache.current.set(chat.id, updated)
+				return updated
+			})
+		}
+	}, [statusUpdate, chat])
 
 	// Save scroll position before chat changes
 	useEffect(() => {
@@ -217,21 +233,48 @@ export function ChatArea({ chat, incomingMessage, onBack, className }: ChatAreaP
 	useEffect(() => {
 		if (chat && incomingMessage && incomingMessage.chatId === chat.id) {
 			const newMsg = incomingMessage.message
-			if (!processedMessageIds.current.has(newMsg.id)) {
-				setMessages(prev => {
-					const updated = [...prev, newMsg]
-					messageCache.current.set(chat.id, updated)
-					return updated
-				})
-				processedMessageIds.current.add(newMsg.id)
-				
-				// Scroll to bottom for new messages
-				requestAnimationFrame(() => {
-					if (scrollRef.current) {
-						scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-					}
-				})
+			
+			// If already processed, ignore
+			if (processedMessageIds.current.has(newMsg.id)) {
+				return
 			}
+			
+			setMessages(prev => {
+				// If this is from "me" and we have a pending message with same content
+				// Replace the temporary message with the real one (WhatsApp ID)
+				const isMe = newMsg.from === "me"
+				let updated = [...prev]
+				
+				if (isMe) {
+					const pendingIndex = prev.findIndex(m => m.from === "me" && m.status === "pending" && m.content === newMsg.content);
+					if (pendingIndex !== -1) {
+						// Found the pending message, replace it
+						updated[pendingIndex] = newMsg;
+					} else {
+						// Only add if not already in list
+						if (!prev.some(m => m.id === newMsg.id)) {
+							updated.push(newMsg);
+						}
+					}
+				} else {
+					// From others, just add if not already in list
+					if (!prev.some(m => m.id === newMsg.id)) {
+						updated.push(newMsg);
+					}
+				}
+				
+				messageCache.current.set(chat.id, updated)
+				return updated
+			})
+			
+			processedMessageIds.current.add(newMsg.id)
+			
+			// Scroll to bottom for new messages
+			requestAnimationFrame(() => {
+				if (scrollRef.current) {
+					scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+				}
+			})
 		}
 	}, [incomingMessage, chat])
 
@@ -386,9 +429,11 @@ export function ChatArea({ chat, incomingMessage, onBack, className }: ChatAreaP
 		setSending(true)
 		try {
 			await api.sendMessage(chat.id, messageToSend)
-			setTimeout(async () => await loadMessages(chat.id), 500)
+			// WebSocket will broadcast the new_message with the real WhatsApp ID
+			// We don't need a full loadMessages here.
 		} catch (error) {
 			console.error("Failed to send message:", error)
+			setMessages(prev => prev.map(msg => msg.id === tempId ? { ...msg, status: "failed" } : msg))
 		} finally {
 			setSending(false)
 		}
@@ -664,9 +709,24 @@ export function ChatArea({ chat, incomingMessage, onBack, className }: ChatAreaP
 																	{isPending ? (
 																		<div className="w-2.5 h-2.5 border border-current/30 border-t-current rounded-full animate-spin" />
 																	) : isFailed ? "!" : (
-																		<svg className={cn("w-3.5 h-3.5", message.status === "read" ? "text-blue-500" : "")} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-																			<path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
-																		</svg>
+																		<div className="flex items-center">
+																			{message.status === "sent" ? (
+																				// Single Tick
+																				<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+																					<path d="M13.5 4.5L6.5 11.5L3 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+																				</svg>
+																			) : (
+																				// Double Tick
+																				<div className="relative flex items-center">
+																					<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={cn(message.status === "read" ? "text-[#53bdeb]" : "text-current opacity-70")}>
+																						<path d="M13.5 4.5L6.5 11.5L3 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+																					</svg>
+																					<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={cn("absolute left-[4px]", message.status === "read" ? "text-[#53bdeb]" : "text-current opacity-70")}>
+																						<path d="M13.5 4.5L6.5 11.5L3 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+																					</svg>
+																				</div>
+																			)}
+																		</div>
 																	)}
 																</span>
 															)}
