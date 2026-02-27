@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, memo, useCallback } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Send, Smile, Paperclip, FileText, Video, Sticker, Star, Trash2 } from "lucide-react"
+import { Send, Smile, Paperclip, FileText, Video, Sticker, Star, Trash2, ArrowLeft, MessageSquare } from "lucide-react"
 import { api, type Chat, type Message } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -40,7 +40,7 @@ const EmojiPickerComponent = memo(({ onEmojiSelect }: { onEmojiSelect: (emoji: s
 					lazyLoadEmojis={true}
 					width="100%"
 					height="100%"
-					searchPlaceholder="Cari emoji..."
+					searchPlaceholder="Search emojis..."
 					previewConfig={{ showPreview: false }}
 					skinTonesDisabled
 				/>
@@ -103,17 +103,17 @@ const StickerPicker = memo(({ onStickerSelect }: { onStickerSelect: (sticker: an
 				<div className="grid grid-cols-4 gap-2 w-full content-start h-full">
 					{stickers.map(sticker => (
 						<div key={sticker.id} className="relative group/sticker-item">
-							<button 
-								onClick={() => onStickerSelect(sticker)} 
+							<button
+								onClick={() => onStickerSelect(sticker)}
 								className="aspect-square w-full flex items-center justify-center hover:bg-muted rounded-xl transition-all active:scale-95 group relative p-1"
 							>
-								<img 
-									src={getMediaUrl(sticker.mediaUrl)} 
-									alt="Sticker" 
-									className="max-w-full max-h-full object-contain" 
+								<img
+									src={getMediaUrl(sticker.mediaUrl)}
+									alt="Sticker"
+									className="max-w-full max-h-full object-contain"
 								/>
 							</button>
-							<button 
+							<button
 								onClick={(e) => deleteSticker(e, sticker.id)}
 								className="absolute -top-1 -right-1 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover/sticker-item:opacity-100 transition-opacity shadow-sm z-10"
 							>
@@ -129,12 +129,10 @@ const StickerPicker = memo(({ onStickerSelect }: { onStickerSelect: (sticker: an
 
 StickerPicker.displayName = "StickerPicker"
 
-// Helper to get full media URL
 const getMediaUrl = (url: string | undefined): string | undefined => {
 	if (!url) return undefined
 	if (url.startsWith("http://") || url.startsWith("https://")) return url
 
-	// URL encode the filename part to handle special characters like @
 	const parts = url.split("/")
 	if (parts.length > 1) {
 		const filename = parts.pop()!
@@ -149,16 +147,63 @@ const getMediaUrl = (url: string | undefined): string | undefined => {
 	return `${API_BASE}${url}`
 }
 
-// Get avatar URL
-const getAvatarUrl = (chat: Chat): string | undefined => {
-	if (chat.avatar && chat.avatar.length > 0 && !chat.avatar.startsWith("data:")) {
-		return chat.avatar
-	}
-	if (chat.id.includes("@") || chat.id.match(/^\d+$/)) {
+const getAvatarUrl = (target: Chat | string): string | undefined => {
+	if (typeof target !== "string") {
+		if (target.avatar && target.avatar.length > 0 && !target.avatar.startsWith("data:")) {
+			return target.avatar
+		}
 		const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000/api"
-		return `${API_BASE}/avatar/${encodeURIComponent(chat.id)}`
+		return `${API_BASE}/avatar/${encodeURIComponent(target.id)}`
 	}
-	return undefined
+
+	const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000/api"
+	return `${API_BASE}/avatar/${encodeURIComponent(target)}`
+}
+
+const formatTime = (timestamp: number) => {
+	return new Date(timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+}
+
+const formatDate = (timestamp: number) => {
+	const date = new Date(timestamp)
+	const today = new Date()
+	const yesterday = new Date()
+	yesterday.setDate(today.getDate() - 1)
+
+	if (date.toDateString() === today.toDateString()) return "Today"
+	if (date.toDateString() === yesterday.toDateString()) return "Yesterday"
+
+	return date.toLocaleDateString([], { day: "numeric", month: "long", year: "numeric" })
+}
+
+const renderFormattedContent = (content: string) => {
+	if (!content) return null
+
+	// Replace *bold* with <strong>
+	// Replace _italic_ with <em>
+	// Replace ~strikethrough~ with <del>
+	// Replace `code` with <code>
+
+	const parts = content.split(/(\*.*?\*|_.*?_|~.*?~|`.*?`|\n)/g)
+
+	return parts.map((part, index) => {
+		if (part.startsWith("*") && part.endsWith("*")) {
+			return <strong key={index}>{part.slice(1, -1)}</strong>
+		}
+		if (part.startsWith("_") && part.endsWith("_")) {
+			return <em key={index}>{part.slice(1, -1)}</em>
+		}
+		if (part.startsWith("~") && part.endsWith("~")) {
+			return <del key={index}>{part.slice(1, -1)}</del>
+		}
+		if (part.startsWith("`") && part.endsWith("`")) {
+			return <code key={index} className="bg-muted px-1 rounded">{part.slice(1, -1)}</code>
+		}
+		if (part === "\n") {
+			return <br key={index} />
+		}
+		return part
+	})
 }
 
 export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, className }: ChatAreaProps) {
@@ -166,247 +211,86 @@ export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, classNam
 	const [inputMessage, setInputMessage] = useState("")
 	const [loading, setLoading] = useState(false)
 	const [sending, setSending] = useState(false)
-	const scrollRef = useRef<HTMLDivElement>(null)
-	const mediaInputRef = useRef<HTMLInputElement>(null)
-	const documentInputRef = useRef<HTMLInputElement>(null)
-	const processedMessageIds = useRef<Set<string>>(new Set())
-	const messageCache = useRef<Map<string, Message[]>>(new Map())
-	const scrollCache = useRef<Map<string, number>>(new Map())
-	const prevChatId = useRef<string | null>(null)
 	const [initialLoad, setInitialLoad] = useState(true)
 	const [isEmojiOpen, setIsEmojiOpen] = useState(false)
 	const [showFavoriteBtn, setShowFavoriteBtn] = useState<string | null>(null)
 
-	// Listen for message status updates
-	useEffect(() => {
-		if (statusUpdate && chat) {
-			setMessages(prev => {
-				const updated = prev.map(msg => 
-					msg.id === statusUpdate.id 
-						? { ...msg, status: statusUpdate.status } 
-						: msg
-				)
-				messageCache.current.set(chat.id, updated)
-				return updated
+	const scrollRef = useRef<HTMLDivElement>(null)
+	const mediaInputRef = useRef<HTMLInputElement>(null)
+	const documentInputRef = useRef<HTMLInputElement>(null)
+
+	const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
+		if (scrollRef.current) {
+			const { scrollHeight, clientHeight } = scrollRef.current
+			scrollRef.current.scrollTo({
+				top: scrollHeight - clientHeight,
+				behavior
 			})
 		}
-	}, [statusUpdate, chat])
+	}, [])
 
-	// Save scroll position before chat changes
 	useEffect(() => {
-		if (prevChatId.current && scrollRef.current) {
-			scrollCache.current.set(prevChatId.current, scrollRef.current.scrollTop)
-		}
-		
 		if (chat) {
-			const cached = messageCache.current.get(chat.id)
-			if (cached && cached.length > 0) {
-				setMessages(cached)
-				setInitialLoad(false)
-				
-				// Restore scroll position after a short delay to allow DOM to update
-				requestAnimationFrame(() => {
-					if (scrollRef.current) {
-						const savedPos = scrollCache.current.get(chat.id)
-						if (savedPos !== undefined) {
-							scrollRef.current.scrollTop = savedPos
-						} else {
-							scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-						}
-					}
-				})
-			} else {
-				setMessages([])
-				setLoading(true)
-				setInitialLoad(true)
-			}
-			loadMessages(chat.id)
-			processedMessageIds.current = new Set()
-			prevChatId.current = chat.id
+			loadMessages()
 		} else {
 			setMessages([])
-			prevChatId.current = null
+			setInitialLoad(true)
 		}
-	}, [chat])
+	}, [chat?.id])
 
-	// Listen for incoming WebSocket messages
 	useEffect(() => {
-		if (chat && incomingMessage && incomingMessage.chatId === chat.id) {
-			const newMsg = incomingMessage.message
-			
-			// If already processed, ignore
-			if (processedMessageIds.current.has(newMsg.id)) {
-				return
-			}
-			
-			setMessages(prev => {
-				// If this is from "me" and we have a pending message with same content
-				// Replace the temporary message with the real one (WhatsApp ID)
-				const isMe = newMsg.from === "me"
-				let updated = [...prev]
-				
-				if (isMe) {
-					const pendingIndex = prev.findIndex(m => m.from === "me" && m.status === "pending" && m.content === newMsg.content);
-					if (pendingIndex !== -1) {
-						// Found the pending message, replace it
-						updated[pendingIndex] = newMsg;
-					} else {
-						// Only add if not already in list
-						if (!prev.some(m => m.id === newMsg.id)) {
-							updated.push(newMsg);
-						}
-					}
-				} else {
-					// From others, just add if not already in list
-					if (!prev.some(m => m.id === newMsg.id)) {
-						updated.push(newMsg);
-					}
-				}
-				
-				messageCache.current.set(chat.id, updated)
-				return updated
-			})
-			
-			processedMessageIds.current.add(newMsg.id)
-			
-			// Scroll to bottom for new messages
-			requestAnimationFrame(() => {
-				if (scrollRef.current) {
-					scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-				}
-			})
-		}
-	}, [incomingMessage, chat])
+	        if (incomingMessage && chat && incomingMessage.chatId === chat.id) {
+	                setMessages(prev => {
+	                        // 1. Check if ID already exists
+	                        if (prev.some(m => m.id === incomingMessage.message.id)) return prev
 
-	// Initial load or message batch update scroll
+	                        // 2. Check if this is a message we're sending (from "me")
+	                        // that matches one of our pending messages
+	                        if (incomingMessage.message.from === "me") {
+	                                // Try to find a pending message with same content or type
+	                                const pendingIndex = prev.findIndex(m =>
+	                                        m.status === "pending" &&
+	                                        m.id.startsWith("temp-") &&
+	                                        (
+	                                                m.content === incomingMessage.message.content ||
+	                                                (m.type === incomingMessage.message.type && ["image", "video", "sticker", "document"].includes(m.type))
+	                                        )
+	                                )
+
+	                                if (pendingIndex !== -1) {
+	                                        // Replace the pending message
+	                                        const next = [...prev]
+	                                        next[pendingIndex] = incomingMessage.message
+	                                        return next
+	                                }
+	                        }
+
+	                        return [...prev, incomingMessage.message]
+	                })
+	                setTimeout(() => scrollToBottom(), 100)
+	        }
+	}, [incomingMessage, chat?.id, scrollToBottom])
 	useEffect(() => {
-		if (messages.length > 0 && !loading && scrollRef.current) {
-			const savedPos = chat ? scrollCache.current.get(chat.id) : undefined
-			if (savedPos === undefined) {
-				scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-			}
-		}
-	}, [loading])
-
-	const formatTime = (timestamp: number) => {
-		const date = new Date(timestamp)
-		return date.toLocaleTimeString("en-US", {
-			hour: "2-digit",
-			minute: "2-digit",
-		})
-	}
-
-	const groupMessagesByDate = (messages: Message[]) => {
-		const groups: Record<string, Message[]> = {}
-		for (const message of messages) {
-			const date = new Date(message.timestamp)
-			const dateKey = date.toLocaleDateString("en-US", {
-				month: "long",
-				day: "numeric",
-				year: date.getFullYear() !== new Date().getFullYear() ? "numeric" : undefined,
-			})
-			if (!groups[dateKey]) groups[dateKey] = []
-			groups[dateKey].push(message)
-		}
-		return groups
-	}
-
-	const renderFormattedContent = (content: string) => {
-		if (!content) return null
-
-		// Split by newline to handle multiline
-		const lines = content.split("\n")
-		return lines.map((line, lineIdx) => {
-			const elements: (string | React.ReactNode)[] = []
-
-			// Patterns for WhatsApp formatting
-			// *bold*, _italic_, ~strikethrough~, ```monospace```, `inline_code`
-			const patterns = [
-				{ pattern: /```([\s\S]*?)```/g, type: "monospace" },
-				{ pattern: /`([^`]+)`/g, type: "monospace" },
-				{ pattern: /\*([^*]+)\*/g, type: "bold" },
-				{ pattern: /_([^_]+)_/g, type: "italic" },
-				{ pattern: /~([^~]+)~/g, type: "strikethrough" },
-			]
-
-			const matches: { start: number; end: number; content: string; type: string }[] = []
-
-			// Find all matches for all patterns
-			patterns.forEach(({ pattern, type }) => {
-				let match
-				pattern.lastIndex = 0
-				while ((match = pattern.exec(line)) !== null) {
-					matches.push({
-						start: match.index,
-						end: pattern.lastIndex,
-						content: match[1],
-						type,
-					})
-				}
-			})
-
-			// Sort matches by start index
-			matches.sort((a, b) => a.start - b.start)
-
-			// Filter out overlapping matches (first come, first served)
-			const filteredMatches: typeof matches = []
-			let lastMatchEnd = 0
-			matches.forEach(match => {
-				if (match.start >= lastMatchEnd) {
-					filteredMatches.push(match)
-					lastMatchEnd = match.end
-				}
-			})
-
-			// Build the elements array
-			let currentIndex = 0
-			filteredMatches.forEach((match, idx) => {
-				// Add text before match
-				if (match.start > currentIndex) {
-					elements.push(line.substring(currentIndex, match.start))
-				}
-
-				// Add formatted element
-				switch (match.type) {
-					case "bold":
-						elements.push(<strong key={`${lineIdx}-${idx}`} className="font-bold">{match.content}</strong>)
-						break
-					case "italic":
-						elements.push(<em key={`${lineIdx}-${idx}`} className="italic">{match.content}</em>)
-						break
-					case "strikethrough":
-						elements.push(<del key={`${lineIdx}-${idx}`} className="line-through">{match.content}</del>)
-						break
-					case "monospace":
-						elements.push(<code key={`${lineIdx}-${idx}`} className="font-mono bg-black/10 dark:bg-white/10 px-1 rounded text-[0.9em]">{match.content}</code>)
-						break
-				}
-				currentIndex = match.end
-			})
-
-			// Add remaining text
-			if (currentIndex < line.length) {
-				elements.push(line.substring(currentIndex))
-			}
-
-			return (
-				<div key={lineIdx} className="min-h-[1.2em]">
-					{elements.length > 0 ? elements : " "}
-				</div>
+		if (statusUpdate) {
+			setMessages(prev =>
+				prev.map(m =>
+					m.id === statusUpdate.id ? { ...m, status: statusUpdate.status } : m
+				)
 			)
-		})
-	}
+		}
+	}, [statusUpdate])
 
-	const loadMessages = async (chatId: string) => {
+	const loadMessages = async () => {
+		if (!chat) return
 		try {
-			const data = await api.getMessages(chatId)
-			const messagesData = data || []
-			messageCache.current.set(chatId, messagesData)
-			setMessages(messagesData)
+			setLoading(true)
+			const data = await api.getMessages(chat.id)
+			setMessages(data || [])
 			setInitialLoad(false)
+			setTimeout(() => scrollToBottom("auto"), 50)
 		} catch (error) {
 			console.error("Failed to load messages:", error)
-			setMessages([])
+			toast.error("Failed to load conversation")
 		} finally {
 			setLoading(false)
 		}
@@ -414,151 +298,174 @@ export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, classNam
 
 	const handleSendMessage = async () => {
 		if (!inputMessage.trim() || !chat || sending) return
-		const tempId = `temp-${Date.now()}`
-		const tempMessage: Message = {
-			id: tempId, chatId: chat.id, from: "me", to: chat.id,
-			content: inputMessage, timestamp: Date.now(), status: "pending", type: "text",
-		}
-		setMessages(prev => {
-			const updated = [...prev, tempMessage]
-			messageCache.current.set(chat.id, updated)
-			return updated
-		})
-		const messageToSend = inputMessage
-		setInputMessage("")
-		setSending(true)
-		try {
-			await api.sendMessage(chat.id, messageToSend)
-			// WebSocket will broadcast the new_message with the real WhatsApp ID
-			// We don't need a full loadMessages here.
-		} catch (error) {
-			console.error("Failed to send message:", error)
-			setMessages(prev => prev.map(msg => msg.id === tempId ? { ...msg, status: "failed" } : msg))
-		} finally {
-			setSending(false)
-		}
-	}
 
-	const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, forceType?: "document") => {
-		const file = e.target.files?.[0]
-		if (!file || !chat || sending) return
-		
-		setSending(true)
-		const tempId = `temp-${Date.now()}`
-		
-		let mediaType: "image" | "video" | "document" = forceType || "document"
-		if (!forceType) {
-			if (file.type.startsWith("image/")) mediaType = "image"
-			else if (file.type.startsWith("video/")) mediaType = "video"
-		}
-
-		// Create temporary message for loading state
-		const tempMessage: Message = {
+		const tempId = "temp-" + Date.now()
+		const newMsg: Message = {
 			id: tempId,
 			chatId: chat.id,
 			from: "me",
 			to: chat.id,
-			content: `Sending ${mediaType}...`,
+			content: inputMessage,
 			timestamp: Date.now(),
 			status: "pending",
-			type: mediaType,
+			type: "text"
 		}
 
-		setMessages((prev) => {
-			const updated = [...prev, tempMessage]
-			messageCache.current.set(chat.id, updated)
-			return updated
-		})
-		
+		setMessages(prev => [...prev, newMsg])
+		setInputMessage("")
+		setTimeout(() => scrollToBottom(), 50)
+
 		try {
-			await api.sendMedia(chat.id, file, mediaType)
-			// Let loadMessages handle the replacement with actual message from DB
-			setTimeout(async () => await loadMessages(chat.id), 500)
-		} catch (error) {
-			console.error("Failed to send media:", error)
-			setMessages((prev) => {
-				const updated = prev.map((msg) =>
-					msg.id === tempId ? { ...msg, status: "failed" } : msg
-				)
-				messageCache.current.set(chat.id, updated)
-				return updated
+			setSending(true)
+			const res = await api.sendMessage(chat.id, inputMessage)
+			setMessages(prev => {
+				// If the message was already added/updated by socket
+				if (prev.some(m => m.id === res.id)) {
+					return prev.filter(m => m.id !== tempId)
+				}
+				return prev.map(m => (m.id === tempId ? { ...m, id: res.id, status: "sent" } : m))
 			})
+		} catch (error) {
+			console.error("Failed to send message:", error)
+			setMessages(prev =>
+				prev.map(m => (m.id === tempId ? { ...m, status: "failed" } : m))
+			)
+			toast.error("Message failed to send")
 		} finally {
 			setSending(false)
+		}
+	}
+
+	const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: "image" | "video" | "document") => {
+		const file = e.target.files?.[0]
+		if (!file || !chat) return
+
+		const tempId = "temp-media-" + Date.now()
+		const newMsg: Message = {
+			id: tempId,
+			chatId: chat.id,
+			from: "me",
+			to: chat.id,
+			content: type === "image" ? "[Image]" : type === "video" ? "[Video]" : "[Document]",
+			timestamp: Date.now(),
+			status: "pending",
+			type: type,
+			mediaUrl: URL.createObjectURL(file)
+		}
+
+		setMessages(prev => [...prev, newMsg])
+		setTimeout(() => scrollToBottom(), 50)
+
+		try {
+			const res = await api.sendMedia(chat.id, file, type, "")
+			setMessages(prev => {
+				if (prev.some(m => m.id === res.id)) {
+					return prev.filter(m => m.id !== tempId)
+				}
+				return prev.map(m => (m.id === tempId ? { ...m, id: res.id, status: "sent" } : m))
+			})
+		} catch (error) {
+			console.error("Failed to send media:", error)
+			setMessages(prev =>
+				prev.map(m => (m.id === tempId ? { ...m, status: "failed" } : m))
+			)
+			toast.error("Failed to send file")
+		} finally {
 			if (e.target) e.target.value = ""
 		}
 	}
 
-	const addEmoji = useCallback((emoji: string) => setInputMessage(prev => prev + emoji), [])
+	const handleStickerSelect = async (sticker: any) => {
+		if (!chat) return
 
-	const handleFavoriteSticker = async (messageId: string, mediaUrl: string, isAnimated: boolean) => {
+		const tempId = "temp-sticker-" + Date.now()
+		const newMsg: Message = {
+			id: tempId,
+			chatId: chat.id,
+			from: "me",
+			to: chat.id,
+			content: "[Sticker]",
+			timestamp: Date.now(),
+			status: "pending",
+			type: "sticker",
+			mediaUrl: sticker.mediaUrl
+		}
+
+		setMessages(prev => [...prev, newMsg])
+		setTimeout(() => scrollToBottom(), 50)
+
 		try {
-			await api.favoriteSticker(messageId, mediaUrl, isAnimated)
-			toast.success("Sticker added to favorites")
-		} catch (err) {
-			toast.error("Failed to add sticker to favorites")
+			const res = await api.sendSticker(chat.id, sticker.mediaUrl, sticker.isAnimated)
+			setMessages(prev => {
+				if (prev.some(m => m.id === res.id)) {
+					return prev.filter(m => m.id !== tempId)
+				}
+				return prev.map(m => (m.id === tempId ? { ...m, id: res.id, status: "sent" } : m))
+			})
+		} catch (error) {
+			console.error("Failed to send sticker:", error)
+			setMessages(prev =>
+				prev.map(m => (m.id === tempId ? { ...m, status: "failed" } : m))
+			)
 		}
 	}
 
-	const handleStickerSelect = useCallback(async (sticker: any) => {
-		if (!chat || sending) return
-		setSending(true)
+	const handleFavoriteSticker = async (msgId: string, mediaUrl: string, isAnimated: boolean) => {
 		try {
-			await api.sendSticker(chat.id, sticker.mediaUrl, sticker.isAnimated)
-			// Trigger a reload of messages to see the sent sticker
-			setTimeout(async () => await loadMessages(chat.id), 500)
-		} catch (error) {
-			console.error("Failed to send sticker:", error)
-			toast.error("Failed to send sticker")
-		} finally {
-			setSending(false)
+			await api.favoriteSticker(msgId, mediaUrl, isAnimated)
+			toast.success("Sticker added to favorites")
+			setShowFavoriteBtn(null)
+		} catch (err) {
+			toast.error("Failed to favorite sticker")
 		}
-	}, [chat, sending])
+	}
 
-	if (!chat) return null
-	const groupedMessages = groupMessagesByDate(messages)
+	const addEmoji = (emoji: string) => {
+		setInputMessage(prev => prev + emoji)
+	}
+
+	if (!chat) {
+		return (
+			<div className={cn("flex-1 flex flex-col items-center justify-center bg-muted/10", className)}>
+				<div className="w-20 h-20 rounded-3xl bg-primary/5 flex items-center justify-center mb-6">
+					<MessageSquare className="h-10 w-10 text-primary/40" />
+				</div>
+				<h2 className="text-xl font-bold tracking-tight">Select a conversation</h2>
+				<p className="text-muted-foreground text-sm mt-1">Pick a chat from the sidebar to start messaging.</p>
+			</div>
+		)
+	}
+
+	const groupedMessages = messages.reduce((groups: { [key: string]: Message[] }, message) => {
+		const date = formatDate(message.timestamp)
+		if (!groups[date]) groups[date] = []
+		groups[date].push(message)
+		return groups
+	}, {})
 
 	return (
-		<div className={cn("flex flex-col h-full bg-background overflow-hidden relative", className)}>
-			<input 
-				type="file" 
-				className="hidden" 
-				ref={mediaInputRef} 
-				accept="image/*,video/*"
-				onChange={(e) => handleFileChange(e)} 
-			/>
-			<input 
-				type="file" 
-				className="hidden" 
-				ref={documentInputRef} 
-				onChange={(e) => handleFileChange(e, "document")} 
-			/>
-			<div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] z-0" />
-			
-			<header className="flex items-center justify-between px-6 py-4 border-b border-border/40 bg-background/80 backdrop-blur-xl z-10 sticky top-0">
-				<div className="flex items-center gap-4">
+		<div className={cn("flex-1 flex flex-col bg-background relative overflow-hidden", className)}>
+			{/* Header */}
+			<header className="h-16 flex items-center justify-between px-4 border-b border-border/40 bg-background/80 backdrop-blur-xl z-20 sticky top-0">
+				<div className="flex items-center gap-3">
 					{onBack && (
 						<Button variant="ghost" size="icon" onClick={onBack} className="md:hidden -ml-2 rounded-full">
-							<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-							</svg>
+							<ArrowLeft className="h-5 w-5" />
 						</Button>
 					)}
-					<div className="relative group">
-						<Avatar className="h-11 w-11 ring-2 ring-primary/10 transition-transform group-hover:scale-105">
+					<div className="relative">
+						<Avatar className="h-10 w-10 border-2 border-background shadow-sm">
 							<AvatarImage src={getAvatarUrl(chat)} />
 							<AvatarFallback className="bg-primary/10 text-primary font-bold">
 								{chat.name.charAt(0).toUpperCase()}
 							</AvatarFallback>
 						</Avatar>
-						<div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-background rounded-full" />
 					</div>
 					<div className="flex flex-col">
 						<h3 className="font-bold text-base leading-tight tracking-tight">{chat.name}</h3>
-						<div className="flex items-center gap-1.5 mt-0.5">
-							<span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-							<p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Online</p>
-						</div>
+						<p className="text-[11px] font-medium text-muted-foreground truncate max-w-[180px] md:max-w-[250px]">
+							{chat.id}
+						</p>
 					</div>
 				</div>
 			</header>
@@ -588,151 +495,174 @@ export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, classNam
 									const isDocument = message.type === "document"
 									const isMedia = message.mediaUrl && message.mediaUrl.length > 0
 									const nextMsg = msgs[idx + 1]
+									const prevMsg = msgs[idx - 1]
 									const isLastInSequence = !nextMsg || nextMsg.from !== message.from
+									const isFirstInSequence = !prevMsg || prevMsg.from !== message.from
+									const showSenderInfo = !isMe && chat?.isGroup && isFirstInSequence
 
 									return (
 										<div key={message.id} className={cn(
-											"flex w-full group animate-in fade-in slide-in-from-bottom-2 duration-300", 
-											isMe ? "justify-end" : "justify-start", 
+											"flex w-full group animate-in fade-in slide-in-from-bottom-2 duration-300",
+											isMe ? "justify-end" : "justify-start",
 											isLastInSequence ? "mb-4" : "mb-1"
 										)}>
 											<div className={cn(
-												"max-w-[85%] sm:max-w-[70%] flex flex-col relative", 
-												isMe ? "items-end" : "items-start"
+												"max-w-[85%] sm:max-w-[70%] flex relative gap-3",
+												isMe ? "flex-row-reverse" : "flex-row"
 											)}>
-												{message.isAutomatic && (
-													<span className={cn(
-														"text-[10px] font-bold mb-1 px-1 uppercase tracking-widest flex items-center gap-1",
-														isMe ? "text-indigo-500 dark:text-indigo-400" : "text-blue-500"
-													)}>
-														<span className={cn("w-1 h-1 rounded-full", isMe ? "bg-indigo-500 dark:bg-indigo-400" : "bg-blue-500")} />
-														Bot Response
-													</span>
+												{/* Sender Avatar for Groups - aligned to top */}
+												{!isMe && chat?.isGroup && (
+													<div className="w-8 flex-shrink-0 mt-0">
+														{isFirstInSequence && (
+															<Avatar className="h-8 w-8 border-2 border-background shadow-sm">
+																<AvatarImage src={getAvatarUrl(message.from)} />
+																<AvatarFallback className="text-[10px] bg-primary/10 text-primary font-bold">
+																	{message.senderName?.charAt(0).toUpperCase() || "?"}
+																</AvatarFallback>
+															</Avatar>
+														)}
+													</div>
 												)}
-												
-												{isSticker ? (
-													<div 
-														className="relative group/sticker cursor-pointer"
-														onClick={() => setShowFavoriteBtn(showFavoriteBtn === message.id ? null : message.id)}
-													>
-														<div className="w-[160px] h-[160px] flex items-center justify-center">
-															{isMedia ? (
-																<img 
-																	src={getMediaUrl(message.mediaUrl)} 
-																	alt="Sticker" 
-																	className="max-w-full max-h-full object-contain" 
-																/>
-															) : (
-																<div className="w-full h-full bg-muted rounded-xl flex items-center justify-center text-[10px] text-muted-foreground uppercase tracking-widest">
-																	Sticker
-																</div>
-															)}
-														</div>
-														{showFavoriteBtn === message.id && (
-															<button 
-																onClick={(e) => {
-																	e.stopPropagation();
-																	handleFavoriteSticker(message.id, message.mediaUrl || "", false);
-																}}
-																className={cn(
-																	"absolute top-0 p-1.5 bg-background/90 backdrop-blur-md rounded-full shadow-lg transition-all animate-in zoom-in-50 z-10",
-																	isMe ? "left-0" : "right-0"
+
+												<div className={cn(
+													"flex flex-col",
+													isMe ? "items-end" : "items-start"
+												)}>
+													{/* Sender Name for Groups */}
+													{showSenderInfo && (
+														<span className="text-[11px] font-bold mb-1 ml-1 text-primary/80">
+															{message.senderName || message.from.split("@")[0]}
+														</span>
+													)}
+
+													{message.isAutomatic && (
+														<span className={cn(
+															"text-[10px] font-bold mb-1 px-1 uppercase tracking-widest flex items-center gap-1",
+															isMe ? "text-indigo-500 dark:text-indigo-400" : "text-blue-500"
+														)}>
+															<span className={cn("w-1 h-1 rounded-full", isMe ? "bg-indigo-500 dark:bg-indigo-400" : "bg-blue-500")} />
+															Bot Response
+														</span>
+													)}
+
+													{isSticker ? (
+														<div
+															className="relative group/sticker cursor-pointer"
+															onClick={() => setShowFavoriteBtn(showFavoriteBtn === message.id ? null : message.id)}
+														>
+															<div className="w-[160px] h-[160px] flex items-center justify-center">
+																{isMedia ? (
+																	<img
+																		src={getMediaUrl(message.mediaUrl)}
+																		alt="Sticker"
+																		className="max-w-full max-h-full object-contain"
+																	/>
+																) : (
+																	<div className="w-full h-full bg-muted rounded-xl flex items-center justify-center text-[10px] text-muted-foreground uppercase tracking-widest">
+																		Sticker
+																	</div>
 																)}
-																title="Add to Favorites"
-															>
-																<Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-															</button>
-														)}
-														<div className={cn(
-															"absolute bottom-1 right-1 px-1.5 py-0.5 rounded-full bg-black/30 backdrop-blur-sm text-[10px] text-white opacity-0 group-hover/sticker:opacity-100 transition-opacity",
-															isMe ? "right-1" : "left-1"
-														)}>
-															{formatTime(message.timestamp)}
-														</div>
-													</div>
-												) : (
-													<div
-														className={cn(
-															"px-3.5 py-2 rounded-2xl text-[14.5px] relative transition-all duration-200 shadow-[0_1px_0.5px_rgba(0,0,0,0.13)]",
-															isMe
-																? cn(
-																	// Me (Standard) - WhatsApp Green
-																	"bg-[#dcf8c6] dark:bg-[#005c4b] text-[#303030] dark:text-[#e9edef]",
-																	// Me (Automatic) - Purple/Indigo theme
-																	message.isAutomatic && "bg-[#e8eaff] dark:bg-[#2e334d]",
-																	isLastInSequence ? "rounded-tr-none" : "",
-																	isPending && "opacity-70",
-																	isFailed && "bg-destructive text-destructive-foreground"
-																)
-																: cn(
-																	// Other - White/Dark Gray
-																	"bg-white dark:bg-[#202c33] text-[#303030] dark:text-[#e9edef]",
-																	// Bot response from other - Indigo theme
-																	message.isAutomatic && "bg-[#eef2ff] dark:bg-[#1e2235] border-l-[3px] border-indigo-500 dark:border-indigo-400",
-																	isLastInSequence ? "rounded-tl-none" : ""
-																)
-														)}
-													>
-														{isImage && isMedia && (
-															<div className="mb-2 -mx-1 -mt-1 rounded-lg overflow-hidden border border-black/5 dark:border-white/5">
-																<img src={getMediaUrl(message.mediaUrl)} alt="Image" className="w-full max-w-[320px] h-auto object-cover hover:scale-[1.02] transition-transform duration-500 cursor-zoom-in" />
 															</div>
-														)}
-														{isVideo && isMedia && (
-															<div className="mb-2 -mx-1 -mt-1 rounded-lg overflow-hidden border border-black/5 dark:border-white/5 bg-black/10 flex items-center justify-center aspect-video">
-																<video src={getMediaUrl(message.mediaUrl)} className="w-full h-auto max-h-[300px]" controls />
-															</div>
-														)}
-														{isDocument && isMedia && (
-															<a href={getMediaUrl(message.mediaUrl)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 mb-1 p-2 bg-black/5 dark:bg-white/5 rounded-lg border border-black/5 dark:border-white/5">
-																<div className="w-9 h-9 bg-primary/10 rounded flex items-center justify-center">
-																	<FileText className="h-5 w-5 text-primary" />
-																</div>
-																<div className="flex-1 min-w-0">
-																	<p className="text-xs font-bold truncate">Document</p>
-																	<p className="text-[10px] opacity-60">PDF • View</p>
-																</div>
-															</a>
-														)}
-														{message.content && !["[Image]", "[Video]", "[Sticker]"].includes(message.content) && (
-															<div className="break-words leading-relaxed whitespace-pre-wrap">
-																{renderFormattedContent(message.content)}
-															</div>
-														)}
-														<div className={cn(
-															"flex items-center gap-1 mt-1 justify-end", 
-															"text-[10px] font-medium opacity-50 uppercase tracking-tight"
-														)}>
-															<span>{formatTime(message.timestamp)}</span>
-															{isMe && (
-																<span className="flex items-center ml-0.5">
-																	{isPending ? (
-																		<div className="w-2.5 h-2.5 border border-current/30 border-t-current rounded-full animate-spin" />
-																	) : isFailed ? "!" : (
-																		<div className="flex items-center">
-																			{message.status === "sent" ? (
-																				// Single Tick
-																				<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-																					<path d="M13.5 4.5L6.5 11.5L3 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-																				</svg>
-																			) : (
-																				// Double Tick
-																				<div className="relative flex items-center">
-																					<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={cn(message.status === "read" ? "text-[#53bdeb]" : "text-current opacity-70")}>
-																						<path d="M13.5 4.5L6.5 11.5L3 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-																					</svg>
-																					<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={cn("absolute left-[4px]", message.status === "read" ? "text-[#53bdeb]" : "text-current opacity-70")}>
-																						<path d="M13.5 4.5L6.5 11.5L3 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-																					</svg>
-																				</div>
-																			)}
-																		</div>
+															{showFavoriteBtn === message.id && (
+																<button
+																	onClick={(e) => {
+																		e.stopPropagation();
+																		handleFavoriteSticker(message.id, message.mediaUrl || "", false);
+																	}}
+																	className={cn(
+																		"absolute top-0 p-1.5 bg-background/90 backdrop-blur-md rounded-full shadow-lg transition-all animate-in zoom-in-50 z-10",
+																		isMe ? "left-0" : "right-0"
 																	)}
-																</span>
+																	title="Add to Favorites"
+																>
+																	<Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+																</button>
 															)}
+															<div className={cn(
+																"absolute bottom-1 right-1 px-1.5 py-0.5 rounded-full bg-black/30 backdrop-blur-sm text-[10px] text-white opacity-0 group-hover/sticker:opacity-100 transition-opacity",
+																isMe ? "right-1" : "left-1"
+															)}>
+																{formatTime(message.timestamp)}
+															</div>
 														</div>
-													</div>
-												)}
+													) : (
+														<div
+															className={cn(
+																"px-3.5 py-2 rounded-2xl text-[14.5px] relative transition-all duration-200 shadow-[0_1px_0.5px_rgba(0,0,0,0.13)]",
+																isMe
+																	? cn(
+																		"bg-[#dcf8c6] dark:bg-[#005c4b] text-[#303030] dark:text-[#e9edef]",
+																		message.isAutomatic && "bg-[#e8eaff] dark:bg-[#2e334d]",
+																		isLastInSequence ? "rounded-tr-none" : "",
+																		isPending && "opacity-70",
+																		isFailed && "bg-destructive text-destructive-foreground"
+																	)
+																	: cn(
+																		"bg-white dark:bg-[#202c33] text-[#303030] dark:text-[#e9edef]",
+																		message.isAutomatic && "bg-[#eef2ff] dark:bg-[#1e2235] border-l-[3px] border-indigo-500 dark:border-indigo-400",
+																		isLastInSequence ? "rounded-tl-none" : ""
+																	)
+															)}
+														>
+															{isImage && isMedia && (
+																<div className="mb-2 -mx-1 -mt-1 rounded-lg overflow-hidden border border-black/5 dark:border-white/5">
+																	<img src={getMediaUrl(message.mediaUrl)} alt="Image" className="w-full max-w-[320px] h-auto object-cover hover:scale-[1.02] transition-transform duration-500 cursor-zoom-in" />
+																</div>
+															)}
+															{isVideo && isMedia && (
+																<div className="mb-2 -mx-1 -mt-1 rounded-lg overflow-hidden border border-black/5 dark:border-white/5 bg-black/10 flex items-center justify-center aspect-video">
+																	<video src={getMediaUrl(message.mediaUrl)} className="w-full h-auto max-h-[300px]" controls />
+																</div>
+															)}
+															{isDocument && isMedia && (
+																<a href={getMediaUrl(message.mediaUrl)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 mb-1 p-2 bg-black/5 dark:bg-white/5 rounded-lg border border-black/5 dark:border-white/5">
+																	<div className="w-9 h-9 bg-primary/10 rounded flex items-center justify-center">
+																		<FileText className="h-5 w-5 text-primary" />
+																	</div>
+																	<div className="flex-1 min-w-0">
+																		<p className="text-xs font-bold truncate">Document</p>
+																		<p className="text-[10px] opacity-60">PDF • View</p>
+																	</div>
+																</a>
+															)}
+															{message.content && !["[Image]", "[Video]", "[Sticker]"].includes(message.content) && (
+																<div className="break-words leading-relaxed whitespace-pre-wrap">
+																	{renderFormattedContent(message.content)}
+																</div>
+															)}
+															<div className={cn(
+																"flex items-center gap-1 mt-1 justify-end",
+																"text-[10px] font-medium opacity-50 uppercase tracking-tight"
+															)}>
+																<span>{formatTime(message.timestamp)}</span>
+																{isMe && (
+																	<span className="flex items-center ml-0.5">
+																		{isPending ? (
+																			<div className="w-2.5 h-2.5 border border-current/30 border-t-current rounded-full animate-spin" />
+																		) : isFailed ? "!" : (
+																			<div className="flex items-center">
+																				{message.status === "sent" ? (
+																					<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+																						<path d="M13.5 4.5L6.5 11.5L3 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+																					</svg>
+																				) : (
+																					<div className="relative flex items-center">
+																						<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={cn(message.status === "read" ? "text-[#53bdeb]" : "text-current opacity-70")}>
+																							<path d="M13.5 4.5L6.5 11.5L3 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+																						</svg>
+																						<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={cn("absolute left-[4px]", message.status === "read" ? "text-[#53bdeb]" : "text-current opacity-70")}>
+																							<path d="M13.5 4.5L6.5 11.5L3 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+																						</svg>
+																					</div>
+																				)}
+																			</div>
+																		)}
+																	</span>
+																)}
+															</div>
+														</div>
+													)}
+												</div>
 											</div>
 										</div>
 									)
@@ -767,7 +697,7 @@ export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, classNam
 								<StickerPicker onStickerSelect={handleStickerSelect} />
 							</PopoverContent>
 						</Popover>
-						
+
 						<Popover>
 							<PopoverTrigger asChild>
 								<Button variant="ghost" size="icon" className="rounded-full text-muted-foreground hover:bg-muted">
@@ -776,7 +706,7 @@ export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, classNam
 							</PopoverTrigger>
 							<PopoverContent className="w-[200px] p-1" align="start" side="top">
 								<div className="flex flex-col">
-									<button 
+									<button
 										onClick={() => mediaInputRef.current?.click()}
 										className="flex items-center gap-3 w-full p-2.5 hover:bg-muted rounded-lg text-sm transition-colors"
 									>
@@ -785,7 +715,7 @@ export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, classNam
 										</div>
 										<span className="font-medium">Photos & Videos</span>
 									</button>
-									<button 
+									<button
 										onClick={() => documentInputRef.current?.click()}
 										className="flex items-center gap-3 w-full p-2.5 hover:bg-muted rounded-lg text-sm transition-colors"
 									>
@@ -813,6 +743,22 @@ export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, classNam
 					</div>
 				</div>
 			</footer>
+
+			{/* Hidden inputs for file uploads */}
+			<input
+				type="file"
+				ref={mediaInputRef}
+				onChange={e => handleFileUpload(e, "image")}
+				accept="image/*,video/*"
+				className="hidden"
+			/>
+			<input
+				type="file"
+				ref={documentInputRef}
+				onChange={e => handleFileUpload(e, "document")}
+				accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
+				className="hidden"
+			/>
 		</div>
 	)
 }

@@ -10,8 +10,8 @@ import { cn } from "@/lib/utils"
 interface ChatSidebarProps {
 	selectedChatId: string | null
 	onChatSelect: (chat: Chat) => void
-	chatUpdate?: { chatId: string; lastMsg: string; lastTime: number; msgId: string; senderName?: string } | null
-	className?: string
+			chatUpdate?: { chatId: string; lastMsg: string; lastTime: number; msgId: string; senderName?: string; chatName?: string; chatAvatar?: string } | null
+			className?: string
 }
 
 // Get avatar URL - prefer actual avatar, fallback to proxy
@@ -54,37 +54,49 @@ export function ChatSidebar({
 			setChats(prevChats => {
 				const chatExists = prevChats.some(c => c.id === chatUpdate.chatId);
 				
-				if (!chatExists) {
-					// Add new chat
-					const newChat: Chat = {
-						id: chatUpdate.chatId,
-						name: chatUpdate.senderName || chatUpdate.chatId,
-						avatar: "",
-						lastMsg: chatUpdate.lastMsg,
-						lastTime: chatUpdate.lastTime,
-						unread: selectedChatId === chatUpdate.chatId ? 0 : 1,
-						isActive: true,
-						isGroup: chatUpdate.chatId.includes("@g.us"),
-					};
-					return [newChat, ...prevChats].sort((a, b) => b.lastTime - a.lastTime);
-				}
-
-				return prevChats.map(chat =>
-					chat.id === chatUpdate.chatId
-						? {
-								...chat,
-								lastMsg: chatUpdate.lastMsg,
-								lastTime: chatUpdate.lastTime,
-								unread: chat.id === selectedChatId ? 0 : chat.unread + 1,
-						  }
-						: chat
-				).sort((a, b) => {
-					// Sort by lastTime descending - updated chat goes to top
-					if (a.id === chatUpdate.chatId) return -1
-					if (b.id === chatUpdate.chatId) return 1
-					return b.lastTime - a.lastTime
-				})
-			})
+				                                                                if (!chatExists) {
+				                                                                        // Add new chat
+				                                                                        const newChat: Chat = {
+				                                                                                id: chatUpdate.chatId,
+				                                                                                name: chatUpdate.chatName || chatUpdate.senderName || chatUpdate.chatId,
+				                                                                                avatar: "",
+				                                                                                lastMsg: chatUpdate.lastMsg,
+				                                                                                lastTime: chatUpdate.lastTime,
+				                                                                                unread: selectedChatId === chatUpdate.chatId ? 0 : 1,     
+				                                                                                isActive: true,
+				                                                                                isGroup: chatUpdate.chatId.includes("@g.us"),
+				                                                                        };
+				                                                                        return [newChat, ...prevChats].sort((a, b) => b.lastTime - a.lastTime);
+				                                                                }
+				                                
+				                                                                                                return prevChats.map(chat => {
+				                                                                                                        if (chat.id === chatUpdate.chatId) {
+				                                                                                                                // If it's a name/avatar update only (lastMsg is empty)
+				                                                                                                                if (chatUpdate.lastMsg === "") {
+				                                                                                                                        return {
+				                                                                                                                                ...chat,
+				                                                                                                                                name: chatUpdate.chatName || chat.name,
+				                                                                                                                                avatar: chatUpdate.chatAvatar || chat.avatar
+				                                                                                                                        }
+				                                                                                                                }
+				                                                                                                                // Regular message update
+				                                                                                                                return {
+				                                                                                                                        ...chat,
+				                                                                                                                        name: chatUpdate.chatName || chat.name,
+				                                                                                                                        avatar: chatUpdate.chatAvatar || chat.avatar,
+				                                                                                                                        lastMsg: chatUpdate.lastMsg,
+				                                                                                                                        lastTime: chatUpdate.lastTime,
+				                                                                                                                        unread: chat.id === selectedChatId ? 0 : chat.unread + 1,
+				                                                                                                                }
+				                                                                                                        }
+				                                                                                                        return chat
+				                                                                                                }).sort((a, b) => {				                                                                        // Sort by lastTime descending - updated chat goes to top (only for messages)
+				                                                                        if (chatUpdate.lastMsg !== "") {
+				                                                                                if (a.id === chatUpdate.chatId) return -1
+				                                                                                if (b.id === chatUpdate.chatId) return 1
+				                                                                        }
+				                                                                        return b.lastTime - a.lastTime
+				                                                                })			})
 		}
 	}, [chatUpdate, selectedChatId])
 
