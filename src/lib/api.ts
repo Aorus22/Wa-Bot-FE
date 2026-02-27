@@ -25,14 +25,23 @@ export type Chat = {
 }
 
 export type Contact = {
-	id: string
-	name: string
-	jid: string
-	avatar: string
+        id: string
+        name: string
+        jid: string
+        avatar: string
 }
 
-class ApiClient {
-	private baseUrl: string
+export type Trigger = {
+        id: string
+        name: string
+        pattern: string
+        script: string
+        is_active: boolean
+        created_at?: string
+        updated_at?: string
+}
+
+class ApiClient {	private baseUrl: string
 
 	constructor(baseUrl: string = API_BASE) {
 		this.baseUrl = baseUrl
@@ -116,14 +125,44 @@ class ApiClient {
 		return this.request<{ isLoggedIn: boolean }>("/status")
 	}
 
-	async logout(): Promise<{ status: string }> {
-		return this.request<{ status: string }>("/logout", {
-			method: "POST",
-		})
-	}
-
-	async sendMessage(target: string, message: string): Promise<{ status: string }> {
-		return this.request<{ status: string }>("/send-message", {
+	        async logout(): Promise<{ status: string }> {
+	                return this.request<{ status: string }>("/logout", {
+	                        method: "POST",
+	                })
+	        }
+	
+	        async getTriggers(): Promise<Trigger[]> {
+	                return this.request<Trigger[]>("/triggers")
+	        }
+	
+	        async createTrigger(trigger: Partial<Trigger>): Promise<Trigger> {
+	                return this.request<Trigger>("/triggers", {
+	                        method: "POST",
+	                        body: JSON.stringify(trigger),
+	                })
+	        }
+	
+	        async updateTrigger(id: string, trigger: Partial<Trigger>): Promise<Trigger> {
+	                return this.request<Trigger>(`/triggers/${id}`, {
+	                        method: "PUT",
+	                        body: JSON.stringify(trigger),
+	                })
+	        }
+	
+	                async deleteTrigger(id: string): Promise<{ status: string }> {
+	                        return this.request<{ status: string }>(`/triggers/${id}`, {
+	                                method: "DELETE",
+	                        })
+	                }
+	        
+	                async testTrigger(data: { pattern: string; script: string; message: string }): Promise<any> {
+	                        return this.request<any>("/triggers/test", {
+	                                method: "POST",
+	                                body: JSON.stringify(data),
+	                        })
+	                }
+	        
+	                async sendMessage(target: string, message: string): Promise<{ status: string }> {		return this.request<{ status: string }>("/send-message", {
 			method: "POST",
 			body: JSON.stringify({
 				secret: import.meta.env.VITE_API_SECRET || "default-secret",
