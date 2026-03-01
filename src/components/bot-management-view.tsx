@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Bot, Plus, Trash2, Edit2, Search, Code, Zap, FileText } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Bot, Plus, Trash2, Edit2, Search, Code, Zap, FileText, Download, Upload } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -19,6 +19,7 @@ export function BotManagementView({ onEditTrigger, onViewDocs }: BotManagementVi
   const [triggers, setTriggers] = useState<Trigger[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     loadTriggers()
@@ -57,54 +58,149 @@ export function BotManagementView({ onEditTrigger, onViewDocs }: BotManagementVi
     }
   }
 
+  const handleExport = () => {
+    if (triggers.length === 0) {
+      toast.error('No triggers to export')
+      return
+    }
+
+    const dataStr = JSON.stringify(triggers, null, 2)
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr)
+    
+    const exportFileDefaultName = `wa-bot-triggers-${new Date().toISOString().split('T')[0]}.json`
+    
+    const linkElement = document.createElement('a')
+    linkElement.setAttribute('href', dataUri)
+    linkElement.setAttribute('download', exportFileDefaultName)
+    linkElement.click()
+    
+    toast.success('Triggers exported successfully')
+  }
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = async (event) => {
+      try {
+        const content = event.target?.result as string
+        const importedTriggers = JSON.parse(content)
+        
+        if (!Array.isArray(importedTriggers)) {
+          throw new Error('Invalid format: Expected an array of triggers')
+        }
+
+        setLoading(true)
+        let successCount = 0
+        let failCount = 0
+
+        for (const trigger of importedTriggers) {
+          try {
+            // Strip ID to create as new if it already exists or just to be safe
+            const { id, created_at, updated_at, ...cleanTrigger } = trigger
+            await api.createTrigger(cleanTrigger)
+            successCount++
+          } catch (err) {
+            console.error('Failed to import trigger:', trigger.name, err)
+            failCount++
+          }
+        }
+
+        toast.success(`Imported ${successCount} triggers successfully${failCount > 0 ? `. ${failCount} failed.` : ''}`)
+        loadTriggers()
+      } catch (error) {
+        console.error('Import error:', error)
+        toast.error('Failed to parse import file')
+      } finally {
+        setLoading(false)
+        if (e.target) e.target.value = ''
+      }
+    }
+    reader.readAsText(file)
+  }
+
   const filteredTriggers = triggers.filter(t => 
     t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     t.pattern.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   return (
-    <div className='flex flex-col h-full w-full bg-background'>
-      {/* Header */}
-      <div className='p-8 border-b border-border/40'>
-        <div className='flex items-center justify-between mb-2'>
-          <div className='flex items-center gap-3'>
-            <div className='p-2.5 rounded-2xl bg-primary/10 text-primary'>
-              <Bot className='h-6 w-6' />
+    <ScrollArea className='h-full w-full bg-background'>
+      <div className='flex flex-col min-h-full w-full'>
+        {/* Header */}
+        <div className='p-8 border-b border-border/40'>
+          <div className='flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2'>
+            <div className='flex items-center gap-3'>
+              <div className='p-2.5 rounded-2xl bg-primary/10 text-primary'>
+                <Bot className='h-6 w-6' />
+              </div>
+              <div>
+                <h1 className='text-3xl font-bold tracking-tight'>Bot Management</h1>
+                <p className='text-muted-foreground'>Configure automated regex triggers and Lua scripts.</p>
+              </div>
             </div>
-            <div>
-              <h1 className='text-3xl font-bold tracking-tight'>Bot Management</h1>
-              <p className='text-muted-foreground'>Configure automated regex triggers and Lua scripts.</p>
+            <div className='flex flex-wrap items-center gap-2'>
+              <div className='relative w-full md:w-48 lg:w-64 mr-2'>
+                <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
+                <Input
+                  placeholder='Search triggers...'
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className='pl-9 rounded-xl border-border/40 bg-muted/30 focus-visible:ring-primary/20'    
+                />
+              </div>
+              
+              <div className='flex items-center gap-2'>
+                <Button
+                  variant='outline'
+                  size='icon'
+                  onClick={handleExport}
+                  className='rounded-xl border-border/40'
+                  title='Export Triggers'
+                >
+                  <Download className='h-4 w-4' />
+                </Button>
+                <Button
+                  variant='outline'
+                  size='icon'
+                  onClick={handleImportClick}
+                  className='rounded-xl border-border/40'
+                  title='Import Triggers'
+                >
+                  <Upload className='h-4 w-4' />
+                </Button>
+                <input 
+                  type='file' 
+                  ref={fileInputRef} 
+                  onChange={handleFileImport} 
+                  accept='.json' 
+                  className='hidden' 
+                />
+                
+                <Button
+                  variant='outline'
+                  onClick={onViewDocs}
+                  className='rounded-xl px-4 border-border/40'
+                >
+                  <FileText className='mr-2 h-4 w-4' /> Docs
+                </Button>
+                <Button
+                  onClick={() => onEditTrigger(null)}
+                  className='rounded-xl px-6 h-10 font-semibold shadow-md shadow-primary/10'
+                >
+                  <Plus className='mr-2 h-4 w-4' /> New
+                </Button>
+              </div>
             </div>
-          </div>
-          <div className='flex items-center gap-4'>
-            <div className='relative w-64'>
-              <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
-              <Input 
-                placeholder='Search triggers...' 
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className='pl-9 rounded-xl border-border/40 bg-muted/30 focus-visible:ring-primary/20'
-              />
-            </div>
-            <Button 
-              variant='outline'
-              onClick={onViewDocs}
-              className='rounded-2xl px-4 border-border/40'
-            >
-              <FileText className='mr-2 h-4 w-4' /> Documentation
-            </Button>
-            <Button 
-              onClick={() => onEditTrigger(null)}
-              className='rounded-2xl px-6 h-11 font-semibold shadow-lg shadow-primary/20'
-            >
-              <Plus className='mr-2 h-4 w-4' /> New Trigger
-            </Button>
           </div>
         </div>
-      </div>
 
-      <ScrollArea className='flex-1 w-full'>
-        <div className='p-8 w-full'>
+        <div className='p-8 w-full flex-1'>
           {loading ? (
             <div className='flex flex-col items-center justify-center py-24 gap-4 opacity-50'>
               <div className='w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin' />
@@ -119,7 +215,7 @@ export function BotManagementView({ onEditTrigger, onViewDocs }: BotManagementVi
                 <h3 className='text-xl font-bold'>No triggers found</h3>
                 <p className='text-muted-foreground max-w-[320px]'>Create your first dynamic trigger to start automating your bot.</p>
               </div>
-              <Button 
+              <Button
                 variant='outline'
                 onClick={() => onEditTrigger(null)}
                 className='rounded-xl'
@@ -133,8 +229,8 @@ export function BotManagementView({ onEditTrigger, onViewDocs }: BotManagementVi
                 <Card key={trigger.id} className='rounded-[2rem] border-border/40 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 group flex flex-col'>
                   <CardHeader className='pb-4'>
                     <div className='flex items-center justify-between mb-2'>
-                      <Badge 
-                        variant='outline' 
+                      <Badge
+                        variant='outline'
                         className={cn(
                           'rounded-full px-3 py-1 border-none',
                           trigger.is_active ? 'bg-green-500/10 text-green-600' : 'bg-muted text-muted-foreground'
@@ -142,19 +238,19 @@ export function BotManagementView({ onEditTrigger, onViewDocs }: BotManagementVi
                       >
                         {trigger.is_active ? 'Active' : 'Disabled'}
                       </Badge>
-                      <div className='flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>
-                        <Button 
-                          variant='ghost' 
-                          size='icon' 
+                      <div className='flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity'>   
+                        <Button
+                          variant='ghost'
+                          size='icon'
                           className='h-8 w-8 rounded-full'
                           onClick={() => onEditTrigger(trigger)}
                         >
                           <Edit2 className='h-3.5 w-3.5' />
                         </Button>
-                        <Button 
-                          variant='ghost' 
+                        <Button
+                          variant='ghost'
                           size='icon' 
-                          className='h-8 w-8 rounded-full text-destructive hover:text-destructive'
+                          className='h-8 w-8 rounded-full text-destructive hover:text-destructive'        
                           onClick={() => handleDelete(trigger.id)}
                         >
                           <Trash2 className='h-3.5 w-3.5' />
@@ -162,7 +258,7 @@ export function BotManagementView({ onEditTrigger, onViewDocs }: BotManagementVi
                       </div>
                     </div>
                     <CardTitle className='text-xl truncate'>{trigger.name}</CardTitle>
-                    <CardDescription className='font-mono text-[10px] truncate bg-muted/50 p-1 rounded'>
+                    <CardDescription className='font-mono text-[10px] truncate bg-muted/50 p-1 rounded'>  
                       {trigger.pattern}
                     </CardDescription>
                   </CardHeader>
@@ -179,14 +275,14 @@ export function BotManagementView({ onEditTrigger, onViewDocs }: BotManagementVi
                   </CardContent>
                   <CardFooter className='border-t border-border/40 pt-4 bg-muted/5'>
                     <div className='flex items-center justify-between w-full'>
-                      <div className='flex items-center gap-2 text-xs font-medium text-muted-foreground'>
+                      <div className='flex items-center gap-2 text-xs font-medium text-muted-foreground'> 
                         <div className={cn('w-2 h-2 rounded-full', trigger.is_active ? 'bg-green-500 animate-pulse' : 'bg-muted-foreground/30')} />
                         {trigger.is_active ? 'Ready' : 'Paused'}
                       </div>
-                      <Switch 
-                        checked={trigger.is_active} 
+                      <Switch
+                        checked={trigger.is_active}
                         onCheckedChange={() => toggleStatus(trigger)}
-                        className='data-[state=checked]:bg-green-500' 
+                        className='data-[state=checked]:bg-green-500'
                       />
                     </div>
                   </CardFooter>
@@ -195,7 +291,6 @@ export function BotManagementView({ onEditTrigger, onViewDocs }: BotManagementVi
             </div>
           )}
         </div>
-      </ScrollArea>
-    </div>
-  )
-}
+      </div>
+    </ScrollArea>
+  )}

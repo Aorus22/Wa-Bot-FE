@@ -37,11 +37,10 @@ export function NavigationSidebar({ activeItem, onNavItemSelect, onLogout }: Nav
       </div>
 
       {/* Bottom Section */}
-      <div className='flex flex-col gap-4 mt-auto'>
+      <div className='flex flex-col items-center gap-4 mt-auto'>
         <ModeToggle />
-        
-        <Tooltip delayDuration={0}>
-          <TooltipTrigger asChild>
+
+        <Tooltip delayDuration={0}>          <TooltipTrigger asChild>
             <button
               onClick={onLogout}
               className='p-3.5 rounded-2xl transition-all duration-200 text-muted-foreground hover:bg-destructive/10 hover:text-destructive'
