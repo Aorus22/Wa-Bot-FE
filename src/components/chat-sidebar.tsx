@@ -153,11 +153,11 @@ export function ChatSidebar({
 	}
 
 	return (
-		<div className={cn("flex flex-col h-full bg-background border-r border-border/40", className)}>
+		<div className={cn("flex flex-col h-full max-h-full bg-background border-r border-border/40 overflow-hidden", className)}>
 			{/* Header */}
-			<div className="flex flex-col p-5 space-y-4">
+			<div className="flex flex-col p-5 space-y-4 shrink-0">
 				<div className="flex items-center justify-between">
-					<h2 className="text-2xl font-bold tracking-tight">Messages</h2>
+					<h2 className="text-2xl font-bold tracking-tight">Messages</h2>   
 				</div>
 
 				{/* Search - Expandable or always visible */}
@@ -173,8 +173,7 @@ export function ChatSidebar({
 			</div>
 
 			{/* Chat List */}
-			<ScrollArea className="flex-1 px-2">
-				{loading ? (
+			<ScrollArea className="flex-1 px-2 min-h-0">				{loading ? (
 					<div className="flex flex-col items-center justify-center py-12 space-y-3 opacity-50">
 						<div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
 						<p className="text-sm font-medium">Syncing chats...</p>

@@ -129,35 +129,40 @@ const StickerPicker = memo(({ onStickerSelect }: { onStickerSelect: (sticker: an
 
 StickerPicker.displayName = "StickerPicker"
 
+const getApiBase = () => {
+	const envUrl = import.meta.env.VITE_API_URL
+	if (envUrl) return envUrl
+	return typeof window !== "undefined" ? `${window.location.origin}/api` : ""
+}
+
 const getMediaUrl = (url: string | undefined): string | undefined => {
 	if (!url) return undefined
 	if (url.startsWith("http://") || url.startsWith("https://")) return url
 
+	const apiBase = getApiBase()
 	const parts = url.split("/")
 	if (parts.length > 1) {
 		const filename = parts.pop()!
 		const path = parts.join("/")
 		const encodedFilename = encodeURIComponent(filename)
-		const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000/api"
-		const fullUrl = `${API_BASE}${path}/${encodedFilename}`
+		const fullUrl = `${apiBase}${path}/${encodedFilename}`
 		return fullUrl
 	}
 
-	const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000/api"
-	return `${API_BASE}${url}`
+	return `${apiBase}${url}`
 }
 
 const getAvatarUrl = (target: Chat | string): string | undefined => {
+	const apiBase = getApiBase()
+
 	if (typeof target !== "string") {
 		if (target.avatar && target.avatar.length > 0 && !target.avatar.startsWith("data:")) {
 			return target.avatar
 		}
-		const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000/api"
-		return `${API_BASE}/avatar/${encodeURIComponent(target.id)}`
+		return `${apiBase}/avatar/${encodeURIComponent(target.id)}`
 	}
 
-	const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000/api"
-	return `${API_BASE}/avatar/${encodeURIComponent(target)}`
+	return `${apiBase}/avatar/${encodeURIComponent(target)}`
 }
 
 const formatTime = (timestamp: number) => {

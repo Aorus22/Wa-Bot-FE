@@ -12,7 +12,18 @@ type WebSocketHook = {
 	lastMessage: WSMessage | null
 }
 
-const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:3000/ws"
+const getWsUrl = () => {
+	const envUrl = import.meta.env.VITE_WS_URL
+	if (envUrl) return envUrl
+
+	if (typeof window !== "undefined") {
+		const protocol = window.location.protocol === "https:" ? "wss:" : "ws:"
+		return `${protocol}//${window.location.host}/ws`
+	}
+	return ""
+}
+
+const WS_URL = getWsUrl()
 
 export function useWebSocket(userId?: string, onMessage?: (msg: WSMessage) => void): WebSocketHook {
 	const [isConnected, setIsConnected] = useState(false)
