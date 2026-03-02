@@ -54,7 +54,7 @@ send_text(sender, "You said: " .. (param or "nothing"))`,
         toast.success('Trigger created successfully')
       }
       onBack()
-    } catch (error) {
+    } catch {
       toast.error('Failed to save trigger')
     } finally {
       setIsSaving(false)
@@ -113,27 +113,36 @@ send_text(sender, "You said: " .. (param or "nothing"))`,
         {/* Left Side: Editor */}
         <div className='flex-1 flex flex-col border-r border-border/40 overflow-hidden'>
           <div className='p-6 space-y-6 flex-1 flex flex-col min-h-0'>
-            <div className='grid grid-cols-2 gap-6 shrink-0'>
+            <div className='grid grid-cols-1 md:grid-cols-3 gap-6 shrink-0'>
               <div className='space-y-2'>
                 <Label className='text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1'>Trigger Name</Label>
-                <Input 
+                <Input
                   placeholder='e.g., Auto Reply Greeting'
                   value={formData.name}
                   onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  className='rounded-xl h-11 border-border/40 bg-muted/30 focus-visible:ring-primary/20'
+                  className='rounded-xl h-11 border-border/40 bg-muted/30 focus-visible:ring-primary/20'  
                 />
               </div>
               <div className='space-y-2'>
                 <Label className='text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1'>Regex Pattern</Label>
-                <Input 
+                <Input
                   placeholder='^!test\s+(.*)'
                   value={formData.pattern}
                   onChange={e => setFormData(prev => ({ ...prev, pattern: e.target.value }))}
                   className='rounded-xl h-11 border-border/40 bg-muted/30 font-mono focus-visible:ring-primary/20'
                 />
               </div>
-            </div>
-            
+              <div className='space-y-2'>
+                <Label className='text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1'>Priority</Label>
+                <Input
+                  type='number'
+                  placeholder='0'
+                  value={formData.priority || 0}
+                  onChange={e => setFormData(prev => ({ ...prev, priority: parseInt(e.target.value) || 0 }))}
+                  className='rounded-xl h-11 border-border/40 bg-muted/30 focus-visible:ring-primary/20'
+                />
+              </div>
+            </div>            
             <div className='space-y-3 flex-1 flex flex-col min-h-0'>
               <div className='flex items-center justify-between shrink-0'>
                 <Label className='text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1 flex items-center gap-2'>
@@ -168,8 +177,8 @@ send_text(sender, "You said: " .. (param or "nothing"))`,
         </div>
 
         {/* Right Side: Debugger */}
-        <div className='w-[450px] bg-muted/10 flex flex-col'>
-          <div className='p-6 border-b border-border/40 bg-muted/30'>
+        <div className='w-[450px] bg-muted/10 flex flex-col h-full overflow-hidden shrink-0'>
+          <div className='p-6 border-b border-border/40 bg-muted/30 shrink-0'>
             <h2 className='text-sm font-bold flex items-center gap-2 mb-4'>
               <Terminal className='h-4 w-4 text-primary' />
               Trigger Debugger
@@ -195,7 +204,7 @@ send_text(sender, "You said: " .. (param or "nothing"))`,
             </div>
           </div>
 
-          <ScrollArea className='flex-1 p-6'>
+          <ScrollArea className='flex-1 p-6 min-h-0'>
             {testResult ? (
               <div className='space-y-6'>
                 {/* Match Status */}

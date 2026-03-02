@@ -1,11 +1,21 @@
 import { useState, useEffect, useRef } from 'react'
-import { Bot, Plus, Trash2, Edit2, Search, Code, Zap, FileText, Download, Upload } from 'lucide-react'
+import { Bot, Plus, Trash2, Edit2, Search, Code, Zap, FileText, Download, Upload, AlertTriangle } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Switch } from '@/components/ui/switch'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { api, type Trigger } from '@/lib/api'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -19,6 +29,8 @@ export function BotManagementView({ onEditTrigger, onViewDocs }: BotManagementVi
   const [triggers, setTriggers] = useState<Trigger[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [isDeleteAllOpen, setIsDeleteAllOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -38,14 +50,30 @@ export function BotManagementView({ onEditTrigger, onViewDocs }: BotManagementVi
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this trigger?')) return
+  const handleDelete = async () => {
+    if (!deleteId) return
     try {
-      await api.deleteTrigger(id)
+      await api.deleteTrigger(deleteId)
       toast.success('Trigger deleted')
+      setDeleteId(null)
       loadTriggers()
     } catch (error) {
       toast.error('Failed to delete trigger')
+    }
+  }
+
+  const handleDeleteAll = async () => {
+    try {
+      setLoading(true)
+      setIsDeleteAllOpen(false)
+      await api.deleteAllTriggers()
+      toast.success('All triggers deleted')
+      loadTriggers()
+    } catch (error) {
+      console.error('Failed to delete all triggers:', error)
+      toast.error('Failed to delete all triggers')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -132,6 +160,58 @@ export function BotManagementView({ onEditTrigger, onViewDocs }: BotManagementVi
   return (
     <ScrollArea className='h-full w-full bg-background'>
       <div className='flex flex-col min-h-full w-full'>
+        {/* Delete Single Trigger Dialog */}
+        <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+          <AlertDialogContent className='rounded-[2rem] border-border/40'>
+            <AlertDialogHeader>
+              <div className='flex items-center gap-3 text-destructive mb-2'>
+                <div className='p-2 rounded-full bg-destructive/10'>
+                  <Trash2 className='h-5 w-5' />
+                </div>
+                <AlertDialogTitle className='text-xl'>Delete Trigger?</AlertDialogTitle>
+              </div>
+              <AlertDialogDescription>
+                This will permanently remove the trigger and its Lua script. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className='mt-4'>
+              <AlertDialogCancel className='rounded-xl'>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleDelete}
+                className='rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold'
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Delete All Triggers Dialog */}
+        <AlertDialog open={isDeleteAllOpen} onOpenChange={setIsDeleteAllOpen}>
+          <AlertDialogContent className='rounded-[2rem] border-destructive/20 bg-destructive/5 dark:bg-destructive/[0.02]'>
+            <AlertDialogHeader>
+              <div className='flex items-center gap-3 text-destructive mb-2'>
+                <div className='p-2 rounded-full bg-destructive/20'>
+                  <AlertTriangle className='h-6 w-6' />
+                </div>
+                <AlertDialogTitle className='text-2xl font-bold'>DANGER: Delete All Triggers?</AlertDialogTitle>
+              </div>
+              <AlertDialogDescription className='text-destructive/80 font-medium'>
+                WARNING: This will wipe your entire trigger library. All automated behaviors and custom scripts will be lost forever.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className='mt-6'>
+              <AlertDialogCancel className='rounded-xl bg-background'>Keep My Triggers</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleDeleteAll}
+                className='rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90 font-bold shadow-lg shadow-destructive/20'
+              >
+                Yes, Wipe Everything
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         {/* Header */}
         <div className='p-8 border-b border-border/40'>
           <div className='flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2'>
@@ -156,6 +236,16 @@ export function BotManagementView({ onEditTrigger, onViewDocs }: BotManagementVi
               </div>
               
               <div className='flex items-center gap-2'>
+                <Button
+                  variant='outline'
+                  size='icon'
+                  onClick={() => setIsDeleteAllOpen(true)}
+                  className='rounded-xl border-border/40 text-destructive hover:text-destructive hover:bg-destructive/10'
+                  title='Delete ALL Triggers'
+                  disabled={triggers.length === 0}
+                >
+                  <Trash2 className='h-4 w-4' />
+                </Button>
                 <Button
                   variant='outline'
                   size='icon'
@@ -251,7 +341,7 @@ export function BotManagementView({ onEditTrigger, onViewDocs }: BotManagementVi
                           variant='ghost'
                           size='icon' 
                           className='h-8 w-8 rounded-full text-destructive hover:text-destructive'        
-                          onClick={() => handleDelete(trigger.id)}
+                          onClick={() => setDeleteId(trigger.id)}
                         >
                           <Trash2 className='h-3.5 w-3.5' />
                         </Button>
@@ -275,10 +365,13 @@ export function BotManagementView({ onEditTrigger, onViewDocs }: BotManagementVi
                   </CardContent>
                   <CardFooter className='border-t border-border/40 pt-4 bg-muted/5'>
                     <div className='flex items-center justify-between w-full'>
-                      <div className='flex items-center gap-2 text-xs font-medium text-muted-foreground'> 
-                        <div className={cn('w-2 h-2 rounded-full', trigger.is_active ? 'bg-green-500 animate-pulse' : 'bg-muted-foreground/30')} />
-                        {trigger.is_active ? 'Ready' : 'Paused'}
-                      </div>
+                      <Badge className={cn(
+                        'rounded-full px-2 py-0.5 font-bold gap-1 text-[10px]',
+                        trigger.priority > 0 ? 'bg-primary' : trigger.priority < 0 ? 'bg-orange-500' : 'bg-muted text-muted-foreground border-none'
+                      )}>
+                        <Zap className={cn('h-2.5 w-2.5', trigger.priority === 0 ? 'text-muted-foreground' : 'fill-current')} />
+                        P{trigger.priority}
+                      </Badge>
                       <Switch
                         checked={trigger.is_active}
                         onCheckedChange={() => toggleStatus(trigger)}

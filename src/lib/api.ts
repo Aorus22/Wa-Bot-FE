@@ -1,4 +1,14 @@
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000/api"
+const getApiBase = () => {
+	const envUrl = import.meta.env.VITE_API_URL
+	if (envUrl) return envUrl
+
+	if (typeof window !== "undefined") {
+		return `${window.location.origin}/api`
+	}
+	return ""
+}
+
+const API_BASE = getApiBase()
 
 export type Message = {
 	id: string
@@ -37,6 +47,7 @@ export type Trigger = {
 	name: string
 	pattern: string
 	script: string
+	priority: number
 	is_active: boolean
 	created_at?: string
 	updated_at?: string
@@ -152,13 +163,18 @@ class ApiClient {
 	}
 
 	async deleteTrigger(id: string): Promise<{ status: string }> {
-		return this.request<{ status: string }>(`/triggers/${id}`, {
-			method: "DELETE",
-		})
+	        return this.request<{ status: string }>(`/triggers/${id}`, {
+	                method: "DELETE",
+	        })
 	}
 
-	async testTrigger(data: { pattern: string; script: string; message: string }): Promise<any> {
-		return this.request<any>("/triggers/test", {
+	async deleteAllTriggers(): Promise<{ status: string }> {
+	        return this.request<{ status: string }>("/triggers", {
+	                method: "DELETE",
+	        })
+	}
+
+	async testTrigger(data: { pattern: string; script: string; message: string }): Promise<any> {		return this.request<any>("/triggers/test", {
 			method: "POST",
 			body: JSON.stringify(data),
 		})
