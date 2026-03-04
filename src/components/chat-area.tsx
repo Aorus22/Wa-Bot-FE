@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, memo, useCallback } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Send, Smile, Paperclip, FileText, Video, Sticker, Star, Trash2, ArrowLeft, MessageSquare } from "lucide-react"
+import { Send, Smile, Paperclip, FileText, Video, Sticker, Star, Trash2, ArrowLeft, MessageSquare, Reply, Edit3, X, MoreVertical } from "lucide-react"
 import { api, type Chat, type Message } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -219,10 +219,13 @@ export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, classNam
 	const [initialLoad, setInitialLoad] = useState(true)
 	const [isEmojiOpen, setIsEmojiOpen] = useState(false)
 	const [showFavoriteBtn, setShowFavoriteBtn] = useState<string | null>(null)
+	const [replyTo, setReplyTo] = useState<Message | null>(null)
+	const [editingMessage, setEditingMessage] = useState<Message | null>(null)
 
 	const scrollRef = useRef<HTMLDivElement>(null)
 	const mediaInputRef = useRef<HTMLInputElement>(null)
 	const documentInputRef = useRef<HTMLInputElement>(null)
+	const inputRef = useRef<HTMLInputElement>(null)
 
 	const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
 		if (scrollRef.current) {
@@ -245,33 +248,40 @@ export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, classNam
 
 	useEffect(() => {
 	        if (incomingMessage && chat && incomingMessage.chatId === chat.id) {
-	                setMessages(prev => {
-	                        // 1. Check if ID already exists
-	                        if (prev.some(m => m.id === incomingMessage.message.id)) return prev
+	                const { message } = incomingMessage
+	                if ((message as any).type === "deleted") {
+	                        setMessages(prev => prev.filter(m => m.id !== message.id))
+	                } else if ((message as any).type === "edited") {
+	                        setMessages(prev => prev.map(m => m.id === message.id ? { ...m, content: (message as any).content } : m))
+	                } else {
+	                        setMessages(prev => {
+	                                // 1. Check if ID already exists
+	                                if (prev.some(m => m.id === incomingMessage.message.id)) return prev
 
-	                        // 2. Check if this is a message we're sending (from "me")
-	                        // that matches one of our pending messages
-	                        if (incomingMessage.message.from === "me") {
-	                                // Try to find a pending message with same content or type
-	                                const pendingIndex = prev.findIndex(m =>
-	                                        m.status === "pending" &&
-	                                        m.id.startsWith("temp-") &&
-	                                        (
-	                                                m.content === incomingMessage.message.content ||
-	                                                (m.type === incomingMessage.message.type && ["image", "video", "sticker", "document"].includes(m.type))
+	                                // 2. Check if this is a message we're sending (from "me")
+	                                // that matches one of our pending messages
+	                                if (incomingMessage.message.from === "me") {
+	                                        // Try to find a pending message with same content or type
+	                                        const pendingIndex = prev.findIndex(m =>
+	                                                m.status === "pending" &&
+	                                                m.id.startsWith("temp-") &&
+	                                                (
+	                                                        m.content === incomingMessage.message.content ||
+	                                                        (m.type === incomingMessage.message.type && ["image", "video", "sticker", "document"].includes(m.type))
+	                                                )
 	                                        )
-	                                )
 
-	                                if (pendingIndex !== -1) {
-	                                        // Replace the pending message
-	                                        const next = [...prev]
-	                                        next[pendingIndex] = incomingMessage.message
-	                                        return next
+	                                        if (pendingIndex !== -1) {
+	                                                // Replace the pending message
+	                                                const next = [...prev]
+	                                                next[pendingIndex] = incomingMessage.message
+	                                                return next
+	                                        }
 	                                }
-	                        }
 
-	                        return [...prev, incomingMessage.message]
-	                })
+	                                return [...prev, incomingMessage.message]
+	                        })
+	                }
 	                setTimeout(() => scrollToBottom(), 100)
 	        }
 	}, [incomingMessage, chat?.id, scrollToBottom])
@@ -284,6 +294,12 @@ export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, classNam
 			)
 		}
 	}, [statusUpdate])
+
+	useEffect(() => {
+		if (replyTo || editingMessage) {
+			inputRef.current?.focus()
+		}
+	}, [replyTo, editingMessage])
 
 	const loadMessages = async () => {
 		if (!chat) return
@@ -303,39 +319,46 @@ export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, classNam
 
 	const handleSendMessage = async () => {
 		if (!inputMessage.trim() || !chat || sending) return
-
-		const tempId = "temp-" + Date.now()
-		const newMsg: Message = {
-			id: tempId,
-			chatId: chat.id,
-			from: "me",
-			to: chat.id,
-			content: inputMessage,
-			timestamp: Date.now(),
-			status: "pending",
-			type: "text"
-		}
-
-		setMessages(prev => [...prev, newMsg])
+		const text = inputMessage.trim()
 		setInputMessage("")
-		setTimeout(() => scrollToBottom(), 50)
+		setSending(true)
 
 		try {
-			setSending(true)
-			const res = await api.sendMessage(chat.id, inputMessage)
-			setMessages(prev => {
-				// If the message was already added/updated by socket
-				if (prev.some(m => m.id === res.id)) {
-					return prev.filter(m => m.id !== tempId)
+			if (editingMessage) {
+				await api.editMessage(chat.id, editingMessage.id, text)
+				setEditingMessage(null)
+			} else if (replyTo) {
+				await api.replyMessage(chat.id, replyTo.id, text)
+				setReplyTo(null)
+			} else {
+				const tempId = "temp-" + Date.now()
+				const newMsg: Message = {
+					id: tempId,
+					chatId: chat.id,
+					from: "me",
+					to: chat.id,
+					content: text,
+					timestamp: Date.now(),
+					status: "pending",
+					type: "text"
 				}
-				return prev.map(m => (m.id === tempId ? { ...m, id: res.id, status: "sent" } : m))
-			})
+
+				setMessages(prev => [...prev, newMsg])
+				setTimeout(() => scrollToBottom(), 50)
+
+				const res = await api.sendMessage(chat.id, text)
+				setMessages(prev => {
+					// If the message was already added/updated by socket
+					if (prev.some(m => m.id === res.id)) {
+						return prev.filter(m => m.id !== tempId)
+					}
+					return prev.map(m => (m.id === tempId ? { ...m, id: res.id, status: "sent" } : m))
+				})
+			}
 		} catch (error) {
 			console.error("Failed to send message:", error)
-			setMessages(prev =>
-				prev.map(m => (m.id === tempId ? { ...m, status: "failed" } : m))
-			)
-			toast.error("Message failed to send")
+			toast.error("Gagal memproses pesan")
+			setInputMessage(text)
 		} finally {
 			setSending(false)
 		}
@@ -425,6 +448,27 @@ export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, classNam
 		}
 	}
 
+	const handleDeleteMessage = async (messageId: string) => {
+		if (!chat) return
+		try {
+			await api.deleteMessage(chat.id, messageId)
+			setMessages(prev => prev.filter(m => m.id !== messageId))
+		} catch (err) {
+			toast.error("Failed to delete message")
+		}
+	}
+
+	const handleEditMessage = (message: Message) => {
+		setEditingMessage(message)
+		setInputMessage(message.content)
+		setReplyTo(null)
+	}
+
+	const handleReplyMessage = (message: Message) => {
+		setReplyTo(message)
+		setEditingMessage(null)
+	}
+
 	const addEmoji = (emoji: string) => {
 		setInputMessage(prev => prev + emoji)
 	}
@@ -492,6 +536,7 @@ export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, classNam
 								</div>
 								{msgs.map((message, idx) => {
 									const isMe = message.from === "me"
+									const repliedMsg = messages.find(m => m.id === message.replyToId)
 									const isPending = message.status === "pending"
 									const isFailed = message.status === "failed"
 									const isImage = message.type === "image"
@@ -506,7 +551,7 @@ export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, classNam
 									const showSenderInfo = !isMe && chat?.isGroup && isFirstInSequence
 
 									return (
-										<div key={message.id} className={cn(
+										<div key={message.id} id={message.id} className={cn(
 											"flex w-full group animate-in fade-in slide-in-from-bottom-2 duration-300",
 											isMe ? "justify-end" : "justify-start",
 											isLastInSequence ? "mb-4" : "mb-1"
@@ -548,6 +593,16 @@ export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, classNam
 															<span className={cn("w-1 h-1 rounded-full", isMe ? "bg-indigo-500 dark:bg-indigo-400" : "bg-blue-500")} />
 															Bot Response
 														</span>
+													)}
+
+													{repliedMsg && (
+														<div
+															className="mb-2 p-2 bg-black/5 dark:bg-white/5 rounded-lg border-l-4 border-primary text-[12px] opacity-80 cursor-pointer hover:opacity-100 transition-opacity"
+															onClick={() => document.getElementById(repliedMsg.id)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+														>
+															<p className="font-bold text-primary">{repliedMsg.from === "me" ? "You" : (repliedMsg.senderName || "Unknown")}</p>
+															<p className="truncate opacity-70">{repliedMsg.content}</p>
+														</div>
 													)}
 
 													{isSticker ? (
@@ -664,6 +719,59 @@ export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, classNam
 																		)}
 																	</span>
 																)}
+
+																{/* Action buttons for own messages */}
+																{isMe && !isSticker && (
+																	<div className="absolute top-1/2 -translate-y-1/2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+																		<Popover>
+																			<PopoverTrigger asChild>
+																				<Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground bg-background/80 backdrop-blur-sm rounded-full shadow-sm">
+																					<MoreVertical className="h-3 w-3" />
+																				</Button>
+																			</PopoverTrigger>
+																			<PopoverContent className="w-auto p-1" align="end">
+																				<div className="flex flex-col">
+																					<button
+																						onClick={() => handleReplyMessage(message)}
+																						className="flex items-center gap-2 w-full p-2 hover:bg-muted rounded text-sm"
+																					>
+																						<Reply className="h-4 w-4 text-primary" />
+																						<span>Reply</span>
+																					</button>
+																					<button
+																						onClick={() => handleEditMessage(message)}
+																						className="flex items-center gap-2 w-full p-2 hover:bg-muted rounded text-sm"
+																					>
+																						<Edit3 className="h-4 w-4 text-orange-500" />
+																						<span>Edit</span>
+																					</button>
+																					<button
+																						onClick={() => handleDeleteMessage(message.id)}
+																						className="flex items-center gap-2 w-full p-2 hover:bg-muted rounded text-sm text-destructive"
+																					>
+																						<Trash2 className="h-4 w-4" />
+																						<span>Delete</span>
+																					</button>
+																				</div>
+																			</PopoverContent>
+																		</Popover>
+																	</div>
+																)}
+
+																{/* Reply button for others' messages */}
+																{!isMe && !isSticker && (
+																	<div className="absolute top-1/2 -translate-y-1/2 -left-2 opacity-0 group-hover:opacity-100 transition-opacity">
+																		<Button
+																			variant="ghost"
+																			size="icon"
+																			onClick={() => handleReplyMessage(message)}
+																			className="h-6 w-6 text-muted-foreground hover:text-primary bg-background/80 backdrop-blur-sm rounded-full shadow-sm"
+																			title="Reply"
+																		>
+																			<Reply className="h-3 w-3" />
+																		</Button>
+																	</div>
+																)}
 															</div>
 														</div>
 													)}
@@ -679,6 +787,29 @@ export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, classNam
 			</div>
 
 			<footer className="p-4 bg-background/80 backdrop-blur-xl border-t border-border/40 z-10">
+				{/* Reply/Edit Preview */}
+				{(replyTo || editingMessage) && (
+					<div className="max-w-4xl mx-auto mb-2">
+						{replyTo && (
+							<div className="flex items-center justify-between p-2 bg-muted/50 border-l-4 border-primary rounded-r-lg">
+								<div className="flex-1 min-w-0">
+									<p className="text-xs font-bold text-primary">Membalas {replyTo.senderName || "Pesan"}</p>
+									<p className="text-sm truncate opacity-70">{replyTo.content}</p>
+								</div>
+								<Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setReplyTo(null)}><X className="h-4 w-4" /></Button>
+							</div>
+						)}
+						{editingMessage && (
+							<div className="flex items-center justify-between p-2 bg-muted/50 border-l-4 border-orange-500 rounded-r-lg">
+								<div className="flex-1 min-w-0">
+									<p className="text-xs font-bold text-orange-500">Edit Pesan</p>
+									<p className="text-sm truncate opacity-70">{editingMessage.content}</p>
+								</div>
+								<Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditingMessage(null); setInputMessage(""); }}><X className="h-4 w-4" /></Button>
+							</div>
+						)}
+					</div>
+				)}
 				<div className="max-w-4xl mx-auto flex items-end gap-3 px-2">
 					<div className="flex items-center mb-1">
 						<Popover onOpenChange={setIsEmojiOpen}>
@@ -735,10 +866,21 @@ export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, classNam
 					</div>
 					<div className="flex-1 relative">
 						<Input
-							placeholder="Type a message..."
+							ref={inputRef}
+							placeholder={editingMessage ? "Edit message..." : replyTo ? "Reply to message..." : "Type a message..."}
 							value={inputMessage}
 							onChange={e => setInputMessage(e.target.value)}
-							onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
+							onKeyDown={e => {
+								if (e.key === "Enter" && !e.shiftKey) {
+									e.preventDefault()
+									handleSendMessage()
+								} else if (e.key === "Escape") {
+									e.preventDefault()
+									setEditingMessage(null)
+									setReplyTo(null)
+									setInputMessage("")
+								}
+							}}
 							className="pr-12 min-h-[44px] bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary/20 rounded-2xl py-3"
 							disabled={sending}
 						/>

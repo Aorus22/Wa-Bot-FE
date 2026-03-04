@@ -93,6 +93,22 @@ function App() {
 				})
 				break
 			}
+			case "message_deleted":
+				if (message.payload) {
+					setIncomingMessage({
+						chatId: message.payload.chatId,
+						message: { id: message.payload.id, type: "deleted" } as any,
+					})
+				}
+				break
+			case "message_edited":
+				if (message.payload) {
+					setIncomingMessage({
+						chatId: message.payload.chatId,
+						message: { id: message.payload.id, content: message.payload.content, type: "edited" } as any,
+					})
+				}
+				break
 			case "message_status":
 				if (message.payload) {
 					setStatusUpdate({

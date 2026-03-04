@@ -22,6 +22,7 @@ export type Message = {
 	mediaUrl?: string
 	isAutomatic?: boolean
 	senderName?: string
+	replyToId?: string
 }
 
 export type Chat = {
@@ -134,6 +135,26 @@ class ApiClient {
 		})
 	}
 
+	async deleteMessage(chatId: string, id: string): Promise<{ status: string }> {
+		return this.request<{ status: string }>(`/chats/${chatId}/messages/${id}/delete`, {
+			method: "POST",
+		})
+	}
+
+	async editMessage(chatId: string, id: string, content: string): Promise<{ status: string }> {
+		return this.request<{ status: string }>(`/chats/${chatId}/messages/${id}/edit`, {
+			method: "POST",
+			body: JSON.stringify({ content }),
+		})
+	}
+
+	async replyMessage(chatId: string, id: string, content: string): Promise<{ status: string }> {
+		return this.request<{ status: string }>(`/chats/${chatId}/messages/${id}/reply`, {
+			method: "POST",
+			body: JSON.stringify({ content }),
+		})
+	}
+
 	async getStatus(): Promise<{ isLoggedIn: boolean }> {
 		return this.request<{ isLoggedIn: boolean }>("/status")
 	}
@@ -163,18 +184,19 @@ class ApiClient {
 	}
 
 	async deleteTrigger(id: string): Promise<{ status: string }> {
-	        return this.request<{ status: string }>(`/triggers/${id}`, {
-	                method: "DELETE",
-	        })
+		return this.request<{ status: string }>(`/triggers/${id}`, {
+			method: "DELETE",
+		})
 	}
 
 	async deleteAllTriggers(): Promise<{ status: string }> {
-	        return this.request<{ status: string }>("/triggers", {
-	                method: "DELETE",
-	        })
+		return this.request<{ status: string }>("/triggers", {
+			method: "DELETE",
+		})
 	}
 
-	async testTrigger(data: { pattern: string; script: string; message: string }): Promise<any> {		return this.request<any>("/triggers/test", {
+	async testTrigger(data: { pattern: string; script: string; message: string }): Promise<any> {
+		return this.request<any>("/triggers/test", {
 			method: "POST",
 			body: JSON.stringify(data),
 		})
