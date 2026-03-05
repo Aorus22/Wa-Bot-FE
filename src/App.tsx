@@ -1,18 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from "react"
-import { ChatSidebar } from "@/components/chat-sidebar"
-import { NavigationSidebar, type NavItem } from "@/components/navigation-sidebar"
-import { BotManagementView } from "@/components/bot-management-view"
-import { TriggerEditorView } from "@/components/trigger-editor-view"
-import { DocumentationView } from "@/components/documentation-view"
-import { ChatArea } from "@/components/chat-area"
+import { NavigationSidebar, type NavItem } from "@/pages/layout/NavigationSidebar"
 import { useWebSocket, type WSMessage } from "@/hooks/use-websocket"
-import { api, type Chat, type Message, type Trigger } from "@/lib/api"
+import { api, type Message, type Trigger } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
-import { LoginView } from "@/components/login-view"
 import { Loader2, AlertCircle, MessageSquare, Bot, FileText } from "lucide-react"
+import { LoginPage } from "@/pages/login/LoginPage"
+import { ChatPage } from "@/pages/chat/ChatPage"
+import { BotManagementPage } from "@/pages/bot/BotManagementPage"
+import { TriggerEditorPage } from "@/pages/bot/TriggerEditorPage"
+import { DocumentationPage } from "@/pages/documentation/DocumentationPage"
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -25,9 +24,7 @@ import {
 } from "@/components/ui/alert-dialog"
 
 function App() {
-	const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
 	const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768)
-	const [showSidebar, setShowSidebar] = useState(true)
 	const [incomingMessage, setIncomingMessage] = useState<{ chatId: string; message: Message } | null>(null)
 	const [chatUpdate, setChatUpdate] = useState<{ chatId: string; lastMsg: string; lastTime: number; msgId: string; senderName?: string; chatName?: string; chatAvatar?: string } | null>(null)
 	const [statusUpdate, setStatusUpdate] = useState<{ id: string; status: string } | null>(null)
@@ -167,9 +164,6 @@ function App() {
 		const handleResize = () => {
 			const mobile = window.innerWidth < 768
 			setIsMobileView(mobile)
-			if (!mobile) {
-				setShowSidebar(true)
-			}
 		}
 
 		window.addEventListener("resize", handleResize)
@@ -185,23 +179,7 @@ function App() {
 	}
 
 	if (isLoggedIn === false) {
-		return (
-			<ThemeProvider defaultTheme="system" storageKey="wa-bot-theme">
-				<LoginView qrCode={qrCode} isConnected={isConnected} />
-			</ThemeProvider>
-		)
-	}
-
-	const handleChatSelect = (chat: Chat) => {
-		setSelectedChat(chat)
-		if (isMobileView) {
-			setShowSidebar(false)
-		}
-	}
-
-	const handleBack = () => {
-		setShowSidebar(true)
-		setSelectedChat(null)
+		return <LoginPage qrCode={qrCode} isConnected={isConnected} />
 	}
 
 	return (
@@ -211,8 +189,8 @@ function App() {
 					{/* Floating Live Status */}
 					<div className="fixed bottom-6 right-6 z-50 pointer-events-none md:bottom-8 md:right-8">
 						<div className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold border shadow-xl backdrop-blur-md pointer-events-auto transition-all duration-500 ${isConnected
-								? "bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400"
-								: "bg-orange-500/10 border-orange-500/20 text-orange-600 dark:text-orange-400"
+							? "bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400"
+							: "bg-orange-500/10 border-orange-500/20 text-orange-600 dark:text-orange-400"
 							}`}>
 							<div className={`w-2.5 h-2.5 rounded-full ${isConnected ? "bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "bg-orange-500"}`} />
 							<span className="tracking-wide uppercase text-[10px]">{isConnected ? "Live" : "Reconnecting..."}</span>
@@ -251,76 +229,28 @@ function App() {
 							/>
 						)}
 
-						{/* Sidebar (Chat List) */}
-						{activeNavItem === "chat" && (
-							<div
-								className={cn(
-									"h-full transition-all duration-300 ease-in-out border-r border-border/40",
-									isMobileView
-										? (showSidebar ? "w-full absolute inset-0 z-40 bg-background" : "w-0 overflow-hidden")
-										: "w-[380px] lg:w-[420px] flex-shrink-0"
-								)}
-							>
-								<ChatSidebar
-									selectedChatId={selectedChat?.id || null}
-									onChatSelect={handleChatSelect}
-									chatUpdate={chatUpdate}
-								/>
-							</div>
+						{activeNavItem === "chat" ? (
+							<ChatPage isMobileView={isMobileView} incomingMessage={incomingMessage} chatUpdate={chatUpdate} statusUpdate={statusUpdate} />
+						) : activeNavItem === "bot-management" ? (
+							<BotManagementPage
+								onEditTrigger={(t) => {
+									setEditingTrigger(t)
+									setActiveNavItem("trigger-editor")
+								}}
+								onViewDocs={() => setActiveNavItem("documentation")}
+							/>
+						) : activeNavItem === "documentation" ? (
+							<DocumentationPage />
+						) : (
+							<TriggerEditorPage
+								trigger={editingTrigger}
+								onBack={() => {
+									setEditingTrigger(null)
+									setActiveNavItem("bot-management")
+								}}
+								onViewDocs={() => setActiveNavItem("documentation")}
+							/>
 						)}
-
-						{/* Chat Area, Bot Management, or Documentation */}
-						<main
-							className={cn(
-								"flex-1 h-full relative overflow-hidden bg-muted/30",
-								isMobileView && showSidebar && activeNavItem === "chat" ? "hidden" : "flex"
-							)}
-						>
-							{activeNavItem === "chat" ? (
-								selectedChat ? (
-									<ChatArea
-										chat={selectedChat}
-										incomingMessage={incomingMessage}
-										statusUpdate={statusUpdate}
-										onBack={isMobileView ? handleBack : undefined}
-										className="w-full h-full"
-									/>
-								) : (
-									<div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
-										<div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-											<svg className="w-10 h-10 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-												<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-											</svg>
-										</div>
-										<div className="space-y-2">
-											<h3 className="text-xl font-semibold tracking-tight">WhatsApp Web Bot</h3>
-											<p className="text-muted-foreground max-w-[280px]">
-												Select a chat from the sidebar to start messaging. Your messages are synced in real-time.
-											</p>
-										</div>
-									</div>
-								)
-							) : activeNavItem === "bot-management" ? (
-								<BotManagementView
-									onEditTrigger={(t) => {
-										setEditingTrigger(t)
-										setActiveNavItem("trigger-editor")
-									}}
-									onViewDocs={() => setActiveNavItem("documentation")}
-								/>
-							) : activeNavItem === "documentation" ? (
-								<DocumentationView />
-							) : (
-								<TriggerEditorView
-									trigger={editingTrigger}
-									onBack={() => {
-										setEditingTrigger(null)
-										setActiveNavItem("bot-management")
-									}}
-									onViewDocs={() => setActiveNavItem("documentation")}
-								/>
-							)}
-						</main>
 
 						{/* Mobile Navigation */}
 						{isMobileView && (
