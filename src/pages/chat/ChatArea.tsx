@@ -159,7 +159,7 @@ function MessageItem({
 
             <div
                 className={cn(
-                    "max-w-[85%] sm:max-w-[70%] flex relative gap-3 transition-transform duration-200 will-change-transform",
+                    "max-w-[85%] sm:max-w-[70%] flex relative gap-3 transition-transform duration-200 will-change-transform min-w-0",
                     isMe ? "flex-row-reverse" : "flex-row"
                 )}
                 style={{ transform: `translateX(${swipeX}px)` }}
@@ -275,7 +275,7 @@ function MessageItem({
                                 </a>
                             )}
                             {message.content && !["[Image]", "[Video]", "[Sticker]"].includes(message.content) && (
-                                <div className="break-words leading-relaxed whitespace-pre-wrap relative z-10">
+                                <div className="break-words [word-break:break-word] leading-relaxed whitespace-pre-wrap relative z-10">
                                     {renderFormattedContent(message.content)}
                                 </div>
                             )}
@@ -641,7 +641,7 @@ export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, classNam
     })
 
     return (
-        <div className={cn("flex-1 flex flex-col bg-background relative overflow-hidden", className)}>
+        <div className={cn("flex-1 flex flex-col bg-background relative overflow-x-hidden", className)}>
             <header
                 className="h-16 flex items-center justify-between px-4 border-b border-border/40 bg-background/80 backdrop-blur-xl z-20 sticky top-0 cursor-pointer hover:bg-muted/30 transition-colors group"
                 onClick={() => setIsMediaSheetOpen(true)}

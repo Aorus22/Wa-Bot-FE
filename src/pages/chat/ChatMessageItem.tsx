@@ -78,11 +78,10 @@ export const ChatMessageItem = memo(({
 			</div>
 
 			<div
-				className={cn(
-					"max-w-[85%] sm:max-w-[70%] flex relative gap-3 transition-transform duration-200 will-change-transform",
-					isMe ? "flex-row-reverse" : "flex-row"
-				)}
-				style={{ transform: `translateX(${swipeX}px)` }}
+			        className={cn(
+			                "max-w-[85%] sm:max-w-[70%] flex relative gap-3 transition-transform duration-200 will-change-transform min-w-0",
+			                isMe ? "flex-row-reverse" : "flex-row"
+			        )}				style={{ transform: `translateX(${swipeX}px)` }}
 				onTouchStart={handleTouchStart}
 				onTouchMove={handleTouchMove}
 				onTouchEnd={handleTouchEnd}
@@ -205,7 +204,7 @@ export const ChatMessageItem = memo(({
 								</a>
 							)}
 							{message.content && !["[Image]", "[Video]", "[Sticker]"].includes(message.content) && (
-							        <div className="break-words leading-relaxed whitespace-pre-wrap relative z-10">{renderFormattedContent(message.content)}</div>
+							        <div className="break-words [word-break:break-word] leading-relaxed whitespace-pre-wrap relative z-10">{renderFormattedContent(message.content)}</div>
 							)}							<div className={cn("flex items-center gap-1 mt-1 justify-end", "text-[10px] font-medium opacity-50 uppercase tracking-tight")}>
 								<span>{formatTime(message.timestamp)}</span>
 								{isMe && (
