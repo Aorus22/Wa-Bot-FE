@@ -119,17 +119,15 @@ export const ChatMessageItem = memo(({
 
 					{repliedMsg && (
 						<div
-							className="mb-2 p-2 bg-black/5 dark:bg-white/5 rounded-lg border-l-4 border-primary text-[12px] opacity-80 cursor-pointer hover:opacity-100 transition-opacity"
-							onClick={() => document.getElementById(repliedMsg.id)?.scrollIntoView({ behavior: "smooth", block: "center" })}
-						>
-							<p className="font-bold text-primary">{repliedMsg.from === "me" ? "You" : repliedMsg.senderName || "Unknown"}</p>
+						        className="mb-2 p-2 bg-black/5 dark:bg-white/5 rounded-lg border-l-4 border-primary text-[12px] opacity-80 cursor-pointer hover:opacity-100 transition-opacity relative z-10"
+						        onClick={() => document.getElementById(repliedMsg.id)?.scrollIntoView({ behavior: "smooth", block: "center" })}
+						>							<p className="font-bold text-primary">{repliedMsg.from === "me" ? "You" : repliedMsg.senderName || "Unknown"}</p>
 							<p className="truncate opacity-70">{repliedMsg.content}</p>
 						</div>
 					)}
 
 					{isSticker ? (
-						<div className="relative group/sticker cursor-pointer" onClick={() => setShowFavoriteBtn(showFavoriteBtn === message.id ? null : message.id)}>
-							<div className="w-[160px] h-[160px] flex items-center justify-center">
+					        <div className="relative group/sticker cursor-pointer z-10" onClick={() => setShowFavoriteBtn(showFavoriteBtn === message.id ? null : message.id)}>							<div className="w-[160px] h-[160px] flex items-center justify-center">
 								{isMedia ? (
 									<img src={getMediaUrl(message.mediaUrl)} alt="Sticker" className="max-w-full max-h-full object-contain" />
 								) : (
@@ -145,8 +143,7 @@ export const ChatMessageItem = memo(({
 										onStickerFavorite(message.mediaUrl)
 									}}
 									className={cn(
-										"absolute top-0 p-1.5 bg-background/90 backdrop-blur-md rounded-full shadow-lg transition-all animate-in zoom-in-50 z-10",
-										isMe ? "left-0" : "right-0"
+									        "absolute top-0 p-1.5 bg-background/90 backdrop-blur-md rounded-full shadow-lg transition-all animate-in zoom-in-50 z-20",										isMe ? "left-0" : "right-0"
 									)}
 								>
 									<Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
@@ -176,27 +173,28 @@ export const ChatMessageItem = memo(({
 							)}
 						>
 							{isImage && isMedia && (
-								<div className="mb-2 -mx-1 -mt-1 rounded-lg overflow-hidden border border-black/5 dark:border-white/5">
-									<img
-										src={getMediaUrl(message.mediaUrl)}
+							        <div className="mb-2 -mx-1 -mt-1 rounded-lg overflow-hidden border border-black/5 dark:border-white/5 relative z-10">
+							                <img										src={getMediaUrl(message.mediaUrl)}
 										alt="Image"
 										className="w-full max-w-[320px] h-auto object-cover hover:scale-[1.02] transition-transform duration-500 cursor-zoom-in"
-										onClick={() => onImageClick(getMediaUrl(message.mediaUrl))}
+										onClick={(e) => {
+											e.stopPropagation()
+											onImageClick(getMediaUrl(message.mediaUrl))
+										}}
 									/>
 								</div>
 							)}
 							{isVideo && isMedia && (
-								<div className="mb-2 -mx-1 -mt-1 rounded-lg overflow-hidden border border-black/5 dark:border-white/5 bg-black/10 flex items-center justify-center aspect-video">
-									<video src={getMediaUrl(message.mediaUrl)} className="w-full h-auto max-h-[300px]" controls />
-								</div>
-							)}
-							{isDocument && isMedia && (
-								<a
-									href={getMediaUrl(message.mediaUrl)}
-									target="_blank"
-									rel="noopener noreferrer"
-									className="flex items-center gap-3 mb-1 p-2 bg-black/5 dark:bg-white/5 rounded-lg border border-black/5 dark:border-white/5"
-								>
+							        <div className="mb-2 -mx-1 -mt-1 rounded-lg overflow-hidden border border-black/5 dark:border-white/5 bg-black/10 flex items-center justify-center aspect-video relative z-10">
+							                <video src={getMediaUrl(message.mediaUrl)} className="w-full h-auto max-h-[300px]" controls />
+							                </div>
+							                )}
+							                {isDocument && isMedia && (							        <a
+							                href={getMediaUrl(message.mediaUrl)}
+							                target="_blank"
+							                rel="noopener noreferrer"
+							                className="flex items-center gap-3 mb-1 p-2 bg-black/5 dark:bg-white/5 rounded-lg border border-black/5 dark:border-white/5 relative z-10"
+							        >
 									<div className="w-9 h-9 bg-primary/10 rounded flex items-center justify-center">
 										<FileText className="h-5 w-5 text-primary" />
 									</div>
@@ -207,9 +205,8 @@ export const ChatMessageItem = memo(({
 								</a>
 							)}
 							{message.content && !["[Image]", "[Video]", "[Sticker]"].includes(message.content) && (
-								<div className="break-words leading-relaxed whitespace-pre-wrap">{renderFormattedContent(message.content)}</div>
-							)}
-							<div className={cn("flex items-center gap-1 mt-1 justify-end", "text-[10px] font-medium opacity-50 uppercase tracking-tight")}>
+							        <div className="break-words leading-relaxed whitespace-pre-wrap relative z-10">{renderFormattedContent(message.content)}</div>
+							)}							<div className={cn("flex items-center gap-1 mt-1 justify-end", "text-[10px] font-medium opacity-50 uppercase tracking-tight")}>
 								<span>{formatTime(message.timestamp)}</span>
 								{isMe && (
 									<span className="flex items-center ml-0.5">
@@ -249,51 +246,49 @@ export const ChatMessageItem = memo(({
 												)}
 											</div>
 										)
-									}</span>
+										}</span>
 								)}
 
-							{isMe && !isSticker && (
-								<div className="absolute top-1/2 -translate-y-1/2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity hidden md:block">
-									<Popover>
-										<PopoverTrigger asChild>
-											<Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground bg-background/80 backdrop-blur-sm rounded-full shadow-sm">
-												<MoreVertical className="h-3 w-3" />
-											</Button>
-										</PopoverTrigger>
-										<PopoverContent className="w-auto p-1" align="end">
-											<div className="flex flex-col">
-												<button onClick={onReply} className="flex items-center gap-2 w-full p-2 hover:bg-muted rounded text-sm"><Reply className="h-4 w-4 text-primary" /><span>Reply</span></button>
-												<button onClick={onEdit} className="flex items-center gap-2 w-full p-2 hover:bg-muted rounded text-sm"><Edit3 className="h-4 w-4 text-orange-500" /><span>Edit</span></button>
-												<button onClick={onDelete} className="flex items-center gap-2 w-full p-2 hover:bg-muted rounded text-sm text-destructive"><Trash2 className="h-4 w-4" /><span>Delete</span></button>
-											</div>
-										</PopoverContent>
-									</Popover>
-								</div>
-							)}
-
-							<Popover>
-								<PopoverTrigger asChild>
-									<div className="absolute inset-0 z-0 cursor-context-menu" onContextMenu={(e) => { if (isSticker) return; e.preventDefault(); e.currentTarget.click(); }} />
-								</PopoverTrigger>
-								<PopoverContent className="w-48 p-1 shadow-xl border-border/40 backdrop-blur-xl bg-background/95" align={isMe ? "end" : "start"}>
-									<div className="flex flex-col">
-										<button onClick={onReply} className="flex items-center gap-3 w-full p-2.5 hover:bg-muted rounded-lg text-sm transition-colors"><Reply className="h-4 w-4 text-primary" /><span className="font-medium">Reply</span></button>
-										{isMe && (
-											<>
-												<button onClick={onEdit} className="flex items-center gap-3 w-full p-2.5 hover:bg-muted rounded-lg text-sm transition-colors"><Edit3 className="h-4 w-4 text-orange-500" /><span className="font-medium">Edit</span></button>
-												<button onClick={onDelete} className="flex items-center gap-3 w-full p-2.5 hover:bg-muted rounded-lg text-sm transition-colors text-destructive"><Trash2 className="h-4 w-4" /><span className="font-medium">Delete for everyone</span></button>
-											</>
-										)}
+								{isMe && !isSticker && (
+								        <div className="absolute top-1/2 -translate-y-1/2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity hidden md:block z-20">										<Popover>
+											<PopoverTrigger asChild>
+												<Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground bg-background/80 backdrop-blur-sm rounded-full shadow-sm">
+													<MoreVertical className="h-3 w-3" />
+												</Button>
+											</PopoverTrigger>
+											<PopoverContent className="w-auto p-1" align="end">
+												<div className="flex flex-col">
+													<button onClick={onReply} className="flex items-center gap-2 w-full p-2 hover:bg-muted rounded text-sm"><Reply className="h-4 w-4 text-primary" /><span>Reply</span></button>
+													<button onClick={onEdit} className="flex items-center gap-2 w-full p-2 hover:bg-muted rounded text-sm"><Edit3 className="h-4 w-4 text-orange-500" /><span>Edit</span></button>
+													<button onClick={onDelete} className="flex items-center gap-2 w-full p-2 hover:bg-muted rounded text-sm text-destructive"><Trash2 className="h-4 w-4" /><span>Delete</span></button>
+												</div>
+											</PopoverContent>
+										</Popover>
 									</div>
-								</PopoverContent>
-							</Popover>
+								)}
 
-							{!isMe && !isSticker && (
-								<div className="absolute top-1/2 -translate-y-1/2 -left-2 opacity-0 group-hover:opacity-100 transition-opacity hidden md:block">
-									<Button variant="ghost" size="icon" onClick={onReply} className="h-6 w-6 text-muted-foreground hover:text-primary bg-background/80 backdrop-blur-sm rounded-full shadow-sm"><Reply className="h-3 w-3" /></Button>
-								</div>
-							)}
-						</div>
+								<Popover>
+									<PopoverTrigger asChild>
+										<div className="absolute inset-0 z-0 cursor-context-menu" onContextMenu={(e) => { if (isSticker) return; e.preventDefault(); e.currentTarget.click(); }} />
+									</PopoverTrigger>
+									<PopoverContent className="w-48 p-1 shadow-xl border-border/40 backdrop-blur-xl bg-background/95" align={isMe ? "end" : "start"}>
+										<div className="flex flex-col">
+											<button onClick={onReply} className="flex items-center gap-3 w-full p-2.5 hover:bg-muted rounded-lg text-sm transition-colors"><Reply className="h-4 w-4 text-primary" /><span className="font-medium">Reply</span></button>
+											{isMe && (
+												<>
+													<button onClick={onEdit} className="flex items-center gap-3 w-full p-2.5 hover:bg-muted rounded-lg text-sm transition-colors"><Edit3 className="h-4 w-4 text-orange-500" /><span className="font-medium">Edit</span></button>
+													<button onClick={onDelete} className="flex items-center gap-3 w-full p-2.5 hover:bg-muted rounded-lg text-sm transition-colors text-destructive"><Trash2 className="h-4 w-4" /><span className="font-medium">Delete for everyone</span></button>
+												</>
+											)}
+										</div>
+									</PopoverContent>
+								</Popover>
+
+								{!isMe && !isSticker && (
+								        <div className="absolute top-1/2 -translate-y-1/2 -left-2 opacity-0 group-hover:opacity-100 transition-opacity hidden md:block z-20">										<Button variant="ghost" size="icon" onClick={onReply} className="h-6 w-6 text-muted-foreground hover:text-primary bg-background/80 backdrop-blur-sm rounded-full shadow-sm"><Reply className="h-3 w-3" /></Button>
+									</div>
+								)}
+							</div>
 						</div>
 					)}
 				</div>

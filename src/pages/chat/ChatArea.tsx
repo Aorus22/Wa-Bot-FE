@@ -199,8 +199,8 @@ function MessageItem({
 
                     {repliedMsg && (
                         <div
-                            className="mb-2 p-2 bg-black/5 dark:bg-white/5 rounded-lg border-l-4 border-primary text-[12px] opacity-80 cursor-pointer hover:opacity-100 transition-opacity"
-                            onClick={() => document.getElementById(repliedMsg.id)?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                            className="mb-2 p-2 bg-black/5 dark:bg-white/5 rounded-lg border-l-4 border-primary text-[12px] opacity-80 cursor-pointer hover:opacity-100 transition-opacity relative z-10"
+                            onClick={() => document.getElementById(repliedMsg.id)?.scrollIntoView({ behavior: "smooth", block: "center" })}
                         >
                             <p className="font-bold text-primary">{repliedMsg.from === "me" ? "You" : (repliedMsg.senderName || "Unknown")}</p>
                             <p className="truncate opacity-70">{repliedMsg.content}</p>
@@ -209,7 +209,7 @@ function MessageItem({
 
                     {isSticker ? (
                         <div
-                            className="relative group/sticker cursor-pointer"
+                            className="relative group/sticker cursor-pointer z-10"
                             onClick={() => setShowFavoriteBtn(showFavoriteBtn === message.id ? null : message.id)}
                         >
                             <div className="w-[160px] h-[160px] flex items-center justify-center">
@@ -225,7 +225,7 @@ function MessageItem({
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onStickerFavorite(message.mediaUrl); }}
                                     className={cn(
-                                        "absolute top-0 p-1.5 bg-background/90 backdrop-blur-md rounded-full shadow-lg transition-all animate-in zoom-in-50 z-10",
+                                        "absolute top-0 p-1.5 bg-background/90 backdrop-blur-md rounded-full shadow-lg transition-all animate-in zoom-in-50 z-20",
                                         isMe ? "left-0" : "right-0"
                                     )}
                                 >
@@ -246,22 +246,25 @@ function MessageItem({
                             )}
                         >
                             {isImage && isMedia && (
-                                <div className="mb-2 -mx-1 -mt-1 rounded-lg overflow-hidden border border-black/5 dark:border-white/5">
+                                <div className="mb-2 -mx-1 -mt-1 rounded-lg overflow-hidden border border-black/5 dark:border-white/5 relative z-10">
                                     <img
                                         src={getMediaUrl(message.mediaUrl)}
                                         alt="Image"
                                         className="w-full max-w-[320px] h-auto object-cover hover:scale-[1.02] transition-transform duration-500 cursor-zoom-in"
-                                        onClick={() => onImageClick(getMediaUrl(message.mediaUrl))}
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            onImageClick(getMediaUrl(message.mediaUrl))
+                                        }}
                                     />
                                 </div>
                             )}
                             {isVideo && isMedia && (
-                                <div className="mb-2 -mx-1 -mt-1 rounded-lg overflow-hidden border border-black/5 dark:border-white/5 bg-black/10 flex items-center justify-center aspect-video">
+                                <div className="mb-2 -mx-1 -mt-1 rounded-lg overflow-hidden border border-black/5 dark:border-white/5 bg-black/10 flex items-center justify-center aspect-video relative z-10">
                                     <video src={getMediaUrl(message.mediaUrl)} className="w-full h-auto max-h-[300px]" controls />
                                 </div>
                             )}
                             {isDocument && isMedia && (
-                                <a href={getMediaUrl(message.mediaUrl)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 mb-1 p-2 bg-black/5 dark:bg-white/5 rounded-lg border border-black/5 dark:border-white/5">
+                                <a href={getMediaUrl(message.mediaUrl)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 mb-1 p-2 bg-black/5 dark:bg-white/5 rounded-lg border border-black/5 dark:border-white/5 relative z-10">
                                     <div className="w-9 h-9 bg-primary/10 rounded flex items-center justify-center">
                                         <FileText className="h-5 w-5 text-primary" />
                                     </div>
@@ -272,7 +275,7 @@ function MessageItem({
                                 </a>
                             )}
                             {message.content && !["[Image]", "[Video]", "[Sticker]"].includes(message.content) && (
-                                <div className="break-words leading-relaxed whitespace-pre-wrap">
+                                <div className="break-words leading-relaxed whitespace-pre-wrap relative z-10">
                                     {renderFormattedContent(message.content)}
                                 </div>
                             )}
@@ -304,7 +307,7 @@ function MessageItem({
                                     </span>
                                 )}
                                 {isMe && !isSticker && (
-                                    <div className="absolute top-1/2 -translate-y-1/2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity hidden md:block">
+                                    <div className="absolute top-1/2 -translate-y-1/2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity hidden md:block z-20">
                                         <Popover>
                                             <PopoverTrigger asChild>
                                                 <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground bg-background/80 backdrop-blur-sm rounded-full shadow-sm">
@@ -341,7 +344,7 @@ function MessageItem({
                                     </PopoverContent>
                                 </Popover>
                                 {!isMe && !isSticker && (
-                                    <div className="absolute top-1/2 -translate-y-1/2 -left-2 opacity-0 group-hover:opacity-100 transition-opacity hidden md:block">
+                                    <div className="absolute top-1/2 -translate-y-1/2 -left-2 opacity-0 group-hover:opacity-100 transition-opacity hidden md:block z-20">
                                         <Button variant="ghost" size="icon" onClick={onReply} className="h-6 w-6 text-muted-foreground hover:text-primary bg-background/80 backdrop-blur-sm rounded-full shadow-sm"><Reply className="h-3 w-3" /></Button>
                                     </div>
                                 )}
