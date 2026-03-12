@@ -230,28 +230,29 @@ function App() {
 						)}
 
 						{activeNavItem === "chat" ? (
-							<ChatPage isMobileView={isMobileView} incomingMessage={incomingMessage} chatUpdate={chatUpdate} statusUpdate={statusUpdate} />
+						        <ChatPage isMobileView={isMobileView} incomingMessage={incomingMessage} chatUpdate={chatUpdate} statusUpdate={statusUpdate} />
 						) : activeNavItem === "bot-management" ? (
-							<BotManagementPage
-								onEditTrigger={(t) => {
-									setEditingTrigger(t)
-									setActiveNavItem("trigger-editor")
-								}}
-								onViewDocs={() => setActiveNavItem("documentation")}
-							/>
+						        <BotManagementPage
+						                isMobileView={isMobileView}
+						                onEditTrigger={(t) => {
+						                        setEditingTrigger(t)
+						                        setActiveNavItem("trigger-editor")
+						                }}
+						                onViewDocs={() => setActiveNavItem("documentation")}
+						        />
 						) : activeNavItem === "documentation" ? (
-							<DocumentationPage />
+						        <DocumentationPage />
 						) : (
-							<TriggerEditorPage
-								trigger={editingTrigger}
-								onBack={() => {
-									setEditingTrigger(null)
-									setActiveNavItem("bot-management")
-								}}
-								onViewDocs={() => setActiveNavItem("documentation")}
-							/>
+						        <TriggerEditorPage
+						                isMobileView={isMobileView}
+						                trigger={editingTrigger}
+						                onBack={() => {
+						                        setEditingTrigger(null)
+						                        setActiveNavItem("bot-management")
+						                }}
+						                onViewDocs={() => setActiveNavItem("documentation")}
+						        />
 						)}
-
 						{/* Mobile Navigation */}
 						{isMobileView && (
 							<div className="fixed bottom-0 left-0 right-0 h-16 bg-background border-t border-border/40 flex items-center justify-around px-6 z-50 md:hidden">
