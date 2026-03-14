@@ -1,16 +1,18 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { NavigationSidebar, type NavItem } from "@/pages/layout/NavigationSidebar"
 import { useWebSocket, type WSMessage } from "@/hooks/use-websocket"
-import { api, type Message, type Trigger } from "@/lib/api"
+import { api, type Message, type Trigger, type CronJob } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
-import { Loader2, AlertCircle, MessageSquare, Bot, FileText } from "lucide-react"
+import { Loader2, AlertCircle, MessageSquare, Bot, FileText, Clock } from "lucide-react"
 import { LoginPage } from "@/pages/login/LoginPage"
 import { ChatPage } from "@/pages/chat/ChatPage"
 import { BotManagementPage } from "@/pages/bot/BotManagementPage"
 import { TriggerEditorPage } from "@/pages/bot/TriggerEditorPage"
+import { CronManagementPage } from "@/pages/bot/CronManagementPage"
+import { CronEditorPage } from "@/pages/bot/CronEditorPage"
 import { DocumentationPage } from "@/pages/documentation/DocumentationPage"
 import {
 	AlertDialog,
@@ -30,6 +32,7 @@ function App() {
 	const [statusUpdate, setStatusUpdate] = useState<{ id: string; status: string } | null>(null)
 	const [activeNavItem, setActiveNavItem] = useState<NavItem>("chat")
 	const [editingTrigger, setEditingTrigger] = useState<Trigger | null>(null)
+	const [editingCron, setEditingCron] = useState<CronJob | null>(null)
 	const processedMsgIds = useRef<Set<string>>(new Set())
 
 	const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
@@ -240,9 +243,18 @@ function App() {
 						                }}
 						                onViewDocs={() => setActiveNavItem("documentation")}
 						        />
+						) : activeNavItem === "cron-management" ? (
+						        <CronManagementPage
+						                isMobileView={isMobileView}
+						                onEditCron={(j) => {
+						                        setEditingCron(j)
+						                        setActiveNavItem("cron-editor")
+						                }}
+						                onViewDocs={() => setActiveNavItem("documentation")}
+						        />
 						) : activeNavItem === "documentation" ? (
 						        <DocumentationPage />
-						) : (
+						) : activeNavItem === "trigger-editor" ? (
 						        <TriggerEditorPage
 						                isMobileView={isMobileView}
 						                trigger={editingTrigger}
@@ -251,6 +263,15 @@ function App() {
 						                        setActiveNavItem("bot-management")
 						                }}
 						                onViewDocs={() => setActiveNavItem("documentation")}
+						        />
+						) : (
+						        <CronEditorPage
+						                isMobileView={isMobileView}
+						                job={editingCron}
+						                onBack={() => {
+						                        setEditingCron(null)
+						                        setActiveNavItem("cron-management")
+						                }}
 						        />
 						)}
 						{/* Mobile Navigation */}
@@ -270,11 +291,21 @@ function App() {
 									onClick={() => setActiveNavItem("bot-management")}
 									className={cn(
 										"flex flex-col items-center gap-1 p-2 transition-colors",
-										activeNavItem === "bot-management" ? "text-primary" : "text-muted-foreground"
+										activeNavItem === "bot-management" || activeNavItem === "trigger-editor" ? "text-primary" : "text-muted-foreground"
 									)}
 								>
 									<Bot className="h-5 w-5" />
-									<span className="text-[10px] font-bold uppercase tracking-wider">Bot</span>
+									<span className="text-[10px] font-bold uppercase tracking-wider">Triggers</span>
+								</button>
+								<button
+									onClick={() => setActiveNavItem("cron-management")}
+									className={cn(
+										"flex flex-col items-center gap-1 p-2 transition-colors",
+										activeNavItem === "cron-management" || activeNavItem === "cron-editor" ? "text-primary" : "text-muted-foreground"
+									)}
+								>
+									<Clock className="h-5 w-5" />
+									<span className="text-[10px] font-bold uppercase tracking-wider">Cron</span>
 								</button>
 								<button
 									onClick={() => setActiveNavItem("documentation")}

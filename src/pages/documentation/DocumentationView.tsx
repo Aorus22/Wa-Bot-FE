@@ -31,14 +31,15 @@ export function DocumentationView() {
     }
 
     const tocItems = [
-        { id: 'global-variables', label: 'Global Variables', icon: <Zap className='h-3.5 w-3.5' /> },
+        { id: 'global-variables', label: 'Global Variables', icon: <Zap className='h-3.5 w-3.5' /> },     
         { id: 'messaging-functions', label: 'Messaging Functions', icon: <MessageSquare className='h-3.5 w-3.5' /> },
-        { id: 'utility-functions', label: 'Utility Functions', icon: <Code className='h-3.5 w-3.5' /> },
+        { id: 'utility-functions', label: 'Utility Functions', icon: <Code className='h-3.5 w-3.5' /> },  
+        { id: 'html-parsing-cheerio', label: 'HTML Parsing', icon: <Code className='h-3.5 w-3.5' /> },
+        { id: 'browser-simulation', label: 'Browser Simulation', icon: <Zap className='h-3.5 w-3.5' /> },
         { id: 'state-management', label: 'State Management', icon: <Database className='h-3.5 w-3.5' /> },
         { id: 'storage-and-system', label: 'Storage and System', icon: <Shield className='h-3.5 w-3.5' /> },
-        { id: 'example-weather-bot', label: 'Example Weather Bot', icon: <Bot className='h-3.5 w-3.5' /> },
+        { id: 'example-scheduled-web-scraper', label: 'Example Scraper', icon: <Bot className='h-3.5 w-3.5' /> },
     ]
-
     return (
         <div className='flex h-full w-full bg-background overflow-hidden relative'>
             {/* Mobile Menu Overlay */}

@@ -1,9 +1,9 @@
-import { MessageSquare, Bot, LogOut, FileText } from 'lucide-react'
+import { MessageSquare, Bot, LogOut, FileText, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { ModeToggle } from './ModeToggle'
 
-export type NavItem = 'chat' | 'bot-management' | 'documentation' | 'trigger-editor'
+export type NavItem = 'chat' | 'bot-management' | 'cron-management' | 'documentation' | 'trigger-editor' | 'cron-editor'
 
 interface NavigationSidebarProps {
     activeItem: NavItem
@@ -11,7 +11,7 @@ interface NavigationSidebarProps {
     onLogout: () => void
 }
 
-export function NavigationSidebar({ activeItem, onNavItemSelect, onLogout }: NavigationSidebarProps) {
+export function NavigationSidebar({ activeItem, onNavItemSelect, onLogout }: NavigationSidebarProps) {    
     return (
         <div className='w-[68px] h-full flex flex-col items-center py-6 bg-background border-r border-border/40 flex-shrink-0 z-50'>
             {/* Top Section */}
@@ -24,9 +24,15 @@ export function NavigationSidebar({ activeItem, onNavItemSelect, onLogout }: Nav
                 />
                 <NavButton
                     icon={<Bot className='h-5 w-5' />}
-                    label='Bot Management'
+                    label='Triggers'
                     isActive={activeItem === 'bot-management' || activeItem === 'trigger-editor'}
                     onClick={() => onNavItemSelect('bot-management')}
+                />
+                <NavButton
+                    icon={<Clock className='h-5 w-5' />}
+                    label='Cron Jobs'
+                    isActive={activeItem === 'cron-management' || activeItem === 'cron-editor'}
+                    onClick={() => onNavItemSelect('cron-management')}
                 />
                 <NavButton
                     icon={<FileText className='h-5 w-5' />}
@@ -35,7 +41,6 @@ export function NavigationSidebar({ activeItem, onNavItemSelect, onLogout }: Nav
                     onClick={() => onNavItemSelect('documentation')}
                 />
             </div>
-
             {/* Bottom Section */}
             <div className='flex flex-col items-center gap-4 mt-auto'>
                 <ModeToggle />
