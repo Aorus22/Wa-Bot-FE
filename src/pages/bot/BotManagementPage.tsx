@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Bot, Plus, Trash2, Search, Code, Zap, FileText, Download, Upload } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'

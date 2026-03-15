@@ -118,7 +118,7 @@ export function TriggerEditorPage({ trigger, onBack, onViewDocs, isMobileView }:
                                         />
                                 </div>
                         </div>
-                        <div className='space-y-3 flex-1 flex flex-col min-h-0'>
+                        <div className='space-y-3 flex-1 flex flex-col min-h-[400px] md:min-h-0'>
                                 <div className='flex items-center justify-between shrink-0'>
                                         <Label className='text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1 flex items-center gap-2'>
                                                 <Code className='h-3 w-3 text-primary' />
@@ -129,7 +129,7 @@ export function TriggerEditorPage({ trigger, onBack, onViewDocs, isMobileView }:
                                                 <Badge variant='outline' className='text-[8px] md:text-[9px] font-mono py-0 px-1 md:px-2 hidden sm:inline-flex'>send_text()</Badge>
                                         </div>
                                 </div>
-                                <div className='flex-1 rounded-2xl border border-border/40 overflow-hidden bg-[#1e1e1e] shadow-inner min-h-[300px] md:min-h-0'>
+                                <div className='flex-1 rounded-2xl border border-border/40 overflow-hidden bg-[#1e1e1e] shadow-inner'>
                                         <Editor
                                                 height="100%"
                                                 defaultLanguage="lua"
@@ -143,7 +143,8 @@ export function TriggerEditorPage({ trigger, onBack, onViewDocs, isMobileView }:
                                                         roundedSelection: true,
                                                         scrollBeyondLastLine: false,
                                                         automaticLayout: true,
-                                                        padding: { top: 16, bottom: 16 }
+                                                        padding: { top: 16, bottom: 16 },
+                                                        fixedOverflowWidgets: true
                                                 }}
                                         />
                                 </div>
@@ -254,7 +255,7 @@ export function TriggerEditorPage({ trigger, onBack, onViewDocs, isMobileView }:
 
         return (
                 <div className='flex flex-col h-full w-full bg-background overflow-hidden'>
-                        <div className='p-4 md:p-6 border-b border-border/40 bg-muted/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4'>
+                        <div className='p-4 md:p-6 border-b border-border/40 bg-muted/20 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4'>
                                 <div className='flex items-center gap-3 md:gap-4'>
                                         <Button variant='ghost' size='icon' onClick={onBack} className='rounded-full h-8 w-8 md:h-10 md:w-10'>
                                                 <ArrowLeft className='h-5 w-5' />
@@ -293,9 +294,9 @@ export function TriggerEditorPage({ trigger, onBack, onViewDocs, isMobileView }:
                                                         </TabsList>
                                                 </div>
                                                 <TabsContent value="editor" className="flex-1 flex flex-col overflow-hidden m-0 p-0 outline-none">
-                                                        <ScrollArea className="flex-1">
+                                                        <div className="flex-1 min-h-0">
                                                                 {editorContent}
-                                                        </ScrollArea>
+                                                        </div>
                                                 </TabsContent>
                                                 <TabsContent value="debugger" className="flex-1 flex flex-col overflow-hidden m-0 p-0 outline-none">
                                                         {debuggerContent}
@@ -303,10 +304,8 @@ export function TriggerEditorPage({ trigger, onBack, onViewDocs, isMobileView }:
                                         </Tabs>
                                 ) : (
                                         <>
-                                                <div className='flex-1 flex flex-col border-r border-border/40 overflow-hidden'>
-                                                        <ScrollArea className="flex-1">
-                                                                {editorContent}
-                                                        </ScrollArea>
+                                                <div className='flex-1 flex flex-col border-r border-border/40 overflow-hidden min-h-0'>
+                                                        {editorContent}
                                                 </div>
                                                 {debuggerContent}
                                         </>

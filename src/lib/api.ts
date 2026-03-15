@@ -44,18 +44,27 @@ export type Contact = {
 }
 
 export type Trigger = {
-	id: string
-	name: string
-	pattern: string
-	script: string
-	priority: number
-	is_active: boolean
-	created_at?: string
-	updated_at?: string
+        id: string
+        name: string
+        pattern: string
+        script: string
+        priority: number
+        is_active: boolean
+        created_at?: string
+        updated_at?: string
 }
 
-class ApiClient {
-	private baseUrl: string
+export type CronJob = {
+        id: string
+        name: string
+        schedule: string
+        script: string
+        is_active: boolean
+        created_at?: string
+        updated_at?: string
+}
+
+class ApiClient {	private baseUrl: string
 
 	constructor(baseUrl: string = API_BASE) {
 		this.baseUrl = baseUrl
@@ -199,6 +208,43 @@ class ApiClient {
 		return this.request<any>("/triggers/test", {
 			method: "POST",
 			body: JSON.stringify(data),
+		})
+	}
+
+	async getCronJobs(): Promise<CronJob[]> {
+		return this.request<CronJob[]>("/cron")
+	}
+
+	async createCronJob(job: Partial<CronJob>): Promise<CronJob> {
+		return this.request<CronJob>("/cron", {
+			method: "POST",
+			body: JSON.stringify(job),
+		})
+	}
+
+	async updateCronJob(id: string, job: Partial<CronJob>): Promise<CronJob> {
+		return this.request<CronJob>(`/cron/${id}`, {
+			method: "PUT",
+			body: JSON.stringify(job),
+		})
+	}
+
+	async deleteCronJob(id: string): Promise<{ status: string }> {
+		return this.request<{ status: string }>(`/cron/${id}`, {
+			method: "DELETE",
+		})
+	}
+
+	async deleteAllCronJobs(): Promise<{ status: string }> {
+		return this.request<{ status: string }>("/cron", {
+			method: "DELETE",
+		})
+	}
+
+	async testCronJob(script: string): Promise<any> {
+		return this.request<any>("/cron/test", {
+			method: "POST",
+			body: JSON.stringify({ script }),
 		})
 	}
 
