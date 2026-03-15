@@ -87,38 +87,38 @@ export function TriggerEditorPage({ trigger, onBack, onViewDocs, isMobileView }:
         }
 
         const editorContent = (
-                <div className='p-4 md:p-6 space-y-6 flex-1 flex flex-col min-h-0'>
-                        <div className='grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 shrink-0'>
-                                <div className='space-y-2'>
+                <div className='p-3 md:p-6 space-y-4 md:space-y-6 flex-1 flex flex-col min-h-0'>
+                        <div className='grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6 shrink-0'>
+                                <div className='col-span-2 md:col-span-1 space-y-1.5'>
                                         <Label className='text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1'>Trigger Name</Label>
                                         <Input
                                                 placeholder='e.g., Auto Reply Greeting'
                                                 value={formData.name}
                                                 onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                                                className='rounded-xl h-10 md:h-11 border-border/40 bg-muted/30 focus-visible:ring-primary/20'
+                                                className='rounded-xl h-9 md:h-11 border-border/40 bg-muted/30 focus-visible:ring-primary/20 text-xs md:text-sm'
                                         />
                                 </div>
-                                <div className='space-y-2'>
+                                <div className='col-span-1 md:col-span-1 space-y-1.5'>
                                         <Label className='text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1'>Regex Pattern</Label>
                                         <Input
                                                 placeholder='^!test\s+(.*)'
                                                 value={formData.pattern}
                                                 onChange={e => setFormData(prev => ({ ...prev, pattern: e.target.value }))}
-                                                className='rounded-xl h-10 md:h-11 border-border/40 bg-muted/30 font-mono focus-visible:ring-primary/20'
+                                                className='rounded-xl h-9 md:h-11 border-border/40 bg-muted/30 font-mono focus-visible:ring-primary/20 text-xs md:text-sm'
                                         />
                                 </div>
-                                <div className='space-y-2'>
+                                <div className='col-span-1 md:col-span-1 space-y-1.5'>
                                         <Label className='text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1'>Priority</Label>
                                         <Input
                                                 type='number'
                                                 placeholder='0'
                                                 value={formData.priority || 0}
                                                 onChange={e => setFormData(prev => ({ ...prev, priority: parseInt(e.target.value) || 0 }))}
-                                                className='rounded-xl h-10 md:h-11 border-border/40 bg-muted/30 focus-visible:ring-primary/20'
+                                                className='rounded-xl h-9 md:h-11 border-border/40 bg-muted/30 focus-visible:ring-primary/20 text-xs md:text-sm'
                                         />
                                 </div>
                         </div>
-                        <div className='space-y-3 flex-1 flex flex-col min-h-[400px] md:min-h-0'>
+                        <div className='space-y-2 md:space-y-3 flex-1 flex flex-col min-h-0'>
                                 <div className='flex items-center justify-between shrink-0'>
                                         <Label className='text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1 flex items-center gap-2'>
                                                 <Code className='h-3 w-3 text-primary' />
@@ -129,24 +129,37 @@ export function TriggerEditorPage({ trigger, onBack, onViewDocs, isMobileView }:
                                                 <Badge variant='outline' className='text-[8px] md:text-[9px] font-mono py-0 px-1 md:px-2 hidden sm:inline-flex'>send_text()</Badge>
                                         </div>
                                 </div>
-                                <div className='flex-1 rounded-2xl border border-border/40 overflow-hidden bg-[#1e1e1e] shadow-inner'>
-                                        <Editor
-                                                height="100%"
-                                                defaultLanguage="lua"
-                                                theme="vs-dark"
-                                                value={formData.script}
-                                                onChange={(val) => setFormData(prev => ({ ...prev, script: val || '' }))}
-                                                options={{
-                                                        minimap: { enabled: false },
-                                                        fontSize: isMobileView ? 12 : 13,
-                                                        lineNumbers: 'on',
-                                                        roundedSelection: true,
-                                                        scrollBeyondLastLine: false,
-                                                        automaticLayout: true,
-                                                        padding: { top: 16, bottom: 16 },
-                                                        fixedOverflowWidgets: true
-                                                }}
-                                        />
+                                <div className='flex-1 md:h-full min-h-[350px] md:min-h-0 rounded-2xl border border-border/40 overflow-hidden bg-[#1e1e1e] shadow-inner relative'>
+                                        <div className='absolute inset-0'>
+                                                <Editor
+                                                        height="100%"
+                                                        defaultLanguage="lua"
+                                                        theme="vs-dark"
+                                                        value={formData.script}
+                                                        onChange={(val) => setFormData(prev => ({ ...prev, script: val || '' }))}
+                                                        loading={<div className="h-full w-full flex items-center justify-center text-muted-foreground text-[10px] font-mono animate-pulse">Initializing Engine...</div>}
+                                                        options={{
+                                                                minimap: { enabled: false },
+                                                                fontSize: isMobileView ? 12 : 13,
+                                                                lineNumbers: 'on',
+                                                                roundedSelection: true,
+                                                                scrollBeyondLastLine: false,
+                                                                automaticLayout: true,
+                                                                padding: { top: 12, bottom: 12 },
+                                                                fixedOverflowWidgets: true,
+                                                                wordWrap: 'on',
+                                                                formatOnPaste: true,
+                                                                formatOnType: true,
+                                                                scrollbar: {
+                                                                    vertical: 'visible',
+                                                                    horizontal: 'visible',
+                                                                    useShadows: false,
+                                                                    verticalScrollbarSize: 10,
+                                                                    horizontalScrollbarSize: 10
+                                                                }
+                                                        }}
+                                                />
+                                        </div>
                                 </div>
                         </div>
                 </div>

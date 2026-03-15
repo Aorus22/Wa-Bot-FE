@@ -82,39 +82,39 @@ export function CronEditorPage({ job, onBack, onViewDocs, isMobileView }: CronEd
 	}
 
     const editorContent = (
-        <div className='p-4 md:p-6 space-y-6 flex-1 flex flex-col min-h-0'>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 shrink-0'>
-                <div className='space-y-2'>
+        <div className='p-3 md:p-6 space-y-4 md:space-y-6 flex-1 flex flex-col min-h-0'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6 shrink-0'>
+                <div className='space-y-1.5'>
                     <Label className='text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1'>Process Name</Label>
                     <Input
                         placeholder='e.g., Daily Database Sync'
                         value={formData.name}
                         onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                        className='rounded-xl h-10 md:h-11 border-border/40 bg-muted/30 focus-visible:ring-primary/20'
+                        className='rounded-xl h-9 md:h-11 border-border/40 bg-muted/30 focus-visible:ring-primary/20 text-xs md:text-sm'
                     />
                 </div>
-                <div className='space-y-2'>
+                <div className='space-y-1.5'>
                     <Label className='text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1'>Temporal Schedule (Cron)</Label>
                     <div className='flex gap-2'>
                         <Input
                             placeholder='0 0 * * *'
                             value={formData.schedule}
                             onChange={e => setFormData(prev => ({ ...prev, schedule: e.target.value }))}
-                            className='rounded-xl h-10 md:h-11 border-border/40 bg-muted/30 font-mono focus-visible:ring-primary/20 flex-1'
+                            className='rounded-xl h-9 md:h-11 border-border/40 bg-muted/30 font-mono focus-visible:ring-primary/20 flex-1 text-xs md:text-sm'
                         />
                         <Button 
                             variant='outline' 
                             size='icon' 
-                            className='rounded-xl h-10 md:h-11 w-10 md:w-11 shrink-0 border-border/40 bg-muted/20 hover:bg-primary/5 hover:text-primary'
+                            className='rounded-xl h-9 md:h-11 w-9 md:w-11 shrink-0 border-border/40 bg-muted/20 hover:bg-primary/5 hover:text-primary'
                             onClick={() => window.open('https://crontab.guru/', '_blank')}
                         >
-                            <Info className='h-4 w-4' />
+                            <Info className='h-3.5 w-3.5 md:h-4 md:w-4' />
                         </Button>
                     </div>
                 </div>
             </div>
 
-            <div className='space-y-3 flex-1 flex flex-col min-h-[400px] md:min-h-0'>
+            <div className='space-y-2 md:space-y-3 flex-1 flex flex-col min-h-0'>
                 <div className='flex items-center justify-between shrink-0'>
                     <Label className='text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1 flex items-center gap-2'>
                         <Code className='h-3 w-3 text-primary' />
@@ -125,24 +125,30 @@ export function CronEditorPage({ job, onBack, onViewDocs, isMobileView }: CronEd
                         <Badge variant='outline' className='text-[8px] md:text-[9px] font-mono py-0 px-1 md:px-2 hidden sm:inline-flex'>send_text()</Badge>
                     </div>
                 </div>
-                <div className='flex-1 rounded-2xl border border-border/40 overflow-hidden bg-[#1e1e1e] shadow-inner'>
-                    <Editor
-                        height="100%"
-                        defaultLanguage="lua"
-                        theme="vs-dark"
-                        value={formData.script}
-                        onChange={(val) => setFormData(prev => ({ ...prev, script: val || '' }))}
-                        options={{
-                            minimap: { enabled: false },
-                            fontSize: isMobileView ? 12 : 13,
-                            lineNumbers: 'on',
-                            roundedSelection: true,
-                            scrollBeyondLastLine: false,
-                            automaticLayout: true,
-                            padding: { top: 16, bottom: 16 },
-                            fixedOverflowWidgets: true
-                        }}
-                    />
+                <div className='flex-1 md:h-full min-h-[350px] md:min-h-0 rounded-2xl border border-border/40 overflow-hidden bg-[#1e1e1e] shadow-inner relative'>
+                    <div className='absolute inset-0'>
+                        <Editor
+                            height="100%"
+                            defaultLanguage="lua"
+                            theme="vs-dark"
+                            value={formData.script}
+                            onChange={(val) => setFormData(prev => ({ ...prev, script: val || '' }))}
+                            loading={<div className="h-full w-full flex items-center justify-center text-muted-foreground text-[10px] font-mono animate-pulse">Initializing Engine...</div>}
+                            options={{
+                                minimap: { enabled: false },
+                                fontSize: isMobileView ? 12 : 13,
+                                lineNumbers: 'on',
+                                roundedSelection: true,
+                                scrollBeyondLastLine: false,
+                                automaticLayout: true,
+                                padding: { top: 12, bottom: 12 },
+                                fixedOverflowWidgets: true,
+                                wordWrap: 'on',
+                                formatOnPaste: true,
+                                formatOnType: true
+                            }}
+                        />
+                    </div>
                 </div>
             </div>
         </div>
