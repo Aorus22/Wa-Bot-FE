@@ -114,7 +114,7 @@ export function CronEditorPage({ job, onBack, onViewDocs, isMobileView }: CronEd
                 </div>
             </div>
 
-            <div className='space-y-3 flex-1 flex flex-col min-h-0'>
+            <div className='space-y-3 flex-1 flex flex-col min-h-[400px] md:min-h-0'>
                 <div className='flex items-center justify-between shrink-0'>
                     <Label className='text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1 flex items-center gap-2'>
                         <Code className='h-3 w-3 text-primary' />
@@ -125,7 +125,7 @@ export function CronEditorPage({ job, onBack, onViewDocs, isMobileView }: CronEd
                         <Badge variant='outline' className='text-[8px] md:text-[9px] font-mono py-0 px-1 md:px-2 hidden sm:inline-flex'>send_text()</Badge>
                     </div>
                 </div>
-                <div className='flex-1 rounded-2xl border border-border/40 overflow-hidden bg-[#1e1e1e] shadow-inner min-h-[300px] md:min-h-0'>
+                <div className='flex-1 rounded-2xl border border-border/40 overflow-hidden bg-[#1e1e1e] shadow-inner'>
                     <Editor
                         height="100%"
                         defaultLanguage="lua"
@@ -139,7 +139,8 @@ export function CronEditorPage({ job, onBack, onViewDocs, isMobileView }: CronEd
                             roundedSelection: true,
                             scrollBeyondLastLine: false,
                             automaticLayout: true,
-                            padding: { top: 16, bottom: 16 }
+                            padding: { top: 16, bottom: 16 },
+                            fixedOverflowWidgets: true
                         }}
                     />
                 </div>
@@ -214,7 +215,7 @@ export function CronEditorPage({ job, onBack, onViewDocs, isMobileView }: CronEd
 	return (
 		<div className="flex flex-col h-full w-full bg-background overflow-hidden">
 			{/* Unified Header */}
-			<div className="p-4 md:p-6 border-b border-border/40 bg-muted/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+			<div className="p-4 md:p-6 border-b border-border/40 bg-muted/20 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 				<div className="flex items-center gap-3 md:gap-4">
 					<Button 
 						variant="ghost" 
@@ -229,15 +230,29 @@ export function CronEditorPage({ job, onBack, onViewDocs, isMobileView }: CronEd
 							<h1 className="text-lg md:text-xl font-bold tracking-tight">
 								{formData.id ? 'Task Configuration' : 'Establish Task'}
 							</h1>
-							<Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-none rounded-full text-[10px] font-bold px-3 py-0.5">
-								<Calendar className="w-3 h-3 mr-1.5" />
-								AUTOMATION
+							<Badge className={cn(
+                                "border-none rounded-full text-[10px] font-bold px-3 py-0.5",
+                                formData.is_active 
+                                    ? "bg-green-500/10 text-green-500 hover:bg-green-500/20" 
+                                    : "bg-muted text-muted-foreground"
+                            )}>
+								{formData.is_active ? 'ACTIVE' : 'INACTIVE'}
 							</Badge>
 						</div>
                         <p className='text-[10px] md:text-xs text-muted-foreground hidden xs:block'>Define scheduled behavior and autonomous logic.</p>
 					</div>
 				</div>
 				<div className="flex items-center gap-2 sm:gap-3">
+                    <div className="flex items-center gap-2 mr-2 bg-muted/30 px-3 py-1.5 rounded-xl border border-border/40">
+                        <Label htmlFor="active-toggle" className="text-[10px] font-bold uppercase cursor-pointer">Enabled</Label>
+                        <input 
+                            id="active-toggle"
+                            type="checkbox" 
+                            checked={formData.is_active}
+                            onChange={e => setFormData(prev => ({ ...prev, is_active: e.target.checked }))}
+                            className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                        />
+                    </div>
                     <Button variant='outline' onClick={onViewDocs} className='rounded-xl h-9 md:h-10 px-3 md:px-4 text-xs md:text-sm hidden md:flex border-border/40'>
                         <FileText className='mr-2 h-4 w-4' /> Docs       
                     </Button>
@@ -268,9 +283,9 @@ export function CronEditorPage({ job, onBack, onViewDocs, isMobileView }: CronEd
                             </TabsList>
                         </div>
                         <TabsContent value="editor" className="flex-1 flex flex-col overflow-hidden m-0 p-0 outline-none">
-                            <ScrollArea className="flex-1">
+                            <div className="flex-1 min-h-0">
                                 {editorContent}
-                            </ScrollArea>
+                            </div>
                         </TabsContent>
                         <TabsContent value="debugger" className="flex-1 flex flex-col overflow-hidden m-0 p-0 outline-none">
                             {debuggerContent}
@@ -278,10 +293,8 @@ export function CronEditorPage({ job, onBack, onViewDocs, isMobileView }: CronEd
                     </Tabs>
                 ) : (
                     <>
-                        <div className='flex-1 flex flex-col border-r border-border/40 overflow-hidden'>
-                            <ScrollArea className="flex-1">
-                                {editorContent}
-                            </ScrollArea>
+                        <div className='flex-1 flex flex-col border-r border-border/40 overflow-hidden min-h-0'>
+                            {editorContent}
                         </div>
                         {debuggerContent}
                     </>
