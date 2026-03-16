@@ -68,6 +68,20 @@ Interacts with the Gemini AI.
 ### `get_instagram_url(url)`
 Extracts the direct media URL from an Instagram post/reel link.
 
+### `get_groups()`
+Returns a table of all groups the bot is currently in.
+- **Returns**: `{{ jid = "...", name = "..." }, ...}`
+
+### `get_participants(group_jid)`
+Returns a table of participants in a specific group.
+- **Returns**: `{{ jid = "...", is_admin = bool }, ...}`
+
+### `get_duration(file_path)`
+Gets the duration of a media file (video/audio) in seconds.
+
+### `get_mime_type(file_path)`
+Returns the MIME type of a local file (e.g., `image/jpeg`).
+
 ### `json_decode(json_string)`
 Converts a JSON string into a Lua table.
 
@@ -104,15 +118,45 @@ Executes a series of browser actions.
 - `{ action = "wait_visible", selector = "..." }`
 - `{ action = "click", selector = "..." }`
 - `{ action = "type", selector = "...", text = "..." }`
-- `{ action = "text", selector = "...", key = "..." }`: Result saved in `key`.
-- `{ action = "html", key = "..." }`: Outer HTML saved in `key`.
+- `{ action = "press_key", selector = "...", key = "..." }`: Sends a key press (e.g., `"\r"` for Enter).
+- `{ action = "evaluate", script = "...", [key = "..."] }`: Executes JavaScript and captures the return value.
+- `{ action = "attribute", selector = "...", attribute = "...", [key = "..."] }`: Gets an attribute value.
+- `{ action = "text", selector = "...", [key = "..."] }`: Result saved in `key`.
+- `{ action = "html", [key = "..."] }`: Outer HTML saved in `key`.
 - `{ action = "screenshot", filename = "...", [selector = "..."], [quality = 90] }`
 - `{ action = "sleep", ms = 1000 }`
 
 ---
 
+## Redis Persistent Storage
+High-performance key-value storage that persists across bot restarts.
+
+### `redis_set(key, value, [ttl])`
+Stores a string value.
+- **ttl**: Optional expiration time in seconds.
+
+### `redis_get(key)`
+Retrieves a string value. Returns `nil, error` if the key doesn't exist.
+
+### `redis_del(key)`
+Deletes the specified key.
+
+### `redis_exists(key)`
+Checks if a key exists. Returns a boolean.
+
+### `redis_hset(key, field, value)`
+Sets a field in a Redis hash.
+
+### `redis_hget(key, field)`
+Gets a field value from a Redis hash.
+
+### `redis_hgetall(key)`
+Returns all fields and values from a hash as a Lua table.
+
+---
+
 ## State Management
-Used to store temporary conversation context.
+Used to store temporary conversation context (stored in memory). For long-term persistence, use **Redis**.
 
 ### `set_state(jid, state_name)`
 Saves a temporary state string for a specific user/chat.
@@ -127,6 +171,15 @@ Retrieves the currently saved state for a user/chat.
 ### `storage_save(filename, content)`
 Saves text or binary string to a file in the bot's media folder.
 
+### `storage_get(filename)`
+Reads the content of a file from storage.
+
+### `storage_delete(filename)`
+Deletes a file from storage.
+
+### `storage_exists(filename)`
+Checks if a file exists in storage. Returns a boolean.
+
 ### `storage_path(filename)`
 Gets the absolute system path for a file.
 
@@ -135,10 +188,25 @@ Executes an arbitrary terminal command.
 - **Returns**: Table with `stdout`, `stderr`, `success` (bool), and `error`.
 
 ### `ffmpeg(args_table)`
-Executes FFmpeg commands.
+Executes FFmpeg commands. Example: `ffmpeg({"-i", "in.mp4", "out.mp3"})`
+
+### `ffprobe(args_table)`
+Executes ffprobe commands to get media information.
+
+### `ffprobe_json(args_table)`
+Executes ffprobe and returns the result as a decoded Lua table (JSON format).
 
 ### `yt_dlp(args_table)`
 Downloads videos/audio from supported sites.
+
+### `gallery_dl(args_table)`
+Downloads image galleries from supported sites.
+
+### `webpmux(args_table)`
+Manipulates WebP files (used for stickers).
+
+### `whatsapp_exif(pack_name, author)`
+Generates WhatsApp-compatible EXIF metadata for stickers. Returns a binary string.
 
 ---
 
