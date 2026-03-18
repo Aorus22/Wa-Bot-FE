@@ -22,6 +22,7 @@ interface ChatPageProps {
 export function ChatPage({ isMobileView, incomingMessage, chatUpdate, statusUpdate }: ChatPageProps) {
 	const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
 	const [showSidebar, setShowSidebar] = useState(true)
+	const containerRef = useRef<HTMLDivElement>(null)
 
 	// Manual resizing state
 	const [sidebarWidth, setSidebarWidth] = useState(400) // Default width in px
@@ -40,8 +41,10 @@ export function ChatPage({ isMobileView, incomingMessage, chatUpdate, statusUpda
 	}, [])
 
 	const resize = useCallback((e: MouseEvent) => {
-		if (isResizing.current) {
-			const newWidth = e.clientX
+		if (isResizing.current && containerRef.current) {
+			const containerRect = containerRef.current.getBoundingClientRect()
+			const newWidth = e.clientX - containerRect.left
+			
 			// Limit between 250px and 80% of window width
 			if (newWidth > 250 && newWidth < window.innerWidth * 0.85) {
 				setSidebarWidth(newWidth)
@@ -72,7 +75,7 @@ export function ChatPage({ isMobileView, incomingMessage, chatUpdate, statusUpda
 
 	if (isMobileView) {
 		return (
-			<div className="flex w-full relative h-full">
+			<div ref={containerRef} className="flex w-full relative h-full">
 				<div
 					className={cn(
 						"h-full transition-all duration-300 ease-in-out border-r border-border/40",
@@ -115,7 +118,7 @@ export function ChatPage({ isMobileView, incomingMessage, chatUpdate, statusUpda
 	}
 
 	return (
-		<div className="flex w-full h-full overflow-hidden bg-background">
+		<div ref={containerRef} className="flex w-full h-full overflow-hidden bg-background">
 			{/* Sidebar */}
 			<div
 				style={{ width: `${sidebarWidth}px` }}
