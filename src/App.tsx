@@ -28,7 +28,7 @@ import {
 function App() {
 	const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768)
 	const [incomingMessage, setIncomingMessage] = useState<{ chatId: string; message: Message } | null>(null)
-	const [chatUpdate, setChatUpdate] = useState<{ chatId: string; lastMsg: string; lastTime: number; msgId: string; senderName?: string; chatName?: string; chatAvatar?: string } | null>(null)
+	const [chatUpdate, setChatUpdate] = useState<{ chatId: string; lastMsg: string; lastTime: number; msgId: string; status?: string; senderName?: string; chatName?: string; chatAvatar?: string } | null>(null)
 	const [statusUpdate, setStatusUpdate] = useState<{ id: string; status: string } | null>(null)
 	const [activeNavItem, setActiveNavItem] = useState<NavItem>("chat")
 	const [editingTrigger, setEditingTrigger] = useState<Trigger | null>(null)
@@ -88,6 +88,7 @@ function App() {
 					lastMsg: payload.content,
 					lastTime: payload.timestamp,
 					msgId: payload.id,
+					status: payload.status,
 					senderName: payload.senderName,
 					chatName: payload.chatName,
 				})

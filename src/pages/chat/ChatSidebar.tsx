@@ -10,7 +10,16 @@ import { cn } from "@/lib/utils"
 interface ChatSidebarProps {
     selectedChatId: string | null
     onChatSelect: (chat: Chat) => void
-    chatUpdate?: { chatId: string; lastMsg: string; lastTime: number; msgId: string; senderName?: string; chatName?: string; chatAvatar?: string } | null
+    chatUpdate?: { 
+        chatId: string; 
+        lastMsg: string; 
+        lastTime: number; 
+        msgId: string; 
+        status?: string; 
+        senderName?: string; 
+        chatName?: string; 
+        chatAvatar?: string 
+    } | null
     className?: string
 }
 
@@ -51,11 +60,16 @@ export function ChatSidebar({
             }
             processedUpdateIds.current.add(chatUpdate.msgId)
 
-            setChats(prevChats => {
-                const chatExists = prevChats.some(c => c.id === chatUpdate.chatId);
+            // If this is a message for the currently selected chat, mark it as read in the backend
+            if (chatUpdate.chatId === selectedChatId && chatUpdate.lastMsg !== "") {
+                api.markAsRead(selectedChatId).catch(console.error)
+            }
 
-                if (!chatExists) {
-                    // Add new chat
+            setChats(prevChats => {
+                const chatMap = new Map(prevChats.map(c => [c.id, c]));
+                const existingChat = chatMap.get(chatUpdate.chatId);
+
+                if (!existingChat) {
                     const newChat: Chat = {
                         id: chatUpdate.chatId,
                         name: chatUpdate.chatName || chatUpdate.senderName || chatUpdate.chatId,
@@ -66,31 +80,23 @@ export function ChatSidebar({
                         isActive: true,
                         isGroup: chatUpdate.chatId.includes("@g.us"),
                     };
-                    return [newChat, ...prevChats].sort((a, b) => b.lastTime - a.lastTime);
+                    chatMap.set(newChat.id, newChat);
+                } else {
+                    const isIncoming = chatUpdate.status === "received" || (!chatUpdate.status && chatUpdate.lastMsg !== "");
+                    const currentUnread = Number(existingChat.unread) || 0;
+                    const newUnread = existingChat.id === selectedChatId ? 0 : (isIncoming ? currentUnread + 1 : currentUnread);
+                    
+                    chatMap.set(existingChat.id, {
+                        ...existingChat,
+                        name: chatUpdate.chatName || existingChat.name,
+                        avatar: chatUpdate.chatAvatar || existingChat.avatar,
+                        lastMsg: chatUpdate.lastMsg,
+                        lastTime: chatUpdate.lastTime,
+                        unread: newUnread,
+                    });
                 }
 
-                return prevChats.map(chat => {
-                    if (chat.id === chatUpdate.chatId) {
-                        // If it's a name/avatar update only (lastMsg is empty)
-                        if (chatUpdate.lastMsg === "") {
-                            return {
-                                ...chat,
-                                name: chatUpdate.chatName || chat.name,
-                                avatar: chatUpdate.chatAvatar || chat.avatar
-                            }
-                        }
-                        // Regular message update
-                        return {
-                            ...chat,
-                            name: chatUpdate.chatName || chat.name,
-                            avatar: chatUpdate.chatAvatar || chat.avatar,
-                            lastMsg: chatUpdate.lastMsg,
-                            lastTime: chatUpdate.lastTime,
-                            unread: chat.id === selectedChatId ? 0 : chat.unread + 1,
-                        }
-                    }
-                    return chat
-                }).sort((a, b) => {												// Sort by lastTime descending - updated chat goes to top (only for messages)
+                return Array.from(chatMap.values()).sort((a, b) => {
                     if (chatUpdate.lastMsg !== "") {
                         if (a.id === chatUpdate.chatId) return -1
                         if (b.id === chatUpdate.chatId) return 1
@@ -120,7 +126,10 @@ export function ChatSidebar({
         try {
             setLoading(true)
             const data = await api.getChats()
-            setChats(data || [])
+            // Deduplicate to avoid rendering issues
+            const chatMap = new Map();
+            (data || []).forEach(chat => chatMap.set(chat.id, chat));
+            setChats(Array.from(chatMap.values()))
         } catch (error) {
             console.error("Failed to load chats:", error)
             setChats([])
@@ -218,32 +227,36 @@ export function ChatSidebar({
                                 <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-background rounded-full" />
                             </div>
 
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between mb-1">
+                            <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-3 items-center">
+                                {/* Left: Name and Message */}
+                                <div className="min-w-0 flex flex-col justify-center h-full">
                                     <h3 className={cn(
                                         "font-bold truncate group-hover:text-primary transition-colors",
-                                        chat.unread > 0 ? "text-foreground" : "text-foreground/90"
+                                        (Number(chat.unread) || 0) > 0 ? "text-foreground" : "text-foreground/90"
                                     )}>
                                         {chat.name}
                                     </h3>
-                                    <span className="text-[11px] font-medium text-muted-foreground/70 uppercase tracking-tighter">
-                                        {formatTime(chat.lastTime)}
-                                    </span>
-                                </div>
-
-                                <div className="flex items-center justify-between gap-2">
                                     <p className={cn(
-                                        "text-sm truncate flex-1",
-                                        chat.unread > 0 ? "text-foreground font-semibold" : "text-muted-foreground/80"
+                                        "text-sm truncate",
+                                        (Number(chat.unread) || 0) > 0 ? "text-foreground font-semibold" : "text-muted-foreground/80"
                                     )}>
                                         {chat.lastMsg || "Tap to chat"}
                                     </p>
-                                    {chat.unread > 0 && (
-                                        <Badge
-                                            className="h-5 min-w-[20px] px-1.5 flex items-center justify-center bg-primary text-primary-foreground border-none rounded-full text-[10px] font-bold shadow-sm animate-in zoom-in-50 duration-300"
-                                        >
+                                </div>
+
+                                {/* Right: Time and Badge */}
+                                <div className="flex flex-col items-end justify-between shrink-0 self-stretch py-0.5 min-w-[48px]">
+                                    <span className={cn(
+                                        "text-[11px] font-medium uppercase tracking-tighter transition-colors duration-300",
+                                        (Number(chat.unread) || 0) > 0 ? "text-[#00a884] font-bold" : "text-muted-foreground/70"
+                                    )}>
+                                        {formatTime(chat.lastTime)}
+                                    </span>
+                                    
+                                    {(Number(chat.unread) || 0) > 0 && (
+                                        <div className="bg-[#00a884] text-white min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center shadow-sm ring-1 ring-background">
                                             {chat.unread}
-                                        </Badge>
+                                        </div>
                                     )}
                                 </div>
                             </div>
