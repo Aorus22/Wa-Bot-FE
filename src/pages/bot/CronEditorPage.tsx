@@ -243,16 +243,6 @@ export function CronEditorPage({ job, onBack, onViewDocs, isMobileView }: CronEd
 					</div>
 				</div>
 				<div className="flex items-center gap-2 sm:gap-3">
-                    <div className="flex items-center gap-2 mr-2 bg-muted/30 px-3 py-1.5 rounded-xl border border-border/40">
-                        <Label htmlFor="active-toggle" className="text-[10px] font-bold uppercase cursor-pointer">Enabled</Label>
-                        <input 
-                            id="active-toggle"
-                            type="checkbox" 
-                            checked={formData.is_active}
-                            onChange={e => setFormData(prev => ({ ...prev, is_active: e.target.checked }))}
-                            className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
-                        />
-                    </div>
                     <Button variant='outline' onClick={onViewDocs} className='rounded-xl h-9 md:h-10 px-3 md:px-4 text-xs md:text-sm hidden md:flex border-border/40'>
                         <FileText className='mr-2 h-4 w-4' /> Docs       
                     </Button>
