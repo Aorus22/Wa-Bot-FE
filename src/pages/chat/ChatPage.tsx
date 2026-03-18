@@ -24,11 +24,17 @@ export function ChatPage({ isMobileView, incomingMessage, chatUpdate, statusUpda
 	const [showSidebar, setShowSidebar] = useState(true)
 	const containerRef = useRef<HTMLDivElement>(null)
 
+	// Global message cache for the session
+	const messageCache = useRef<Record<string, { messages: Message[], hasMore: boolean }>>({})
+
+	const updateMessageCache = useCallback((chatId: string, messages: Message[], hasMore: boolean) => {
+		messageCache.current[chatId] = { messages, hasMore }
+	}, [])
+
 	// Manual resizing state
 	const [sidebarWidth, setSidebarWidth] = useState(400) // Default width in px
 	const isResizing = useRef(false)
 	const [activeResizing, setActiveResizing] = useState(false)
-	const sidebarRef = useRef<HTMLDivElement>(null)
 	const containerLeft = useRef(0)
 	const rafId = useRef<number | null>(null)
 
@@ -117,6 +123,9 @@ export function ChatPage({ isMobileView, incomingMessage, chatUpdate, statusUpda
 							statusUpdate={statusUpdate}
 							onBack={handleBack}
 							className="w-full h-full"
+							cachedMessages={messageCache.current[selectedChat.id]?.messages}
+							cachedHasMore={messageCache.current[selectedChat.id]?.hasMore}
+							onCacheUpdate={(msgs, hasMore) => updateMessageCache(selectedChat.id, msgs, hasMore)}
 						/>
 					) : (
 						<div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
@@ -183,6 +192,9 @@ export function ChatPage({ isMobileView, incomingMessage, chatUpdate, statusUpda
 						incomingMessage={incomingMessage}
 						statusUpdate={statusUpdate}
 						className="w-full h-full"
+						cachedMessages={messageCache.current[selectedChat.id]?.messages}
+						cachedHasMore={messageCache.current[selectedChat.id]?.hasMore}
+						onCacheUpdate={(msgs, hasMore) => updateMessageCache(selectedChat.id, msgs, hasMore)}
 					/>
 				) : (
 					<div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">

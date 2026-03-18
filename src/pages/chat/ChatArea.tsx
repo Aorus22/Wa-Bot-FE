@@ -19,6 +19,9 @@ interface ChatAreaProps {
     statusUpdate?: { id: string; status: string } | null
     onBack?: () => void
     className?: string
+    cachedMessages?: Message[]
+    cachedHasMore?: boolean
+    onCacheUpdate?: (messages: Message[], hasMore: boolean) => void
 }
 
 const getApiBase = () => {
@@ -268,6 +271,7 @@ const MessageItem = memo(({
                                     <img
                                         src={getMediaUrl(message.mediaUrl)}
                                         alt="Image"
+                                        loading="lazy"
                                         className="w-full max-w-[320px] h-auto object-cover hover:scale-[1.02] transition-transform duration-500 cursor-zoom-in"
                                         onClick={(e) => {
                                             e.stopPropagation()
@@ -278,7 +282,7 @@ const MessageItem = memo(({
                             )}
                             {isVideo && isMedia && (
                                 <div className="mb-2 -mx-1 -mt-1 rounded-lg overflow-hidden border border-black/5 dark:border-white/5 bg-black/10 flex items-center justify-center aspect-video relative z-10">
-                                    <video src={getMediaUrl(message.mediaUrl)} className="w-full h-auto max-h-[300px]" controls />
+                                    <video src={getMediaUrl(message.mediaUrl)} className="w-full h-auto max-h-[300px]" controls preload="metadata" />
                                 </div>
                             )}
                             {isDocument && isMedia && (
@@ -401,8 +405,19 @@ const MessageItem = memo(({
     )
 })
 
-export const ChatArea = memo(({ chat, incomingMessage, statusUpdate, onBack, className }: ChatAreaProps) => {
+export const ChatArea = memo(({ 
+    chat, 
+    incomingMessage, 
+    statusUpdate, 
+    onBack, 
+    className,
+    cachedMessages,
+    cachedHasMore,
+    onCacheUpdate
+}: ChatAreaProps) => {
     const [messages, setMessages] = useState<Message[]>([])
+    const [loadingMore, setLoadingMore] = useState(false)
+    const [hasMore, setHasMore] = useState(true)
     const [inputMessage, setInputMessage] = useState("")
     const [loading, setLoading] = useState(false)
     const [sending, setSending] = useState(false)
@@ -428,9 +443,25 @@ export const ChatArea = memo(({ chat, incomingMessage, statusUpdate, onBack, cla
         }
     }, [])
 
+    // Sync local state back to cache
+    useEffect(() => {
+        if (chat && onCacheUpdate && messages.length > 0) {
+            onCacheUpdate(messages, hasMore)
+        }
+    }, [messages, hasMore, chat?.id, onCacheUpdate])
+
     useEffect(() => {
         if (chat) {
-            loadMessages()
+            if (cachedMessages && cachedMessages.length > 0) {
+                setMessages(cachedMessages)
+                setHasMore(cachedHasMore ?? true)
+                setInitialLoad(false)
+                // Optional: scrollToBottom("auto") if switching back
+                setTimeout(() => scrollToBottom("auto"), 50)
+            } else {
+                setHasMore(true)
+                loadMessages()
+            }
         } else {
             setMessages([])
             setInitialLoad(true)
@@ -491,8 +522,9 @@ export const ChatArea = memo(({ chat, incomingMessage, statusUpdate, onBack, cla
         if (!chat) return
         try {
             setLoading(true)
-            const data = await api.getMessages(chat.id)
+            const data = await api.getMessages(chat.id, 30)
             setMessages(data || [])
+            setHasMore((data || []).length === 30)
             setInitialLoad(false)
             setTimeout(() => scrollToBottom("auto"), 50)
         } catch (error) {
@@ -500,6 +532,48 @@ export const ChatArea = memo(({ chat, incomingMessage, statusUpdate, onBack, cla
             toast.error("Failed to load conversation")
         } finally {
             setLoading(false)
+        }
+    }
+
+    const loadMoreMessages = async () => {
+        if (!chat || loadingMore || !hasMore || messages.length === 0) return
+        
+        const oldestMsg = messages[0]
+        try {
+            setLoadingMore(true)
+            const data = await api.getMessages(chat.id, 30, oldestMsg.timestamp)
+            
+            if (data && data.length > 0) {
+                // Prepend older messages
+                setMessages(prev => [...data, ...prev])
+                setHasMore(data.length === 30)
+                
+                // Maintain scroll position after prepending
+                if (scrollRef.current) {
+                    const scrollContainer = scrollRef.current
+                    const oldHeight = scrollContainer.scrollHeight
+                    
+                    // Use a temporary observer or timeout to adjust scroll
+                    requestAnimationFrame(() => {
+                        const newHeight = scrollContainer.scrollHeight
+                        scrollContainer.scrollTop = newHeight - oldHeight
+                    })
+                }
+            } else {
+                setHasMore(false)
+            }
+        } catch (error) {
+            console.error("Failed to load more messages:", error)
+        } finally {
+            setLoadingMore(false)
+        }
+    }
+
+    const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+        const target = e.currentTarget
+        // If we're near the top (within 100px)
+        if (target.scrollTop < 100 && !loadingMore && hasMore) {
+            loadMoreMessages()
         }
     }
 
@@ -723,7 +797,12 @@ export const ChatArea = memo(({ chat, incomingMessage, statusUpdate, onBack, cla
                 </div>
             </header>
 
-            <div data-messages-list className="flex-1 overflow-y-auto px-6 pt-3 pb-6 space-y-8 z-10" ref={scrollRef}>
+            <div data-messages-list className="flex-1 overflow-y-auto px-6 pt-3 pb-6 space-y-8 z-10" ref={scrollRef} onScroll={handleScroll}>
+                {loadingMore && (
+                    <div className="flex justify-center py-4">
+                        <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
+                    </div>
+                )}
                 {initialLoad && loading ? (
                     <div className="flex flex-col items-center justify-center py-12 space-y-4 opacity-40">
                         <div className="w-10 h-10 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
