@@ -162,3 +162,37 @@
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+.is-resizing {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
+.is-resizing * {
+  pointer-events: none !important;
+  transition: none !important;
+}
+
+.is-resizing .cursor-col-resize {
+  pointer-events: auto !important;
+}
+
+.is-resizing [data-sidebar-container], 
+.is-resizing [data-main-chat] {
+  contain: strict;
+}
+
+[data-sidebar-container], [data-main-chat] {
+  contain: layout;
+  will-change: width;
+}
+
+[data-message-item], [data-chat-item] {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 80px; /* Rough estimate of item height */
+}
+
+/* Optimization for message container */
+[data-messages-list] {
+  contain: paint;
+}

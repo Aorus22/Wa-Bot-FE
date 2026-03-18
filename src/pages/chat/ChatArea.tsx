@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback, memo, useMemo } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -116,12 +116,12 @@ const renderFormattedContent = (content: string) => {
     })
 }
 
-function MessageItem({
+const MessageItem = memo(({
     message, isMe, isLastInSequence, isFirstInSequence, chat, repliedMsg,
     onReply, onEdit, onDelete, onStickerFavorite, onImageClick,
     formatTime, renderFormattedContent, getMediaUrl, getAvatarUrl,
     showFavoriteBtn, setShowFavoriteBtn
-}: any) {
+}: any) => {
     const [swipeX, setSwipeX] = useState(0)
     const startX = useRef(0)
     const threshold = 60
@@ -399,9 +399,9 @@ function MessageItem({
             </div>
         </div>
     )
-}
+})
 
-export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, className }: ChatAreaProps) {
+export const ChatArea = memo(({ chat, incomingMessage, statusUpdate, onBack, className }: ChatAreaProps) => {
     const [messages, setMessages] = useState<Message[]>([])
     const [inputMessage, setInputMessage] = useState("")
     const [loading, setLoading] = useState(false)
@@ -670,19 +670,29 @@ export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, classNam
         )
     }
 
-    const groupedMessages = messages.reduce((groups: { [key: string]: Message[] }, message) => {
-        const date = formatDate(message.timestamp)
-        if (!groups[date]) groups[date] = []
-        groups[date].push(message)
-        return groups
-    }, {})
+    const groupedMessages = useMemo(() => {
+        return messages.reduce((groups: { [key: string]: Message[] }, message) => {
+            const date = formatDate(message.timestamp)
+            if (!groups[date]) groups[date] = []
+            groups[date].push(message)
+            return groups
+        }, {})
+    }, [messages])
 
-    const sharedMedia = messages.filter(m => (m.type === "image" || m.type === "video") && m.mediaUrl)
-    const sharedDocs = messages.filter(m => m.type === "document" && m.mediaUrl)
-    const sharedLinks = messages.filter(m => {
+    const sharedMedia = useMemo(() => {
+        return messages.filter(m => (m.type === "image" || m.type === "video") && m.mediaUrl)
+    }, [messages])
+    
+    const sharedDocs = useMemo(() => {
+        return messages.filter(m => m.type === "document" && m.mediaUrl)
+    }, [messages])
+    
+    const sharedLinks = useMemo(() => {
         const urlRegex = /(https?:\/\/[^\s]+)/g
-        return m.type === "text" && urlRegex.test(m.content)
-    })
+        return messages.filter(m => {
+            return m.type === "text" && urlRegex.test(m.content)
+        })
+    }, [messages])
 
     return (
         <div className={cn("flex-1 flex flex-col bg-background relative overflow-x-hidden", className)}>
@@ -713,7 +723,7 @@ export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, classNam
                 </div>
             </header>
 
-            <div className="flex-1 overflow-y-auto px-6 pt-3 pb-6 space-y-8 z-10" ref={scrollRef}>
+            <div data-messages-list className="flex-1 overflow-y-auto px-6 pt-3 pb-6 space-y-8 z-10" ref={scrollRef}>
                 {initialLoad && loading ? (
                     <div className="flex flex-col items-center justify-center py-12 space-y-4 opacity-40">
                         <div className="w-10 h-10 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
@@ -737,27 +747,28 @@ export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, classNam
                                     const isFirstInSequence = !prevMsg || prevMsg.from !== message.from
 
                                     return (
-                                        <MessageItem
-                                            key={message.id}
-                                            message={message}
-                                            isMe={isMe}
-                                            isLastInSequence={isLastInSequence}
-                                            isFirstInSequence={isFirstInSequence}
-                                            chat={chat}
-                                            repliedMsg={repliedMsg}
-                                            onReply={() => handleReplyMessage(message)}
-                                            onEdit={() => handleEditMessage(message)}
-                                            onDelete={() => handleDeleteMessage(message.id)}
-                                            onStickerFavorite={(mediaUrl: string) => handleFavoriteSticker(message.id, mediaUrl || "", false)}
-                                            onImageClick={(url: string) => setSelectedImageUrl(url || null)}
-                                            onDownload={handleDownload}
-                                            formatTime={formatTime}
-                                            renderFormattedContent={renderFormattedContent}
-                                            getMediaUrl={getMediaUrl}
-                                            getAvatarUrl={getAvatarUrl}
-                                            showFavoriteBtn={showFavoriteBtn}
-                                            setShowFavoriteBtn={setShowFavoriteBtn}
-                                        />
+                                        <div key={message.id} data-message-item>
+                                            <MessageItem
+                                                message={message}
+                                                isMe={isMe}
+                                                isLastInSequence={isLastInSequence}
+                                                isFirstInSequence={isFirstInSequence}
+                                                chat={chat}
+                                                repliedMsg={repliedMsg}
+                                                onReply={() => handleReplyMessage(message)}
+                                                onEdit={() => handleEditMessage(message)}
+                                                onDelete={() => handleDeleteMessage(message.id)}
+                                                onStickerFavorite={(mediaUrl: string) => handleFavoriteSticker(message.id, mediaUrl || "", false)}
+                                                onImageClick={(url: string) => setSelectedImageUrl(url || null)}
+                                                onDownload={handleDownload}
+                                                formatTime={formatTime}
+                                                renderFormattedContent={renderFormattedContent}
+                                                getMediaUrl={getMediaUrl}
+                                                getAvatarUrl={getAvatarUrl}
+                                                showFavoriteBtn={showFavoriteBtn}
+                                                setShowFavoriteBtn={setShowFavoriteBtn}
+                                            />
+                                        </div>
                                     )
                                 })}
                             </div>
@@ -858,4 +869,4 @@ export function ChatArea({ chat, incomingMessage, statusUpdate, onBack, classNam
             />
         </div>
     )
-}
+})

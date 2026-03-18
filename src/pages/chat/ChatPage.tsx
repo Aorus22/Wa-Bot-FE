@@ -27,27 +27,51 @@ export function ChatPage({ isMobileView, incomingMessage, chatUpdate, statusUpda
 	// Manual resizing state
 	const [sidebarWidth, setSidebarWidth] = useState(400) // Default width in px
 	const isResizing = useRef(false)
+	const [activeResizing, setActiveResizing] = useState(false)
+	const sidebarRef = useRef<HTMLDivElement>(null)
+	const containerLeft = useRef(0)
+	const rafId = useRef<number | null>(null)
 
 	const startResizing = useCallback(() => {
 		isResizing.current = true
+		setActiveResizing(true)
+		if (containerRef.current) {
+			containerLeft.current = containerRef.current.getBoundingClientRect().left
+		}
 		document.body.style.cursor = "col-resize"
 		document.body.style.userSelect = "none"
+		document.body.classList.add("is-resizing")
 	}, [])
 
 	const stopResizing = useCallback(() => {
+		if (isResizing.current && containerRef.current) {
+			const currentWidth = parseInt(containerRef.current.style.getPropertyValue("--sidebar-width")) || sidebarWidth
+			setSidebarWidth(currentWidth)
+		}
 		isResizing.current = false
+		setActiveResizing(false)
 		document.body.style.cursor = ""
 		document.body.style.userSelect = ""
-	}, [])
+		document.body.classList.remove("is-resizing")
+		if (rafId.current) {
+			cancelAnimationFrame(rafId.current)
+			rafId.current = null
+		}
+	}, [sidebarWidth])
 
 	const resize = useCallback((e: MouseEvent) => {
 		if (isResizing.current && containerRef.current) {
-			const containerRect = containerRef.current.getBoundingClientRect()
-			const newWidth = e.clientX - containerRect.left
+			const newWidth = e.clientX - containerLeft.current
 			
 			// Limit between 250px and 80% of window width
 			if (newWidth > 250 && newWidth < window.innerWidth * 0.85) {
-				setSidebarWidth(newWidth)
+				if (rafId.current) cancelAnimationFrame(rafId.current)
+				
+				rafId.current = requestAnimationFrame(() => {
+					if (containerRef.current) {
+						containerRef.current.style.setProperty("--sidebar-width", `${newWidth}px`)
+					}
+				})
 			}
 		}
 	}, [])
@@ -61,17 +85,17 @@ export function ChatPage({ isMobileView, incomingMessage, chatUpdate, statusUpda
 		}
 	}, [resize, stopResizing])
 
-	const handleChatSelect = (chat: Chat) => {
+	const handleChatSelect = useCallback((chat: Chat) => {
 		setSelectedChat(chat)
 		if (isMobileView) {
 			setShowSidebar(false)
 		}
-	}
+	}, [isMobileView])
 
-	const handleBack = () => {
+	const handleBack = useCallback(() => {
 		setShowSidebar(true)
 		setSelectedChat(null)
-	}
+	}, [])
 
 	if (isMobileView) {
 		return (
@@ -118,10 +142,20 @@ export function ChatPage({ isMobileView, incomingMessage, chatUpdate, statusUpda
 	}
 
 	return (
-		<div ref={containerRef} className="flex w-full h-full overflow-hidden bg-background">
+		<div 
+			ref={containerRef} 
+			className="flex w-full h-full overflow-hidden bg-background relative"
+			style={{ "--sidebar-width": `${sidebarWidth}px` } as React.CSSProperties}
+		>
+			{/* Resize Overlay - Prevents iframe/component interference */}
+			{activeResizing && (
+				<div className="fixed inset-0 z-[100] cursor-col-resize" />
+			)}
+
 			{/* Sidebar */}
 			<div
-				style={{ width: `${sidebarWidth}px` }}
+				data-sidebar-container
+				style={{ width: "var(--sidebar-width)" }}
 				className="h-full flex-shrink-0 border-r border-border/40 overflow-hidden"
 			>
 				<ChatSidebar
@@ -140,8 +174,9 @@ export function ChatPage({ isMobileView, incomingMessage, chatUpdate, statusUpda
 				<div className="w-[2px] h-8 bg-border group-hover:bg-primary/50 rounded-full" />
 			</div>
 
+
 			{/* Main Chat Area */}
-			<main className="flex-1 h-full relative overflow-hidden bg-muted/30 flex">
+			<main data-main-chat className="flex-1 h-full relative overflow-hidden bg-muted/30 flex">
 				{selectedChat ? (
 					<ChatArea
 						chat={selectedChat}

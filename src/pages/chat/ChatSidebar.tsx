@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, memo, useMemo } from "react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -36,12 +36,12 @@ const getAvatarUrl = (chat: Chat): string | undefined => {
     return undefined
 }
 
-export function ChatSidebar({
+export const ChatSidebar = memo(({
     selectedChatId,
     onChatSelect,
     chatUpdate,
     className,
-}: ChatSidebarProps) {
+}: ChatSidebarProps) => {
     const [chats, setChats] = useState<Chat[]>([])
     const [searchQuery, setSearchQuery] = useState("")
     const [loading, setLoading] = useState(true)
@@ -138,11 +138,13 @@ export function ChatSidebar({
         }
     }
 
-    const filteredChats = (chats || []).filter((chat) =>
-        searchQuery === "" ||
-        chat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        chat.lastMsg.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+    const filteredChats = useMemo(() => {
+        return (chats || []).filter((chat) =>
+            searchQuery === "" ||
+            chat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            chat.lastMsg.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+    }, [chats, searchQuery])
 
     const formatTime = (timestamp: number) => {
         const date = new Date(timestamp)
@@ -201,70 +203,71 @@ export function ChatSidebar({
             ) : (
                 <div className="space-y-1 pb-4">
                     {filteredChats.map((chat) => (
-                        <button
-                            key={chat.id}
-                            onClick={() => onChatSelect(chat)}
-                            className={cn(
-                                "w-full flex items-center gap-4 p-3.5 rounded-2xl transition-all duration-200 group text-left relative",
-                                selectedChatId === chat.id
-                                    ? "bg-primary/10 shadow-sm"
-                                    : "hover:bg-muted/50 active:scale-[0.98]"
-                            )}
-                        >
-                            {/* Active Indicator Line */}
-                            {selectedChatId === chat.id && (
-                                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full" />
-                            )}
+                        <div key={chat.id} data-chat-item>
+                            <button
+                                onClick={() => onChatSelect(chat)}
+                                className={cn(
+                                    "w-full flex items-center gap-4 p-3.5 rounded-2xl transition-all duration-200 group text-left relative",
+                                    selectedChatId === chat.id
+                                        ? "bg-primary/10 shadow-sm"
+                                        : "hover:bg-muted/50 active:scale-[0.98]"
+                                )}
+                            >
+                                {/* Active Indicator Line */}
+                                {selectedChatId === chat.id && (
+                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-r-full" />
+                                )}
 
-                            <div className="relative flex-shrink-0">
-                                <Avatar className="h-14 w-14 border-2 border-background shadow-sm group-hover:scale-105 transition-transform duration-200">
-                                    <AvatarImage src={getAvatarUrl(chat)} />
-                                    <AvatarFallback className="bg-primary/10 text-primary font-bold text-lg">
-                                        {chat.name.charAt(0).toUpperCase()}
-                                    </AvatarFallback>
-                                </Avatar>
-                                {/* Status dot example - could be connected/away */}
-                                <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-background rounded-full" />
-                            </div>
-
-                            <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-3 items-center">
-                                {/* Left: Name and Message */}
-                                <div className="min-w-0 flex flex-col justify-center h-full">
-                                    <h3 className={cn(
-                                        "font-bold truncate group-hover:text-primary transition-colors",
-                                        (Number(chat.unread) || 0) > 0 ? "text-foreground" : "text-foreground/90"
-                                    )}>
-                                        {chat.name}
-                                    </h3>
-                                    <p className={cn(
-                                        "text-sm truncate",
-                                        (Number(chat.unread) || 0) > 0 ? "text-foreground font-semibold" : "text-muted-foreground/80"
-                                    )}>
-                                        {chat.lastMsg || "Tap to chat"}
-                                    </p>
+                                <div className="relative flex-shrink-0">
+                                    <Avatar className="h-14 w-14 border-2 border-background shadow-sm group-hover:scale-105 transition-transform duration-200">
+                                        <AvatarImage src={getAvatarUrl(chat)} />
+                                        <AvatarFallback className="bg-primary/10 text-primary font-bold text-lg">
+                                            {chat.name.charAt(0).toUpperCase()}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    {/* Status dot example - could be connected/away */}
+                                    <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-background rounded-full" />
                                 </div>
 
-                                {/* Right: Time and Badge */}
-                                <div className="flex flex-col items-end justify-between shrink-0 self-stretch py-0.5 min-w-[48px]">
-                                    <span className={cn(
-                                        "text-[11px] font-medium uppercase tracking-tighter transition-colors duration-300",
-                                        (Number(chat.unread) || 0) > 0 ? "text-[#00a884] font-bold" : "text-muted-foreground/70"
-                                    )}>
-                                        {formatTime(chat.lastTime)}
-                                    </span>
-                                    
-                                    {(Number(chat.unread) || 0) > 0 && (
-                                        <div className="bg-[#00a884] text-white min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center shadow-sm ring-1 ring-background">
-                                            {chat.unread}
-                                        </div>
-                                    )}
+                                <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-3 items-center">
+                                    {/* Left: Name and Message */}
+                                    <div className="min-w-0 flex flex-col justify-center h-full">
+                                        <h3 className={cn(
+                                            "font-bold truncate group-hover:text-primary transition-colors",
+                                            (Number(chat.unread) || 0) > 0 ? "text-foreground" : "text-foreground/90"
+                                        )}>
+                                            {chat.name}
+                                        </h3>
+                                        <p className={cn(
+                                            "text-sm truncate",
+                                            (Number(chat.unread) || 0) > 0 ? "text-foreground font-semibold" : "text-muted-foreground/80"
+                                        )}>
+                                            {chat.lastMsg || "Tap to chat"}
+                                        </p>
+                                    </div>
+
+                                    {/* Right: Time and Badge */}
+                                    <div className="flex flex-col items-end justify-between shrink-0 self-stretch py-0.5 min-w-[48px]">
+                                        <span className={cn(
+                                            "text-[11px] font-medium uppercase tracking-tighter transition-colors duration-300",
+                                            (Number(chat.unread) || 0) > 0 ? "text-[#00a884] font-bold" : "text-muted-foreground/70"
+                                        )}>
+                                            {formatTime(chat.lastTime)}
+                                        </span>
+                                        
+                                        {(Number(chat.unread) || 0) > 0 && (
+                                            <div className="bg-[#00a884] text-white min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center shadow-sm ring-1 ring-background">
+                                                {chat.unread}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        </button>
+                            </button>
+                        </div>
                     ))}
                 </div>
             )}
             </ScrollArea>
         </div>
     )
-}
+})
