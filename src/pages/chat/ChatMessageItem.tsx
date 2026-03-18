@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import { FileText, MoreVertical, Reply, Edit3, Trash2, Star } from "lucide-react"
+import { FileText, MoreVertical, Reply, Edit3, Trash2, Star, Download, ExternalLink } from "lucide-react"
 
 export const ChatMessageItem = memo(({
 	message,
@@ -17,6 +17,7 @@ export const ChatMessageItem = memo(({
 	onDelete,
 	onStickerFavorite,
 	onImageClick,
+	onDownload,
 	formatTime,
 	renderFormattedContent,
 	getMediaUrl,
@@ -188,22 +189,44 @@ export const ChatMessageItem = memo(({
 							                <video src={getMediaUrl(message.mediaUrl)} className="w-full h-auto max-h-[300px]" controls />
 							                </div>
 							                )}
-							                {isDocument && isMedia && (							        <a
-							                href={getMediaUrl(message.mediaUrl)}
-							                target="_blank"
-							                rel="noopener noreferrer"
-							                className="flex items-center gap-3 mb-1 p-2 bg-black/5 dark:bg-white/5 rounded-lg border border-black/5 dark:border-white/5 relative z-10"
-							        >
-									<div className="w-9 h-9 bg-primary/10 rounded flex items-center justify-center">
-										<FileText className="h-5 w-5 text-primary" />
+							                {isDocument && isMedia && (
+							                        <div className="flex flex-col gap-2 mb-1 p-2 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 relative z-10 min-w-[200px] sm:min-w-[240px]">
+									<div className="flex items-center gap-3">
+										<div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+											<FileText className="h-6 w-6 text-primary" />
+										</div>
+										<div className="flex-1 min-w-0">
+											<p className="text-xs font-bold truncate">{message.content || "Document"}</p>
+											<p className="text-[10px] opacity-60 uppercase font-medium">
+											        {message.content?.split('.').pop() || "File"}
+											</p>
+										</div>
 									</div>
-									<div className="flex-1 min-w-0">
-										<p className="text-xs font-bold truncate">Document</p>
-										<p className="text-[10px] opacity-60">PDF • View</p>
+									<div className="flex gap-2 mt-1 pt-2 border-t border-black/5 dark:border-white/10">
+										<a
+											href={getMediaUrl(message.mediaUrl)}
+											target="_blank"
+											rel="noopener noreferrer"
+											className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-[11px] font-bold text-primary transition-all active:scale-95"
+										>
+											<ExternalLink className="h-3.5 w-3.5" />
+											Open
+										</a>
+										<button
+											onClick={(e) => {
+											        e.preventDefault()
+											        const url = getMediaUrl(message.mediaUrl)
+											        if (url && onDownload) onDownload(url, message.content || "document")
+											}}
+											className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-[11px] font-bold transition-all active:scale-95 cursor-pointer"
+										>
+											<Download className="h-3.5 w-3.5" />
+											Save As
+										</button>
 									</div>
-								</a>
+								</div>
 							)}
-							{message.content && !["[Image]", "[Video]", "[Sticker]"].includes(message.content) && (
+							{message.content && !["[Image]", "[Video]", "[Sticker]", "[Document]"].includes(message.content) && !isDocument && (
 							        <div className="break-words [word-break:break-word] leading-relaxed whitespace-pre-wrap relative z-10">{renderFormattedContent(message.content)}</div>
 							)}							<div className={cn("flex items-center gap-1 mt-1 justify-end", "text-[10px] font-medium opacity-50 uppercase tracking-tight")}>
 								<span>{formatTime(message.timestamp)}</span>
