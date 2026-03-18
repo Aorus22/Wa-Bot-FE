@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback, memo, useMemo } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Send, FileText, Star, Trash2, ArrowLeft, MessageSquare, Reply, Edit3, X, MoreVertical, Download, ExternalLink } from "lucide-react"
+import { Send, FileText, Star, Trash2, ArrowLeft, MessageSquare, Reply, Edit3, X, MoreVertical, Download, ExternalLink, Search } from "lucide-react"
 import { api, type Chat, type Message } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -12,6 +12,7 @@ import { ChatImageViewerModal } from "./ChatImageViewerModal"
 import { ChatEmojiPickerPopover } from "./ChatEmojiPickerPopover"
 import { ChatStickerPickerPopover } from "./ChatStickerPickerPopover"
 import { ChatAttachmentPopover } from "./ChatAttachmentPopover"
+import { ChatSearchSheet } from "./ChatSearchSheet"
 
 interface ChatAreaProps {
     chat: Chat | null
@@ -123,7 +124,7 @@ const MessageItem = memo(({
     message, isMe, isLastInSequence, isFirstInSequence, chat, repliedMsg,
     onReply, onEdit, onDelete, onStickerFavorite, onImageClick,
     formatTime, renderFormattedContent, getMediaUrl, getAvatarUrl,
-    showFavoriteBtn, setShowFavoriteBtn
+    showFavoriteBtn, setShowFavoriteBtn, isHighlighted
 }: any) => {
     const [swipeX, setSwipeX] = useState(0)
     const startX = useRef(0)
@@ -161,9 +162,10 @@ const MessageItem = memo(({
         <div
             id={message.id}
             className={cn(
-                "flex w-full group animate-in fade-in slide-in-from-bottom-2 duration-300 relative",
+                "flex w-full group animate-in fade-in slide-in-from-bottom-2 duration-300 relative transition-colors",
                 isMe ? "justify-end" : "justify-start",
-                isLastInSequence ? "mb-4" : "mb-1"
+                isLastInSequence ? "mb-4" : "mb-1",
+                isHighlighted && "bg-primary/10 rounded-xl"
             )}
         >
             <div
@@ -417,7 +419,9 @@ export const ChatArea = memo(({
 }: ChatAreaProps) => {
     const [messages, setMessages] = useState<Message[]>([])
     const [loadingMore, setLoadingMore] = useState(false)
+    const [loadingNewer, setLoadingNewer] = useState(false)
     const [hasMore, setHasMore] = useState(true)
+    const [hasMoreNext, setHasMoreNext] = useState(false)
     const [inputMessage, setInputMessage] = useState("")
     const [loading, setLoading] = useState(false)
     const [sending, setSending] = useState(false)
@@ -426,6 +430,8 @@ export const ChatArea = memo(({
     const [replyTo, setReplyTo] = useState<Message | null>(null)
     const [editingMessage, setEditingMessage] = useState<Message | null>(null)
     const [isMediaSheetOpen, setIsMediaSheetOpen] = useState(false)
+    const [isSearchOpen, setIsSearchOpen] = useState(false)
+    const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null)
     const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null)
 
     const scrollRef = useRef<HTMLDivElement>(null)
@@ -525,6 +531,7 @@ export const ChatArea = memo(({
             const data = await api.getMessages(chat.id, 30)
             setMessages(data || [])
             setHasMore((data || []).length === 30)
+            setHasMoreNext(false)
             setInitialLoad(false)
             setTimeout(() => scrollToBottom("auto"), 50)
         } catch (error) {
@@ -553,7 +560,6 @@ export const ChatArea = memo(({
                     const scrollContainer = scrollRef.current
                     const oldHeight = scrollContainer.scrollHeight
                     
-                    // Use a temporary observer or timeout to adjust scroll
                     requestAnimationFrame(() => {
                         const newHeight = scrollContainer.scrollHeight
                         scrollContainer.scrollTop = newHeight - oldHeight
@@ -569,11 +575,78 @@ export const ChatArea = memo(({
         }
     }
 
+    const loadNewerMessages = async () => {
+        if (!chat || loadingNewer || !hasMoreNext || messages.length === 0) return
+
+        const latestMsg = messages[messages.length - 1]
+        try {
+            setLoadingNewer(true)
+            const data = await api.getMessages(chat.id, 30, undefined, latestMsg.timestamp)
+
+            if (data && data.length > 0) {
+                setMessages(prev => [...prev, ...data])
+                setHasMoreNext(data.length === 30)
+            } else {
+                setHasMoreNext(false)
+            }
+        } catch (error) {
+            console.error("Failed to load newer messages:", error)
+        } finally {
+            setLoadingNewer(false)
+        }
+    }
+
+    const teleportToMessage = async (messageId: string) => {
+        if (!chat) return
+        try {
+            setLoading(true)
+            setIsSearchOpen(false)
+            const data = await api.getMessageContext(chat.id, messageId, 30)
+            
+            if (data && data.length > 0) {
+                setMessages(data)
+                
+                // If we got 30 messages, we might have more in both directions
+                // Since GetMessageContext fetches half before and half after (15 before, 15 after)
+                // we check if those lists are full
+                const targetIndex = data.findIndex(m => m.id === messageId)
+                setHasMore(targetIndex === 0 && data.length >= 15) // Simplified check
+                setHasMoreNext(data.length - 1 === targetIndex && data.length >= 15) // Simplified
+                
+                // Better heuristic: assume there's more unless it's a small result
+                setHasMore(true)
+                setHasMoreNext(true)
+
+                setInitialLoad(false)
+                
+                // Scroll to the message after render
+                setTimeout(() => {
+                    const element = document.getElementById(messageId)
+                    if (element) {
+                        element.scrollIntoView({ behavior: "auto", block: "center" })
+                        setHighlightedMessageId(messageId)
+                        setTimeout(() => setHighlightedMessageId(null), 2500)
+                    }
+                }, 100)
+            }
+        } catch (error) {
+            console.error("Teleport failed:", error)
+            toast.error("Gagal berpindah ke pesan")
+        } finally {
+            setLoading(false)
+        }
+    }
+
     const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
         const target = e.currentTarget
-        // If we're near the top (within 100px)
-        if (target.scrollTop < 100 && !loadingMore && hasMore) {
+        const isNearTop = target.scrollTop < 100
+        const isNearBottom = target.scrollHeight - target.scrollTop - target.clientHeight < 100
+
+        if (isNearTop && !loadingMore && hasMore) {
             loadMoreMessages()
+        }
+        if (isNearBottom && !loadingNewer && hasMoreNext) {
+            loadNewerMessages()
         }
     }
 
@@ -732,18 +805,6 @@ export const ChatArea = memo(({
         setInputMessage(prev => prev + emoji)
     }
 
-    if (!chat) {
-        return (
-            <div className={cn("flex-1 flex flex-col items-center justify-center bg-muted/10", className)}>
-                <div className="w-20 h-20 rounded-3xl bg-primary/5 flex items-center justify-center mb-6">
-                    <MessageSquare className="h-10 w-10 text-primary/40" />
-                </div>
-                <h2 className="text-xl font-bold tracking-tight">Select a conversation</h2>
-                <p className="text-muted-foreground text-sm mt-1">Pick a chat from the sidebar to start messaging.</p>
-            </div>
-        )
-    }
-
     const groupedMessages = useMemo(() => {
         return messages.reduce((groups: { [key: string]: Message[] }, message) => {
             const date = formatDate(message.timestamp)
@@ -767,6 +828,18 @@ export const ChatArea = memo(({
             return m.type === "text" && urlRegex.test(m.content)
         })
     }, [messages])
+
+    if (!chat) {
+        return (
+            <div className={cn("flex-1 flex flex-col items-center justify-center bg-muted/10", className)}>
+                <div className="w-20 h-20 rounded-3xl bg-primary/5 flex items-center justify-center mb-6">
+                    <MessageSquare className="h-10 w-10 text-primary/40" />
+                </div>
+                <h2 className="text-xl font-bold tracking-tight">Select a conversation</h2>
+                <p className="text-muted-foreground text-sm mt-1">Pick a chat from the sidebar to start messaging.</p>
+            </div>
+        )
+    }
 
     return (
         <div className={cn("flex-1 flex flex-col bg-background relative overflow-x-hidden", className)}>
@@ -794,6 +867,24 @@ export const ChatArea = memo(({
                             {chat.id}
                         </p>
                     </div>
+                </div>
+
+                <div className="flex items-center gap-1">
+                    <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={(e) => { e.stopPropagation(); setIsSearchOpen(true); }}
+                        className="rounded-full text-muted-foreground hover:text-primary transition-all active:scale-90"
+                    >
+                        <Search className="h-5 w-5" />
+                    </Button>
+                    <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="rounded-full text-muted-foreground group-hover:text-primary transition-all"
+                    >
+                        <MoreVertical className="h-5 w-5" />
+                    </Button>
                 </div>
             </header>
 
@@ -846,12 +937,18 @@ export const ChatArea = memo(({
                                                 getAvatarUrl={getAvatarUrl}
                                                 showFavoriteBtn={showFavoriteBtn}
                                                 setShowFavoriteBtn={setShowFavoriteBtn}
+                                                isHighlighted={highlightedMessageId === message.id}
                                             />
                                         </div>
                                     )
                                 })}
                             </div>
                         ))}
+                    </div>
+                )}
+                {loadingNewer && (
+                    <div className="flex justify-center py-4">
+                        <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
                     </div>
                 )}
             </div>
@@ -945,6 +1042,13 @@ export const ChatArea = memo(({
                 onOpenChange={(open) => !open && setSelectedImageUrl(null)}
                 imageUrl={selectedImageUrl}
                 onClose={() => setSelectedImageUrl(null)}
+            />
+
+            <ChatSearchSheet
+                chatId={chat.id}
+                isOpen={isSearchOpen}
+                onClose={() => setIsSearchOpen(false)}
+                onResultClick={teleportToMessage}
             />
         </div>
     )

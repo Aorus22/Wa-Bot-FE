@@ -102,12 +102,23 @@ class ApiClient {	private baseUrl: string
 		})
 	}
 
-	async getMessages(chatId: string, limit = 100, before?: number): Promise<Message[]> {
+	async getMessages(chatId: string, limit = 100, before?: number, after?: number): Promise<Message[]> {
 		let url = `/chats/${chatId}/messages?limit=${limit}`
 		if (before) {
 			url += `&before=${before}`
 		}
+		if (after) {
+			url += `&after=${after}`
+		}
 		return this.request<Message[]>(url)
+	}
+
+	async searchMessages(chatId: string, query: string, limit = 50): Promise<Message[]> {
+		return this.request<Message[]>(`/chats/${chatId}/search?q=${encodeURIComponent(query)}&limit=${limit}`)
+	}
+
+	async getMessageContext(chatId: string, messageId: string, limit = 50): Promise<Message[]> {
+		return this.request<Message[]>(`/chats/${chatId}/messages/${messageId}/context?limit=${limit}`)
 	}
 
 	async getContacts(): Promise<Contact[]> {
