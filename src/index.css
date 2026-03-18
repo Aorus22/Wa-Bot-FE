@@ -179,7 +179,25 @@
 
 .is-resizing [data-sidebar-container], 
 .is-resizing [data-main-chat] {
-  contain: strict;
+  contain: layout paint; /* Removed 'size' as it conflicts with resizing containers */
+}
+
+/* Hide scrollbars during resize to speed up layout calculations */
+.is-resizing [data-messages-list],
+.is-resizing [data-sidebar-scroll] {
+  overflow: hidden !important;
+}
+
+/* Disable expensive effects during resize */
+.is-resizing * {
+  pointer-events: none !important;
+  transition: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.is-resizing .cursor-col-resize {
+  pointer-events: auto !important;
 }
 
 [data-sidebar-container], [data-main-chat] {
@@ -189,10 +207,6 @@
 
 [data-message-item], [data-chat-item] {
   content-visibility: auto;
-  contain-intrinsic-size: 0 80px; /* Rough estimate of item height */
-}
-
-/* Optimization for message container */
-[data-messages-list] {
-  contain: paint;
+  contain-intrinsic-size: 0 80px;
+  contain: layout paint; /* Aggressive isolation for items */
 }

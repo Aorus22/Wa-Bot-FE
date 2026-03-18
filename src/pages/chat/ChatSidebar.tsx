@@ -184,7 +184,7 @@ export const ChatSidebar = memo(({
             </div>
 
             {/* Chat List */}
-            <ScrollArea className="flex-1 px-2 min-h-0">				{loading ? (
+            <div data-sidebar-scroll className="flex-1 overflow-y-auto px-2 min-h-0">				{loading ? (
                 <div className="flex flex-col items-center justify-center py-12 space-y-3 opacity-50">
                     <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                     <p className="text-sm font-medium">Syncing chats...</p>
@@ -266,7 +266,7 @@ export const ChatSidebar = memo(({
                     ))}
                 </div>
             )}
-            </ScrollArea>
+            </div>
         </div>
     )
 })
