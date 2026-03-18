@@ -273,6 +273,7 @@ function App() {
 						                        setEditingCron(null)
 						                        setActiveNavItem("cron-management")
 						                }}
+						                onViewDocs={() => setActiveNavItem("documentation")}
 						        />
 						)}
 						{/* Mobile Navigation */}
