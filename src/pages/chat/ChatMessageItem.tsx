@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import { FileText, MoreVertical, Reply, Edit3, Trash2, Star, Download, ExternalLink } from "lucide-react"
+import { LazyMedia } from "@/components/LazyMedia"
 
 export const ChatMessageItem = memo(({
 	message,
@@ -24,6 +25,7 @@ export const ChatMessageItem = memo(({
 	getAvatarUrl,
 	showFavoriteBtn,
 	setShowFavoriteBtn,
+	isHighlighted,
 }: any) => {
 	const [swipeX, setSwipeX] = useState(0)
 	const startX = useRef(0)
@@ -61,9 +63,10 @@ export const ChatMessageItem = memo(({
 		<div
 			id={message.id}
 			className={cn(
-				"flex w-full group animate-in fade-in slide-in-from-bottom-2 duration-300 relative",
+				"flex w-full group animate-in fade-in slide-in-from-bottom-2 duration-300 relative transition-colors",
 				isMe ? "justify-end" : "justify-start",
-				isLastInSequence ? "mb-4" : "mb-1"
+				isLastInSequence ? "mb-4" : "mb-1",
+				isHighlighted && "bg-primary/10 rounded-xl"
 			)}
 		>
 			<div
@@ -129,7 +132,13 @@ export const ChatMessageItem = memo(({
 					{isSticker ? (
 					        <div className="relative group/sticker cursor-pointer z-10" onClick={() => setShowFavoriteBtn(showFavoriteBtn === message.id ? null : message.id)}>							<div className="w-[160px] h-[160px] flex items-center justify-center">
 								{isMedia ? (
-									<img src={getMediaUrl(message.mediaUrl)} alt="Sticker" className="max-w-full max-h-full object-contain" />
+									<LazyMedia 
+										src={getMediaUrl(message.mediaUrl)} 
+										alt="Sticker" 
+										className="max-w-full max-h-full object-contain"
+										containerClassName="w-full h-full flex items-center justify-center bg-transparent"
+										loading="lazy"
+									/>
 								) : (
 									<div className="w-full h-full bg-muted rounded-xl flex items-center justify-center text-[10px] text-muted-foreground uppercase tracking-widest">
 										Sticker
@@ -173,10 +182,12 @@ export const ChatMessageItem = memo(({
 							)}
 						>
 							{isImage && isMedia && (
-							        <div className="mb-2 -mx-1 -mt-1 rounded-lg overflow-hidden border border-black/5 dark:border-white/5 relative z-10">
-							                <img										src={getMediaUrl(message.mediaUrl)}
+							        <div className="mb-2 -mx-1 -mt-1 rounded-lg overflow-hidden border border-black/5 dark:border-white/5 relative z-10 min-w-[150px] min-h-[100px]">
+							                <LazyMedia										src={getMediaUrl(message.mediaUrl)}
 										alt="Image"
 										className="w-full max-w-[320px] h-auto object-cover hover:scale-[1.02] transition-transform duration-500 cursor-zoom-in"
+										containerClassName="w-full h-full"
+										loading="lazy"
 										onClick={(e) => {
 											e.stopPropagation()
 											onImageClick(getMediaUrl(message.mediaUrl))
@@ -185,10 +196,15 @@ export const ChatMessageItem = memo(({
 								</div>
 							)}
 							{isVideo && isMedia && (
-							        <div className="mb-2 -mx-1 -mt-1 rounded-lg overflow-hidden border border-black/5 dark:border-white/5 bg-black/10 flex items-center justify-center aspect-video relative z-10">
-							                <video src={getMediaUrl(message.mediaUrl)} className="w-full h-auto max-h-[300px]" controls />
-							                </div>
-							                )}
+							        <div className="mb-2 -mx-1 -mt-1 rounded-lg overflow-hidden border border-black/5 dark:border-white/5 bg-black/10 flex items-center justify-center aspect-video relative z-10 min-w-[200px] min-h-[150px]">
+							                <LazyMedia 
+							                        type="video"
+							                        src={getMediaUrl(message.mediaUrl)} 
+							                        className="w-full h-auto max-h-[300px]" 
+							                        controls 
+							                />
+							        </div>
+							)}
 							                {isDocument && isMedia && (
 							                        <div className="flex flex-col gap-2 mb-1 p-2 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 relative z-10 min-w-[200px] sm:min-w-[240px]">
 									<div className="flex items-center gap-3">
@@ -272,13 +288,13 @@ export const ChatMessageItem = memo(({
 								)}
 
 								{isMe && !isSticker && (
-								        <div className="absolute top-1/2 -translate-y-1/2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity hidden md:block z-20">										<Popover>
+								        <div className="absolute top-1/2 -translate-y-1/2 -left-2 opacity-0 group-hover:opacity-100 transition-opacity hidden md:block z-20">										<Popover>
 											<PopoverTrigger asChild>
 												<Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground bg-background/80 backdrop-blur-sm rounded-full shadow-sm">
 													<MoreVertical className="h-3 w-3" />
 												</Button>
 											</PopoverTrigger>
-											<PopoverContent className="w-auto p-1" align="end">
+											<PopoverContent className="w-auto p-1" align="start">
 												<div className="flex flex-col">
 													<button onClick={onReply} className="flex items-center gap-2 w-full p-2 hover:bg-muted rounded text-sm"><Reply className="h-4 w-4 text-primary" /><span>Reply</span></button>
 													<button onClick={onEdit} className="flex items-center gap-2 w-full p-2 hover:bg-muted rounded text-sm"><Edit3 className="h-4 w-4 text-orange-500" /><span>Edit</span></button>
@@ -307,7 +323,7 @@ export const ChatMessageItem = memo(({
 								</Popover>
 
 								{!isMe && !isSticker && (
-								        <div className="absolute top-1/2 -translate-y-1/2 -left-2 opacity-0 group-hover:opacity-100 transition-opacity hidden md:block z-20">										<Button variant="ghost" size="icon" onClick={onReply} className="h-6 w-6 text-muted-foreground hover:text-primary bg-background/80 backdrop-blur-sm rounded-full shadow-sm"><Reply className="h-3 w-3" /></Button>
+								        <div className="absolute top-1/2 -translate-y-1/2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity hidden md:block z-20">										<Button variant="ghost" size="icon" onClick={onReply} className="h-6 w-6 text-muted-foreground hover:text-primary bg-background/80 backdrop-blur-sm rounded-full shadow-sm"><Reply className="h-3 w-3" /></Button>
 									</div>
 								)}
 							</div>

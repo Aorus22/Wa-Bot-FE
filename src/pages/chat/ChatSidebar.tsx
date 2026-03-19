@@ -223,8 +223,6 @@ export const ChatSidebar = memo(({
                                             {chat.name.charAt(0).toUpperCase()}
                                         </AvatarFallback>
                                     </Avatar>
-                                    {/* Status dot example - could be connected/away */}
-                                    <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-background rounded-full" />
                                 </div>
 
                                 <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-3 items-center">
