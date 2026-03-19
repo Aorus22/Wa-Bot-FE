@@ -2,10 +2,9 @@ import { useState, useEffect, useRef, useCallback, memo, useMemo } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Send, FileText, Star, Trash2, ArrowLeft, MessageSquare, Reply, Edit3, X, MoreVertical, Download, ExternalLink, Search } from "lucide-react"
+import { Send, ArrowLeft, MessageSquare, X, MoreVertical, Search } from "lucide-react"
 import { api, type Chat, type Message } from "@/lib/api"
 import { cn } from "@/lib/utils"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { toast } from "sonner"
 import { ChatInfoSheetModal } from "./ChatInfoSheetModal"
 import { ChatImageViewerModal } from "./ChatImageViewerModal"
@@ -99,7 +98,7 @@ const formatDate = (timestamp: number) => {
 const renderFormattedContent = (content: string) => {
     if (!content) return null
 
-    const parts = content.split(/(\*.*?\*|_.*?_|~.*?~|`.*?`|\n)/g)
+    const parts = content.split(/(\*.*?\*|_.*?_|~.*?~|`.*?`|\n|https?:\/\/[^\s]+)/g)
 
     return parts.map((part, index) => {
         if (part.startsWith("*") && part.endsWith("*")) {
@@ -116,6 +115,9 @@ const renderFormattedContent = (content: string) => {
         }
         if (part === "\n") {
             return <br key={index} />
+        }
+        if (part.match(/^https?:\/\/[^\s]+$/)) {
+            return <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline underline-offset-2 break-all">{part}</a>
         }
         return part
     })
@@ -529,21 +531,6 @@ const renderFormattedContent = (content: string) => {
         }, {})
     }, [messages])
 
-    const sharedMedia = useMemo(() => {
-        return messages.filter(m => (m.type === "image" || m.type === "video") && m.mediaUrl)
-    }, [messages])
-    
-    const sharedDocs = useMemo(() => {
-        return messages.filter(m => m.type === "document" && m.mediaUrl)
-    }, [messages])
-    
-    const sharedLinks = useMemo(() => {
-        const urlRegex = /(https?:\/\/[^\s]+)/g
-        return messages.filter(m => {
-            return m.type === "text" && urlRegex.test(m.content)
-        })
-    }, [messages])
-
     if (!chat) {
         return (
             <div className={cn("flex-1 flex flex-col items-center justify-center bg-muted/10", className)}>
@@ -743,9 +730,6 @@ const renderFormattedContent = (content: string) => {
                 open={isMediaSheetOpen}
                 onOpenChange={setIsMediaSheetOpen}
                 chat={chat}
-                sharedMedia={sharedMedia}
-                sharedDocs={sharedDocs}
-                sharedLinks={sharedLinks}
                 getAvatarUrl={getAvatarUrl}
                 getMediaUrl={getMediaUrl}
                 formatDate={formatDate}

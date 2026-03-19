@@ -286,6 +286,30 @@ class ApiClient {	private baseUrl: string
 		})
 	}
 
+	async getChatMedia(chatId: string, limit = 30, before?: number): Promise<Message[]> {
+		let url = `/chats/${chatId}/media?limit=${limit}`
+		if (before) {
+			url += `&before=${before}`
+		}
+		return this.request<Message[]>(url)
+	}
+
+	async getChatDocs(chatId: string, limit = 30, before?: number): Promise<Message[]> {
+		let url = `/chats/${chatId}/docs?limit=${limit}`
+		if (before) {
+			url += `&before=${before}`
+		}
+		return this.request<Message[]>(url)
+	}
+
+	async getChatLinks(chatId: string, limit = 30, before?: number): Promise<Message[]> {
+		let url = `/chats/${chatId}/links?limit=${limit}`
+		if (before) {
+			url += `&before=${before}`
+		}
+		return this.request<Message[]>(url)
+	}
+
 	async sendMedia(
 		target: string,
 		file: File,

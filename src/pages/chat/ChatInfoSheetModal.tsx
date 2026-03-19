@@ -1,16 +1,15 @@
+import { useState, useEffect, useCallback, useRef } from "react"
 import type { Chat, Message } from "@/lib/api"
+import { api } from "@/lib/api"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { FileText, Image as ImageIcon, Link as LinkIcon, Video, File } from "lucide-react"
+import { FileText, Image as ImageIcon, Link as LinkIcon, Video, File, Loader2 } from "lucide-react"
 
 interface ChatInfoSheetModalProps {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	chat: Chat
-	sharedMedia: Message[]
-	sharedDocs: Message[]
-	sharedLinks: Message[]
 	getAvatarUrl: (target: Chat) => string | undefined
 	getMediaUrl: (url: string | undefined) => string | undefined
 	formatDate: (timestamp: number) => string
@@ -21,14 +20,159 @@ export function ChatInfoSheetModal({
 	open,
 	onOpenChange,
 	chat,
-	sharedMedia,
-	sharedDocs,
-	sharedLinks,
 	getAvatarUrl,
 	getMediaUrl,
 	formatDate,
 	onSelectImage,
 }: ChatInfoSheetModalProps) {
+	const [media, setMedia] = useState<Message[]>([])
+	const [docs, setDocs] = useState<Message[]>([])
+	const [links, setLinks] = useState<Message[]>([])
+
+	const [hasMoreMedia, setHasMoreMedia] = useState(true)
+	const [hasMoreDocs, setHasMoreDocs] = useState(true)
+	const [hasMoreLinks, setHasMoreLinks] = useState(true)
+
+	const [loadingMedia, setLoadingMedia] = useState(false)
+	const [loadingDocs, setLoadingDocs] = useState(false)
+	const [loadingLinks, setLoadingLinks] = useState(false)
+
+	const [activeTab, setActiveTab] = useState("media")
+
+	const mediaScrollRef = useRef<HTMLDivElement>(null)
+	const docsScrollRef = useRef<HTMLDivElement>(null)
+	const linksScrollRef = useRef<HTMLDivElement>(null)
+
+	const loadingMediaRef = useRef(false)
+	const loadingDocsRef = useRef(false)
+	const loadingLinksRef = useRef(false)
+
+	const fetchMedia = useCallback(async (before?: number) => {
+		if (!chat?.id || loadingMediaRef.current) return
+		loadingMediaRef.current = true
+		setLoadingMedia(true)
+		try {
+			const data = await api.getChatMedia(chat.id, 30, before)
+			if (data && data.length > 0) {
+				setMedia(prev => before ? [...prev, ...data] : data)
+				setHasMoreMedia(data.length === 30)
+			} else {
+				setHasMoreMedia(false)
+			}
+		} catch (error) {
+			console.error("Failed to fetch media:", error)
+		} finally {
+			loadingMediaRef.current = false
+			setLoadingMedia(false)
+		}
+	}, [chat?.id])
+
+	const fetchDocs = useCallback(async (before?: number) => {
+		if (!chat?.id || loadingDocsRef.current) return
+		loadingDocsRef.current = true
+		setLoadingDocs(true)
+		try {
+			const data = await api.getChatDocs(chat.id, 30, before)
+			if (data && data.length > 0) {
+				setDocs(prev => before ? [...prev, ...data] : data)
+				setHasMoreDocs(data.length === 30)
+			} else {
+				setHasMoreDocs(false)
+			}
+		} catch (error) {
+			console.error("Failed to fetch docs:", error)
+		} finally {
+			loadingDocsRef.current = false
+			setLoadingDocs(false)
+		}
+	}, [chat?.id])
+
+	const fetchLinks = useCallback(async (before?: number) => {
+		if (!chat?.id || loadingLinksRef.current) return
+		loadingLinksRef.current = true
+		setLoadingLinks(true)
+		try {
+			const data = await api.getChatLinks(chat.id, 30, before)
+			if (data && data.length > 0) {
+				setLinks(prev => before ? [...prev, ...data] : data)
+				setHasMoreLinks(data.length === 30)
+			} else {
+				setHasMoreLinks(false)
+			}
+		} catch (error) {
+			console.error("Failed to fetch links:", error)
+		} finally {
+			loadingLinksRef.current = false
+			setLoadingLinks(false)
+		}
+	}, [chat?.id])
+
+	useEffect(() => {
+		if (open && chat?.id) {
+			setMedia([])
+			setDocs([])
+			setLinks([])
+			setHasMoreMedia(true)
+			setHasMoreDocs(true)
+			setHasMoreLinks(true)
+			fetchMedia()
+			fetchDocs()
+			fetchLinks()
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [open, chat?.id])
+
+	const handleScrollMedia = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+		const target = e.currentTarget
+		const isNearBottom = target.scrollHeight - target.scrollTop - target.clientHeight < 50
+		if (isNearBottom && !loadingMediaRef.current && hasMoreMedia && media.length > 0) {
+			const oldestItem = media[media.length - 1]
+			if (oldestItem) {
+				fetchMedia(oldestItem.timestamp)
+			}
+		}
+	}, [hasMoreMedia, media, fetchMedia])
+
+	const handleScrollDocs = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+		const target = e.currentTarget
+		const isNearBottom = target.scrollHeight - target.scrollTop - target.clientHeight < 50
+		if (isNearBottom && !loadingDocsRef.current && hasMoreDocs && docs.length > 0) {
+			const oldestItem = docs[docs.length - 1]
+			if (oldestItem) {
+				fetchDocs(oldestItem.timestamp)
+			}
+		}
+	}, [hasMoreDocs, docs, fetchDocs])
+
+	const handleScrollLinks = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+		const target = e.currentTarget
+		const isNearBottom = target.scrollHeight - target.scrollTop - target.clientHeight < 50
+		if (isNearBottom && !loadingLinksRef.current && hasMoreLinks && links.length > 0) {
+			const oldestItem = links[links.length - 1]
+			if (oldestItem) {
+				fetchLinks(oldestItem.timestamp)
+			}
+		}
+	}, [hasMoreLinks, links, fetchLinks])
+
+	const getScrollRef = () => {
+		switch (activeTab) {
+			case "media": return mediaScrollRef
+			case "docs": return docsScrollRef
+			case "links": return linksScrollRef
+			default: return mediaScrollRef
+		}
+	}
+
+	const getScrollHandler = () => {
+		switch (activeTab) {
+			case "media": return handleScrollMedia
+			case "docs": return handleScrollDocs
+			case "links": return handleScrollLinks
+			default: return handleScrollMedia
+		}
+	}
+
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
 			<SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col h-full bg-background border-l border-border/40">
@@ -46,7 +190,7 @@ export function ChatInfoSheetModal({
 				</div>
 
 				<div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-					<Tabs defaultValue="media" className="flex-1 flex flex-col">
+					<Tabs defaultValue="media" className="flex-1 flex flex-col" onValueChange={setActiveTab}>
 						<div className="px-4 pt-4">
 							<TabsList className="w-full grid grid-cols-3 bg-muted/50 p-1">
 								<TabsTrigger value="media" className="text-xs">Media</TabsTrigger>
@@ -55,11 +199,11 @@ export function ChatInfoSheetModal({
 							</TabsList>
 						</div>
 
-						<div className="flex-1 overflow-y-auto p-4 min-h-0">
+						<div className="flex-1 overflow-y-auto p-4 min-h-0" ref={getScrollRef()} onScroll={getScrollHandler()}>
 							<TabsContent value="media" className="mt-0 outline-none h-full">
-								{sharedMedia.length > 0 ? (
+								{media.length > 0 ? (
 									<div className="grid grid-cols-3 gap-2">
-										{sharedMedia.map(m => (
+										{media.map(m => (
 											<div key={m.id} className="aspect-square rounded-lg overflow-hidden border border-border/40 bg-muted/20 group relative">
 												{m.type === "image" ? (
 													<img
@@ -77,6 +221,16 @@ export function ChatInfoSheetModal({
 												)}
 											</div>
 										))}
+										{loadingMedia && (
+											<div className="col-span-3 flex justify-center py-4">
+												<Loader2 className="h-6 w-6 animate-spin text-primary" />
+											</div>
+										)}
+									</div>
+								) : loadingMedia ? (
+									<div className="flex flex-col items-center justify-center h-full py-12 text-muted-foreground">
+										<Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+										<p className="text-sm">Loading media...</p>
 									</div>
 								) : (
 									<div className="flex flex-col items-center justify-center h-full py-12 text-muted-foreground opacity-40">
@@ -87,9 +241,9 @@ export function ChatInfoSheetModal({
 							</TabsContent>
 
 							<TabsContent value="docs" className="mt-0 outline-none h-full">
-								{sharedDocs.length > 0 ? (
+								{docs.length > 0 ? (
 									<div className="space-y-3">
-										{sharedDocs.map(m => (
+										{docs.map(m => (
 											<a
 												key={m.id}
 												href={getMediaUrl(m.mediaUrl)}
@@ -106,6 +260,16 @@ export function ChatInfoSheetModal({
 												</div>
 											</a>
 										))}
+										{loadingDocs && (
+											<div className="flex justify-center py-4">
+												<Loader2 className="h-6 w-6 animate-spin text-primary" />
+											</div>
+										)}
+									</div>
+								) : loadingDocs ? (
+									<div className="flex flex-col items-center justify-center h-full py-12 text-muted-foreground">
+										<Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+										<p className="text-sm">Loading documents...</p>
 									</div>
 								) : (
 									<div className="flex flex-col items-center justify-center h-full py-12 text-muted-foreground opacity-40">
@@ -116,9 +280,9 @@ export function ChatInfoSheetModal({
 							</TabsContent>
 
 							<TabsContent value="links" className="mt-0 outline-none h-full">
-								{sharedLinks.length > 0 ? (
+								{links.length > 0 ? (
 									<div className="space-y-3">
-										{sharedLinks.map(m => {
+										{links.map(m => {
 											const urls = m.content.match(/(https?:\/\/[^\s]+)/g)
 											return urls?.map((url, i) => (
 												<a
@@ -138,6 +302,16 @@ export function ChatInfoSheetModal({
 												</a>
 											))
 										})}
+										{loadingLinks && (
+											<div className="flex justify-center py-4">
+												<Loader2 className="h-6 w-6 animate-spin text-primary" />
+											</div>
+										)}
+									</div>
+								) : loadingLinks ? (
+									<div className="flex flex-col items-center justify-center h-full py-12 text-muted-foreground">
+										<Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+										<p className="text-sm">Loading links...</p>
 									</div>
 								) : (
 									<div className="flex flex-col items-center justify-center h-full py-12 text-muted-foreground opacity-40">
