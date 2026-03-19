@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Bot, Plus, Trash2, Search, Code, Zap, FileText, Download, Upload } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
+import { Card, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -171,67 +171,65 @@ export function BotManagementPage({ onEditTrigger, onViewDocs, isMobileView }: B
                                                                 <p className='text-xs md:text-sm text-muted-foreground'>Configure automated regex triggers and Lua scripts.</p>
                                                         </div>
                                                 </div>
-                                                <div className='flex flex-col sm:flex-row items-stretch sm:items-center gap-3'>
-                                                        <div className='relative flex-1 sm:w-64'>
-                                                                <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
-                                                                <Input
-                                                                        placeholder='Search triggers...'
-                                                                        value={searchQuery}
-                                                                        onChange={e => setSearchQuery(e.target.value)}
-                                                                        className='pl-9 rounded-xl border-border/40 bg-background focus-visible:ring-primary/20 h-10'
-                                                                />
-                                                        </div>
-
-                                                        <div className='flex items-center gap-2 justify-end'>
-                                                                <div className='flex items-center p-1 bg-muted/50 rounded-xl border border-border/40'>
-                                                                        <Button
-                                                                                variant='ghost'
-                                                                                size='icon'
-                                                                                onClick={() => setIsDeleteAllOpen(true)}
-                                                                                className='h-8 w-8 rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10'
-                                                                                title='Delete ALL Triggers'
-                                                                                disabled={triggers.length === 0}
-                                                                        >
-                                                                                <Trash2 className='h-4 w-4' />
-                                                                        </Button>
-                                                                        <Button
-                                                                                variant='ghost'
-                                                                                size='icon'
-                                                                                onClick={handleExport}
-                                                                                className='h-8 w-8 rounded-lg'
-                                                                                title='Export Triggers'
-                                                                        >
-                                                                                <Download className='h-4 w-4' />
-                                                                        </Button>
-                                                                        <Button
-                                                                                variant='ghost'
-                                                                                size='icon'
-                                                                                onClick={handleImportClick}
-                                                                                className='h-8 w-8 rounded-lg'
-                                                                                title='Import Triggers'
-                                                                        >
-                                                                                <Upload className='h-4 w-4' />
-                                                                        </Button>
-                                                                </div>
-
-                                                                <Button
-                                                                        variant='outline'
-                                                                        onClick={onViewDocs}
-                                                                        className='rounded-xl h-10 px-4 border-border/40 hidden sm:flex'
-                                                                >
-                                                                        <FileText className='mr-2 h-4 w-4' /> Docs
-                                                                </Button>
-                                                                
-                                                                {!isMobileView && (
-                                                                        <Button
-                                                                                onClick={() => onEditTrigger(null)}
-                                                                                className='rounded-xl px-6 h-10 font-bold shadow-lg shadow-primary/20'
-                                                                        >
-                                                                                <Plus className='mr-2 h-4 w-4' /> New Trigger
-                                                                        </Button>
-                                                                )}
-                                                        </div>
+                                        <div className='flex items-center gap-2 flex-wrap sm:flex-nowrap'>
+                                                <div className='relative flex-1 sm:w-64 min-w-[180px]'>
+                                                        <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
+                                                        <Input
+                                                                placeholder='Search triggers...'
+                                                                value={searchQuery}
+                                                                onChange={e => setSearchQuery(e.target.value)}
+                                                                className='pl-9 rounded-xl border-border/40 bg-background focus-visible:ring-primary/20 h-10'
+                                                        />
                                                 </div>
+
+                                                <div className='flex items-center p-1 bg-muted/50 rounded-xl border border-border/40'>
+                                                        <Button
+                                                                variant='ghost'
+                                                                size='icon'
+                                                                onClick={() => setIsDeleteAllOpen(true)}
+                                                                className='h-8 w-8 rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10'
+                                                                title='Delete ALL Triggers'
+                                                                disabled={triggers.length === 0}
+                                                        >
+                                                                <Trash2 className='h-4 w-4' />
+                                                        </Button>
+                                                        <Button
+                                                                variant='ghost'
+                                                                size='icon'
+                                                                onClick={handleExport}
+                                                                className='h-8 w-8 rounded-lg'
+                                                                title='Export Triggers'
+                                                        >
+                                                                <Download className='h-4 w-4' />
+                                                        </Button>
+                                                        <Button
+                                                                variant='ghost'
+                                                                size='icon'
+                                                                onClick={handleImportClick}
+                                                                className='h-8 w-8 rounded-lg'
+                                                                title='Import Triggers'
+                                                        >
+                                                                <Upload className='h-4 w-4' />
+                                                        </Button>
+                                                </div>
+
+                                                <Button
+                                                        variant='outline'
+                                                        onClick={onViewDocs}
+                                                        className='rounded-xl h-10 px-4 border-border/40 hidden sm:flex'
+                                                >
+                                                        <FileText className='mr-2 h-4 w-4' /> Docs
+                                                </Button>
+                                                
+                                                {!isMobileView && (
+                                                        <Button
+                                                                onClick={() => onEditTrigger(null)}
+                                                                className='rounded-xl px-6 h-10 font-bold shadow-lg shadow-primary/20'
+                                                        >
+                                                                <Plus className='mr-2 h-4 w-4' /> New Trigger
+                                                        </Button>
+                                                )}
+                                        </div>
                                         </div>
                                 </div>
 
@@ -242,86 +240,87 @@ export function BotManagementPage({ onEditTrigger, onViewDocs, isMobileView }: B
                                                         <p className='font-medium'>Loading triggers...</p>
                                                 </div>
                                         ) : filteredTriggers.length === 0 ? (
-                                                <div className='flex flex-col items-center justify-center py-20 md:py-32 border-2 border-dashed border-border/40 rounded-[2rem] md:rounded-[3rem] text-center space-y-6 bg-muted/5'>
-                                                        <div className='w-20 h-20 rounded-3xl bg-muted flex items-center justify-center text-muted-foreground'>
-                                                                <Zap className='h-10 w-10' />
+                                                <div className='flex flex-col items-center justify-center py-16 md:py-24 border-2 border-dashed border-border/40 rounded-[1.5rem] md:rounded-[2rem] text-center space-y-4 md:space-y-5 bg-muted/5 max-w-md mx-auto'>
+                                                        <div className='w-16 h-16 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground'>
+                                                                <Zap className='h-8 w-8' />
                                                         </div>
-                                                        <div className='space-y-2 px-4'>
-                                                                <h3 className='text-xl font-bold'>No triggers found</h3>
-                                                                <p className='text-sm text-muted-foreground max-w-[320px] mx-auto'>Create your first dynamic trigger to start automating your bot.</p>
+                                                        <div className='space-y-1.5 px-4'>
+                                                                <h3 className='text-lg md:text-xl font-bold'>No triggers found</h3>
+                                                                <p className='text-xs md:text-sm text-muted-foreground'>Create your first dynamic trigger to start automating your bot.</p>
                                                         </div>
                                                         <Button
                                                                 onClick={() => onEditTrigger(null)}
-                                                                className='rounded-xl px-8 shadow-lg shadow-primary/10'
+                                                                className='rounded-xl px-6 shadow-lg shadow-primary/10 text-sm'
                                                         >
                                                                 <Plus className='mr-2 h-4 w-4' /> Create Trigger
                                                         </Button>
                                                 </div>
                                         ) : (
-                                                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-6'>
+                                                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-4'>
                                                         {filteredTriggers.map((trigger) => (
                                                                 <Card 
                                                                         key={trigger.id} 
                                                                         onClick={() => onEditTrigger(trigger)}
-                                                                        className='rounded-[1.5rem] md:rounded-[2rem] border-border/40 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 flex flex-col bg-card/50 backdrop-blur-sm overflow-hidden cursor-pointer hover:bg-muted/30 group'
+                                                                        className='rounded-[1.5rem] md:rounded-[2rem] border-border/40 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 flex flex-col bg-card/50 backdrop-blur-sm overflow-hidden cursor-pointer hover:bg-muted/30 group !gap-0 !py-0'
                                                                 >
-                                                                        <CardHeader className='p-5 md:p-6 pb-2 md:pb-4'>
-                                                                                <div className='flex items-center justify-between mb-3'>
-                                                                                        <Badge
-                                                                                                variant='outline'
-                                                                                                className={cn(
-                                                                                                        'rounded-full px-3 py-0.5 border-none text-[10px] font-bold uppercase tracking-wider',
-                                                                                                        trigger.is_active ? 'bg-green-500/10 text-green-600 dark:text-green-400' : 'bg-muted text-muted-foreground'
-                                                                                                )}
-                                                                                        >
-                                                                                                {trigger.is_active ? 'Active' : 'Disabled'}
-                                                                                        </Badge>
-                                                                                        <Button
-                                                                                                variant='ghost'
-                                                                                                size='icon'
-                                                                                                className='h-8 w-8 rounded-full text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors'
-                                                                                                onClick={(e) => {
-                                                                                                        e.stopPropagation();
-                                                                                                        setDeleteId(trigger.id);
-                                                                                                }}
-                                                                                        >
-                                                                                                <Trash2 className='h-3.5 w-3.5' />
-                                                                                        </Button>
+                                                                        <div className='px-3 md:px-4 py-2.5 md:py-3'>
+                                                                                <div className='flex items-center justify-between mb-2'>
+                                                                                        <div className='flex items-center gap-1.5'>
+                                                                                                <Badge
+                                                                                                        variant='outline'
+                                                                                                        className={cn(
+                                                                                                                'rounded-full px-2 py-0.5 border-none text-[10px] font-bold uppercase tracking-wider',
+                                                                                                                trigger.is_active ? 'bg-green-500/10 text-green-600 dark:text-green-400' : 'bg-muted text-muted-foreground'
+                                                                                                        )}
+                                                                                                >
+                                                                                                        {trigger.is_active ? 'Active' : 'Disabled'}
+                                                                                                </Badge>
+                                                                                                <Badge className={cn(
+                                                                                                        'rounded-full px-2 py-0.5 font-bold gap-0.5 text-[9px] shadow-sm',
+                                                                                                        trigger.priority > 0 ? 'bg-primary' : trigger.priority < 0 ? 'bg-orange-500' : 'bg-muted text-muted-foreground border-none'
+                                                                                                )}>
+                                                                                                        <Zap className={cn('h-2 w-2', trigger.priority === 0 ? 'text-muted-foreground' : 'fill-current')} />
+                                                                                                        {trigger.priority}
+                                                                                                </Badge>
+                                                                                        </div>
+                                                                                        <div className='flex items-center gap-1.5'>
+                                                                                                <div onClick={(e) => e.stopPropagation()} className='flex items-center'>
+                                                                                                        <Switch
+                                                                                                                size='sm'
+                                                                                                                checked={trigger.is_active}
+                                                                                                                onCheckedChange={() => toggleStatus(trigger)}
+                                                                                                                className='data-[state=checked]:bg-green-500'
+                                                                                                        />
+                                                                                                </div>
+                                                                                                <Button
+                                                                                                        variant='ghost'
+                                                                                                        size='icon'
+                                                                                                        className='h-5 w-5 rounded-full text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors flex items-center justify-center'
+                                                                                                        onClick={(e) => {
+                                                                                                                e.stopPropagation();
+                                                                                                                setDeleteId(trigger.id);
+                                                                                                        }}
+                                                                                                >
+                                                                                                        <Trash2 className='h-3 w-3' />
+                                                                                                </Button>
+                                                                                        </div>
                                                                                 </div>
-                                                                                <CardTitle className='text-lg md:text-xl truncate group-hover:text-primary transition-colors'>{trigger.name}</CardTitle>
-                                                                                <div className='mt-2 font-mono text-[9px] md:text-[10px] truncate bg-muted/80 p-1.5 rounded-lg border border-border/40'>
+                                                                                <CardTitle className='text-sm md:text-base truncate group-hover:text-primary transition-colors mb-2'>{trigger.name}</CardTitle>
+                                                                                <div className='font-mono text-[10px] truncate bg-muted/80 px-2.5 py-1 rounded-lg border border-border/40'>
                                                                                         <span className='text-primary mr-1'>regex:</span> {trigger.pattern}
                                                                                 </div>
-                                                                        </CardHeader>
-                                                                        <CardContent className='p-5 md:p-6 pt-2 md:pt-2 pb-5 md:pb-6 flex-1'>
-                                                                                <div className='p-3 md:p-4 rounded-xl md:rounded-2xl bg-muted/40 border border-border/50 h-full'>
-                                                                                        <div className='flex items-center gap-2 mb-2'>
-                                                                                                <Code className='h-3 w-3 text-primary' />
-                                                                                                <span className='text-[9px] md:text-[10px] font-bold uppercase tracking-wider text-muted-foreground'>Lua Script Preview</span>
+                                                                        </div>
+                                                                        <div className='px-3 md:px-4 py-2 md:py-2.5 flex-1'>
+                                                                                <div className='p-2 rounded-lg bg-muted/40 border border-border/50 h-full'>
+                                                                                        <div className='flex items-center gap-1.5 mb-1'>
+                                                                                                <Code className='h-2.5 w-2.5 text-primary' />
+                                                                                                <span className='text-[9px] font-bold uppercase tracking-wider text-muted-foreground'>Lua Script</span>
                                                                                         </div>
-                                                                                        <p className='text-[10px] md:text-[11px] font-mono text-foreground/70 line-clamp-3 md:line-clamp-4 whitespace-pre-wrap italic leading-relaxed'>
+                                                                                        <p className='text-[10px] font-mono text-foreground/70 line-clamp-5 whitespace-pre-wrap italic leading-relaxed'>
                                                                                                 {trigger.script}
                                                                                         </p>
                                                                                 </div>
-                                                                        </CardContent>
-                                                                        <CardFooter className='border-t border-border/40 p-4 md:p-5 pt-3 md:pt-4 bg-muted/10'>
-                                                                                <div className='flex items-center justify-between w-full'>
-                                                                                        <Badge className={cn(
-                                                                                                'rounded-full px-2.5 py-0.5 font-bold gap-1 text-[9px] md:text-[10px] shadow-sm',
-                                                                                                trigger.priority > 0 ? 'bg-primary' : trigger.priority < 0 ? 'bg-orange-500' : 'bg-muted text-muted-foreground border-none'
-                                                                                        )}>
-                                                                                                <Zap className={cn('h-2.5 w-2.5', trigger.priority === 0 ? 'text-muted-foreground' : 'fill-current')} />
-                                                                                                PRIORITY {trigger.priority}
-                                                                                        </Badge>
-                                                                                        <div onClick={(e) => e.stopPropagation()}>
-                                                                                                <Switch
-                                                                                                        checked={trigger.is_active}
-                                                                                                        onCheckedChange={() => toggleStatus(trigger)}
-                                                                                                        className='data-[state=checked]:bg-green-500'
-                                                                                                />
-                                                                                        </div>
-                                                                                </div>
-                                                                        </CardFooter>
+                                                                        </div>
                                                                 </Card>
                                                         ))}
                                                 </div>

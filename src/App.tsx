@@ -230,7 +230,6 @@ function App() {
 													setEditingTrigger(null)
 													setActiveNavItem("bot-management")
 											}}
-											onViewDocs={() => setActiveNavItem("documentation")}
 									/>
 							) : (
 									<CronEditorPage
@@ -240,7 +239,6 @@ function App() {
 													setEditingCron(null)
 													setActiveNavItem("cron-management")
 											}}
-											onViewDocs={() => setActiveNavItem("documentation")}
 									/>
 							)}
 						</div>

@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
-import { ArrowLeft, Save, Play, Code, AlertCircle, CheckCircle2, Terminal, Info, Zap, FileText, Bug, X, Sparkles, Loader2 } from 'lucide-react'
+import { ArrowLeft, Save, Play, Code, CheckCircle2, Terminal, X, Sparkles, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { api, type Trigger } from '@/lib/api'
 import { toast } from 'sonner'
@@ -14,11 +13,10 @@ import { AIAssistant } from '@/components/AIAssistant'
 interface TriggerEditorPageProps {
 	trigger: Trigger | null
 	onBack: () => void
-	onViewDocs: () => void
 	isMobileView?: boolean
 }
 
-export function TriggerEditorPage({ trigger, onBack, onViewDocs, isMobileView }: TriggerEditorPageProps) {
+export function TriggerEditorPage({ trigger, onBack, isMobileView }: TriggerEditorPageProps) {
 	const [formData, setFormData] = useState<Partial<Trigger>>({
 		name: '',
 		pattern: '',
@@ -97,7 +95,7 @@ export function TriggerEditorPage({ trigger, onBack, onViewDocs, isMobileView }:
 	}
 
 	const editorContent = (
-		<div className="p-4 md:p-6 space-y-6 flex flex-col">
+		<div className="p-4 md:p-4 space-y-6 flex flex-col">
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 shrink-0">
 				<div className="space-y-2">
 					<Label className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Trigger Name</Label>
@@ -130,15 +128,11 @@ export function TriggerEditorPage({ trigger, onBack, onViewDocs, isMobileView }:
 			</div>
 
 			<div className="space-y-3 flex flex-col">
-				<div className="flex items-center justify-between shrink-0">
+				<div className="flex items-center shrink-0">
 					<Label className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1 flex items-center gap-2">
 						<Code className="h-3 w-3 text-primary" />
 						Lua Script Logic
 					</Label>
-					<div className="flex gap-1 md:gap-2">
-						<Badge variant="outline" className="text-[8px] md:text-[9px] font-mono py-0 px-1 md:px-2">matches[n]</Badge>
-						<Badge variant="outline" className="text-[8px] md:text-[9px] font-mono py-0 px-1 md:px-2 hidden sm:inline-flex">send_text()</Badge>
-					</div>
 				</div>
 				<div className="rounded-2xl border border-border/40 overflow-hidden bg-[#1e1e1e] shadow-inner relative" style={{ height: '450px' }}>
 					{proposedCode ? (
@@ -181,7 +175,7 @@ export function TriggerEditorPage({ trigger, onBack, onViewDocs, isMobileView }:
 	)
 
 	const debuggerContent = (
-		<div className="p-4 md:p-6 space-y-6 flex flex-col">
+		<div className="p-4 md:p-4 space-y-6 flex flex-col">
 			<div className="p-4 md:p-6 border border-border/40 bg-muted/30 rounded-2xl">
 				<h2 className="text-sm font-bold flex items-center gap-2 mb-4">
 					<Terminal className="h-4 w-4 text-primary" />
@@ -236,21 +230,18 @@ export function TriggerEditorPage({ trigger, onBack, onViewDocs, isMobileView }:
 
 	return (
 		<div className="h-full w-full bg-background flex flex-col overflow-hidden relative">
-			<div className="p-4 md:p-6 border-b border-border/40 bg-muted/20 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-				<div className="flex items-center gap-3 md:gap-4">
-					<Button variant="ghost" size="icon" onClick={onBack} className="rounded-full h-8 w-8 md:h-10 md:w-10">
-						<ArrowLeft className="h-5 w-5" />
+			<div className="p-4 md:p-6 border-b border-border/40 bg-muted/20 shrink-0 flex flex-wrap items-center justify-between gap-2">
+				<div className="flex items-center gap-2">
+					<Button variant="ghost" size="icon" onClick={onBack} className="rounded-full h-8 w-8 md:h-10 md:w-10 shrink-0">
+						<ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
 					</Button>
-					<div>
-						<h1 className="text-lg md:text-xl font-bold tracking-tight">{formData.id ? 'Edit Trigger' : 'New Trigger'}</h1>
-						<p className="text-[10px] md:text-xs text-muted-foreground hidden xs:block">Configure regex pattern and Lua script execution.</p>
-					</div>
+					<h1 className="text-sm md:text-xl font-bold tracking-tight truncate max-w-[120px] sm:max-w-none">{formData.id ? 'Edit' : 'New'} <span className="hidden sm:inline">Trigger</span></h1>
 				</div>
-				<div className="flex items-center gap-2 sm:gap-3">
-					<Button variant="outline" onClick={onBack} className="rounded-xl h-9 md:h-10 px-3 md:px-4 text-xs md:text-sm flex-1 sm:flex-none">Cancel</Button>
-					<Button onClick={handleSave} disabled={isSaving} className="rounded-xl h-9 md:h-10 px-4 md:px-6 text-xs md:text-sm font-bold shadow-lg shadow-primary/20 flex-1 sm:flex-none">
-						{isSaving ? <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2" /> : <Save className="mr-2 h-4 w-4" />}
-						Save <span className="hidden sm:inline">Changes</span>
+				<div className="flex items-center gap-2">
+					<Button variant="outline" onClick={onBack} className="rounded-xl h-8 md:h-10 px-2 md:px-4 text-xs md:text-sm">Cancel</Button>
+					<Button onClick={handleSave} disabled={isSaving} className="rounded-xl h-8 md:h-10 px-2 md:px-6 text-xs md:text-sm font-bold shadow-lg shadow-primary/20">
+						{isSaving ? <span className="w-3 h-3 md:w-4 md:h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-1 md:mr-2" /> : <Save className="mr-1 md:mr-2 h-3.5 w-3.5 md:h-4 md:w-4" />}
+						Save
 					</Button>
 				</div>
 			</div>
@@ -278,7 +269,7 @@ export function TriggerEditorPage({ trigger, onBack, onViewDocs, isMobileView }:
 			</div>
 
 			{isMobileView && activeTab === 'editor' && (
-				<div className="fixed bottom-20 right-6 z-50">
+				<div className="fixed bottom-24 right-6 z-50">
 					<AIAssistant currentCode={formData.script} onApplyCode={handleApplyAIChange} />
 				</div>
 			)}
