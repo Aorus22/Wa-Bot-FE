@@ -160,13 +160,15 @@ export function ChatInfoSheetModal({
 					<SheetTitle className="text-lg font-bold flex items-center gap-2">Chat Info</SheetTitle>
 				</SheetHeader>
 
-				<div className="flex flex-col items-center py-6 px-4 text-center border-b border-border/40 bg-muted/5 shrink-0">
-					<Avatar className="h-20 w-20 border-2 border-background shadow-lg mb-3">
+				<div className="flex items-center justify-center gap-4 py-4 px-4 border-b border-border/40 bg-muted/5 shrink-0">
+					<Avatar className="h-14 w-14 border-2 border-background shadow-lg flex-shrink-0">
 						<AvatarImage src={getAvatarUrl(chat)} />
-						<AvatarFallback className="text-2xl bg-primary/10 text-primary font-bold">{chat.name.charAt(0).toUpperCase()}</AvatarFallback>
+						<AvatarFallback className="text-xl bg-primary/10 text-primary font-bold">{chat.name.charAt(0).toUpperCase()}</AvatarFallback>
 					</Avatar>
-					<h2 className="text-base font-bold leading-tight">{chat.name}</h2>
-					<p className="text-[11px] font-medium text-muted-foreground mt-1">{chat.id}</p>
+					<div className="flex flex-col min-w-0">
+						<h2 className="text-base font-bold leading-tight truncate">{chat.name}</h2>
+						<p className="text-[11px] font-medium text-muted-foreground truncate">{chat.id}</p>
+					</div>
 				</div>
 
 				<div className="flex-1 flex flex-col min-h-0 overflow-hidden">
