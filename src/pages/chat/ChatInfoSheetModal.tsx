@@ -37,15 +37,13 @@ export function ChatInfoSheetModal({
 	const [loadingDocs, setLoadingDocs] = useState(false)
 	const [loadingLinks, setLoadingLinks] = useState(false)
 
-	const [activeTab, setActiveTab] = useState("media")
+	const loadingMediaRef = useRef(false)
+	const loadingDocsRef = useRef(false)
+	const loadingLinksRef = useRef(false)
 
 	const mediaScrollRef = useRef<HTMLDivElement>(null)
 	const docsScrollRef = useRef<HTMLDivElement>(null)
 	const linksScrollRef = useRef<HTMLDivElement>(null)
-
-	const loadingMediaRef = useRef(false)
-	const loadingDocsRef = useRef(false)
-	const loadingLinksRef = useRef(false)
 
 	const fetchMedia = useCallback(async (before?: number) => {
 		if (!chat?.id || loadingMediaRef.current) return
@@ -155,32 +153,14 @@ export function ChatInfoSheetModal({
 		}
 	}, [hasMoreLinks, links, fetchLinks])
 
-	const getScrollRef = () => {
-		switch (activeTab) {
-			case "media": return mediaScrollRef
-			case "docs": return docsScrollRef
-			case "links": return linksScrollRef
-			default: return mediaScrollRef
-		}
-	}
-
-	const getScrollHandler = () => {
-		switch (activeTab) {
-			case "media": return handleScrollMedia
-			case "docs": return handleScrollDocs
-			case "links": return handleScrollLinks
-			default: return handleScrollMedia
-		}
-	}
-
 	return (
 		<Sheet open={open} onOpenChange={onOpenChange}>
-			<SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col h-full bg-background border-l border-border/40">
-				<SheetHeader className="p-4 border-b border-border/40 bg-muted/20">
+			<SheetContent side="right" className="w-full sm:max-w-md p-0 flex flex-col h-full bg-background border-l border-border/40 overflow-hidden">
+				<SheetHeader className="p-4 border-b border-border/40 bg-muted/20 shrink-0">
 					<SheetTitle className="text-lg font-bold flex items-center gap-2">Chat Info</SheetTitle>
 				</SheetHeader>
 
-				<div className="flex flex-col items-center py-6 px-4 text-center border-b border-border/40 bg-muted/5">
+				<div className="flex flex-col items-center py-6 px-4 text-center border-b border-border/40 bg-muted/5 shrink-0">
 					<Avatar className="h-20 w-20 border-2 border-background shadow-lg mb-3">
 						<AvatarImage src={getAvatarUrl(chat)} />
 						<AvatarFallback className="text-2xl bg-primary/10 text-primary font-bold">{chat.name.charAt(0).toUpperCase()}</AvatarFallback>
@@ -190,8 +170,8 @@ export function ChatInfoSheetModal({
 				</div>
 
 				<div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-					<Tabs defaultValue="media" className="flex-1 flex flex-col" onValueChange={setActiveTab}>
-						<div className="px-4 pt-4">
+					<Tabs defaultValue="media" className="flex-1 flex flex-col h-full">
+						<div className="px-4 pt-4 shrink-0">
 							<TabsList className="w-full grid grid-cols-3 bg-muted/50 p-1">
 								<TabsTrigger value="media" className="text-xs">Media</TabsTrigger>
 								<TabsTrigger value="docs" className="text-xs">Docs</TabsTrigger>
@@ -199,8 +179,12 @@ export function ChatInfoSheetModal({
 							</TabsList>
 						</div>
 
-						<div className="flex-1 overflow-y-auto p-4 min-h-0" ref={getScrollRef()} onScroll={getScrollHandler()}>
-							<TabsContent value="media" className="mt-0 outline-none h-full">
+						<TabsContent value="media" className="flex-1 min-h-0 mt-0 outline-none overflow-hidden">
+							<div 
+								ref={mediaScrollRef} 
+								className="h-full overflow-y-auto p-4"
+								onScroll={handleScrollMedia}
+							>
 								{media.length > 0 ? (
 									<div className="grid grid-cols-3 gap-2">
 										{media.map(m => (
@@ -221,11 +205,6 @@ export function ChatInfoSheetModal({
 												)}
 											</div>
 										))}
-										{loadingMedia && (
-											<div className="col-span-3 flex justify-center py-4">
-												<Loader2 className="h-6 w-6 animate-spin text-primary" />
-											</div>
-										)}
 									</div>
 								) : loadingMedia ? (
 									<div className="flex flex-col items-center justify-center h-full py-12 text-muted-foreground">
@@ -238,9 +217,20 @@ export function ChatInfoSheetModal({
 										<p className="text-sm">No media shared yet</p>
 									</div>
 								)}
-							</TabsContent>
+								{loadingMedia && media.length > 0 && (
+									<div className="flex justify-center py-4">
+										<Loader2 className="h-6 w-6 animate-spin text-primary" />
+									</div>
+								)}
+							</div>
+						</TabsContent>
 
-							<TabsContent value="docs" className="mt-0 outline-none h-full">
+						<TabsContent value="docs" className="flex-1 min-h-0 mt-0 outline-none overflow-hidden">
+							<div 
+								ref={docsScrollRef} 
+								className="h-full overflow-y-auto p-4"
+								onScroll={handleScrollDocs}
+							>
 								{docs.length > 0 ? (
 									<div className="space-y-3">
 										{docs.map(m => (
@@ -260,11 +250,6 @@ export function ChatInfoSheetModal({
 												</div>
 											</a>
 										))}
-										{loadingDocs && (
-											<div className="flex justify-center py-4">
-												<Loader2 className="h-6 w-6 animate-spin text-primary" />
-											</div>
-										)}
 									</div>
 								) : loadingDocs ? (
 									<div className="flex flex-col items-center justify-center h-full py-12 text-muted-foreground">
@@ -277,9 +262,20 @@ export function ChatInfoSheetModal({
 										<p className="text-sm">No documents shared yet</p>
 									</div>
 								)}
-							</TabsContent>
+								{loadingDocs && docs.length > 0 && (
+									<div className="flex justify-center py-4">
+										<Loader2 className="h-6 w-6 animate-spin text-primary" />
+									</div>
+								)}
+							</div>
+						</TabsContent>
 
-							<TabsContent value="links" className="mt-0 outline-none h-full">
+						<TabsContent value="links" className="flex-1 min-h-0 mt-0 outline-none overflow-hidden">
+							<div 
+								ref={linksScrollRef} 
+								className="h-full overflow-y-auto p-4"
+								onScroll={handleScrollLinks}
+							>
 								{links.length > 0 ? (
 									<div className="space-y-3">
 										{links.map(m => {
@@ -302,11 +298,6 @@ export function ChatInfoSheetModal({
 												</a>
 											))
 										})}
-										{loadingLinks && (
-											<div className="flex justify-center py-4">
-												<Loader2 className="h-6 w-6 animate-spin text-primary" />
-											</div>
-										)}
 									</div>
 								) : loadingLinks ? (
 									<div className="flex flex-col items-center justify-center h-full py-12 text-muted-foreground">
@@ -319,8 +310,13 @@ export function ChatInfoSheetModal({
 										<p className="text-sm">No links shared yet</p>
 									</div>
 								)}
-							</TabsContent>
-						</div>
+								{loadingLinks && links.length > 0 && (
+									<div className="flex justify-center py-4">
+										<Loader2 className="h-6 w-6 animate-spin text-primary" />
+									</div>
+								)}
+							</div>
+						</TabsContent>
 					</Tabs>
 				</div>
 			</SheetContent>
