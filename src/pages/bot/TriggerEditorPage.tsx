@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { ArrowLeft, Save, Play, Code, AlertCircle, CheckCircle2, Terminal, Info, Zap, FileText, Bug } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { ArrowLeft, Save, Play, Code, AlertCircle, CheckCircle2, Terminal, Info, Zap, FileText, Bug, X, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -8,8 +8,9 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { api, type Trigger } from '@/lib/api'
 import { toast } from 'sonner'
-import Editor from '@monaco-editor/react'
+import Editor, { DiffEditor } from '@monaco-editor/react'
 import { cn } from '@/lib/utils'
+import { AIAssistant } from '@/components/AIAssistant'
 
 interface TriggerEditorPageProps {
         trigger: Trigger | null
@@ -32,12 +33,32 @@ export function TriggerEditorPage({ trigger, onBack, onViewDocs, isMobileView }:
         const [isTesting, setIsTesting] = useState(false)
         const [isSaving, setIsSaving] = useState(false)
         const [activeTab, setActiveTab] = useState('editor')
+        const [proposedCode, setProposedCode] = useState<string | null>(null)
+        const diffEditorRef = useRef<any>(null)
 
         useEffect(() => {
                 if (trigger) {
                         setFormData(trigger)
                 }
         }, [trigger])
+
+        const handleApplyAIChange = (code: string) => {
+                setProposedCode(code)
+                toast.info('AI proposed changes. Review in the editor.')
+        }
+
+        const handleAcceptChange = () => {
+                if (proposedCode) {
+                        setFormData(prev => ({ ...prev, script: proposedCode }))
+                        setProposedCode(null)
+                        toast.success('Changes accepted')
+                }
+        }
+
+        const handleRejectChange = () => {
+                setProposedCode(null)
+                toast.success('Changes rejected')
+        }
 
         const handleSave = async () => {
                 if (!formData.name || !formData.pattern || !formData.script) {
@@ -129,24 +150,98 @@ export function TriggerEditorPage({ trigger, onBack, onViewDocs, isMobileView }:
                                                 <Badge variant='outline' className='text-[8px] md:text-[9px] font-mono py-0 px-1 md:px-2 hidden sm:inline-flex'>send_text()</Badge>
                                         </div>
                                 </div>
-                                <div className='flex-1 rounded-2xl border border-border/40 overflow-hidden bg-[#1e1e1e] shadow-inner'>
-                                        <Editor
-                                                height="100%"
-                                                defaultLanguage="lua"
-                                                theme="vs-dark"
-                                                value={formData.script}
-                                                onChange={(val) => setFormData(prev => ({ ...prev, script: val || '' }))}
-                                                options={{
-                                                        minimap: { enabled: false },
-                                                        fontSize: isMobileView ? 12 : 13,
-                                                        lineNumbers: 'on',
-                                                        roundedSelection: true,
-                                                        scrollBeyondLastLine: false,
-                                                        automaticLayout: true,
-                                                        padding: { top: 16, bottom: 16 },
-                                                        fixedOverflowWidgets: true
-                                                }}
-                                        />
+                                <div className='flex-1 rounded-2xl border border-border/40 overflow-hidden bg-[#1e1e1e] shadow-inner relative'>
+                                        {proposedCode ? (
+                                                <>
+                                                        <div className='absolute top-3 right-3 z-10 flex items-center gap-1.5 p-1.5 bg-background/60 backdrop-blur-xl border border-border/40 rounded-xl shadow-2xl animate-in fade-in slide-in-from-top-2 duration-300'>
+                                                                <div className='flex items-center gap-1.5 px-2 border-r border-border/40 mr-1.5'>
+                                                                        <Sparkles className='h-3.5 w-3.5 text-primary animate-pulse' />
+                                                                        <span className='text-[10px] font-bold uppercase tracking-wider text-muted-foreground'>AI Suggestion</span>
+                                                                </div>
+                                                                <div className='flex items-center bg-muted/30 rounded-lg p-0.5 border border-border/20'>
+                                                                        <Button 
+                                                                                size='icon' 
+                                                                                variant='ghost' 
+                                                                                className='h-6 w-6 rounded-md hover:bg-background/50'
+                                                                                onClick={() => diffEditorRef.current?.goToDiff('previous')}
+                                                                                title="Previous change"
+                                                                        >
+                                                                                <ArrowLeft className='h-3 w-3' />
+                                                                        </Button>
+                                                                        <div className='w-px h-3 bg-border/20 mx-0.5' />
+                                                                        <Button 
+                                                                                size='icon' 
+                                                                                variant='ghost' 
+                                                                                className='h-6 w-6 rounded-md hover:bg-background/50'
+                                                                                onClick={() => diffEditorRef.current?.goToDiff('next')}
+                                                                                title="Next change"
+                                                                        >
+                                                                                <Play className='h-3 w-3 rotate-90' />
+                                                                        </Button>
+                                                                </div>
+                                                                <Button 
+                                                                        size='sm' 
+                                                                        variant='ghost' 
+                                                                        className='h-7 px-2.5 rounded-lg text-[11px] font-bold text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors'
+                                                                        onClick={handleRejectChange}
+                                                                >
+                                                                        <X className='mr-1.5 h-3 w-3' /> Reject
+                                                                </Button>
+                                                                <Button 
+                                                                        size='sm' 
+                                                                        className='h-7 px-3.5 rounded-lg text-[11px] font-bold bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all'
+                                                                        onClick={handleAcceptChange}
+                                                                >
+                                                                        <CheckCircle2 className='mr-1.5 h-3 w-3' /> Accept
+                                                                </Button>
+                                                        </div>
+                                                        <DiffEditor
+                                                                height="100%"
+                                                                original={formData.script}
+                                                                modified={proposedCode}
+                                                                language="lua"
+                                                                theme="vs-dark"
+                                                                onMount={(editor) => {
+                                                                        diffEditorRef.current = editor;
+                                                                        // Allow editing the modified side
+                                                                        editor.getModifiedEditor().updateOptions({ readOnly: false });
+                                                                        
+                                                                        // Listen for changes in the modified editor to keep state in sync
+                                                                        editor.getModifiedEditor().onDidChangeModelContent(() => {
+                                                                                setProposedCode(editor.getModifiedEditor().getValue());
+                                                                        });
+                                                                }}
+                                                                options={{
+                                                                        renderSideBySide: false,
+                                                                        readOnly: false,
+                                                                        fontSize: isMobileView ? 11 : 12,
+                                                                        automaticLayout: true,
+                                                                        minimap: { enabled: false },
+                                                                        scrollBeyondLastLine: false,
+                                                                        useInlineViewWhenSpaceIsLimited: true,
+                                                                        renderOverviewRuler: false,
+                                                                }}
+                                                        />
+                                                </>
+                                        ) : (
+                                                <Editor
+                                                        height="100%"
+                                                        defaultLanguage="lua"
+                                                        theme="vs-dark"
+                                                        value={formData.script}
+                                                        onChange={(val) => setFormData(prev => ({ ...prev, script: val || '' }))}
+                                                        options={{
+                                                                minimap: { enabled: false },
+                                                                fontSize: isMobileView ? 12 : 13,
+                                                                lineNumbers: 'on',
+                                                                roundedSelection: true,
+                                                                scrollBeyondLastLine: false,
+                                                                automaticLayout: true,
+                                                                padding: { top: 16, bottom: 16 },
+                                                                fixedOverflowWidgets: true
+                                                        }}
+                                                />
+                                        )}
                                 </div>
                         </div>
                 </div>
@@ -311,6 +406,10 @@ export function TriggerEditorPage({ trigger, onBack, onViewDocs, isMobileView }:
                                         </>
                                 )}
                         </div>
+                        <AIAssistant 
+                                currentCode={formData.script} 
+                                onApplyCode={handleApplyAIChange} 
+                        />
                 </div>
         )
 }

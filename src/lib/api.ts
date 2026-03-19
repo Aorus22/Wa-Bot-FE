@@ -263,6 +263,18 @@ class ApiClient {	private baseUrl: string
 		})
 	}
 
+	async getDocs(): Promise<string> {
+		const response = await fetch(`${this.baseUrl}/docs`)
+		return response.text()
+	}
+
+	async chatAssistant(prompt: string, currentCode?: string): Promise<{ answer: string }> {
+		return this.request<{ answer: string }>("/ai/assistant", {
+			method: "POST",
+			body: JSON.stringify({ prompt, currentCode }),
+		})
+	}
+
 	async sendMessage(target: string, message: string): Promise<{ status: string; id: string }> {
 		return this.request<{ status: string; id: string }>("/send-message", {
 			method: "POST",

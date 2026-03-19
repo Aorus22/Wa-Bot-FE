@@ -9,9 +9,10 @@ interface NavigationSidebarProps {
     activeItem: NavItem
     onNavItemSelect: (item: NavItem) => void
     onLogout: () => void
+    isConnected?: boolean
 }
 
-export function NavigationSidebar({ activeItem, onNavItemSelect, onLogout }: NavigationSidebarProps) {    
+export function NavigationSidebar({ activeItem, onNavItemSelect, onLogout, isConnected }: NavigationSidebarProps) {    
     return (
         <div className='w-[68px] h-full flex flex-col items-center py-6 bg-background border-r border-border/40 flex-shrink-0 z-50'>
             {/* Top Section */}
@@ -45,16 +46,23 @@ export function NavigationSidebar({ activeItem, onNavItemSelect, onLogout }: Nav
             <div className='flex flex-col items-center gap-4 mt-auto'>
                 <ModeToggle />
 
-                <Tooltip delayDuration={0}>          <TooltipTrigger asChild>
-                    <button
-                        onClick={onLogout}
-                        className='p-3.5 rounded-2xl transition-all duration-200 text-muted-foreground hover:bg-destructive/10 hover:text-destructive'
-                    >
-                        <LogOut className='h-5 w-5' />
-                    </button>
-                </TooltipTrigger>
+                <Tooltip delayDuration={0}>
+                    <TooltipTrigger asChild>
+                        <div className='relative group/logout'>
+                            <button
+                                onClick={onLogout}
+                                className='p-3.5 rounded-2xl transition-all duration-200 text-muted-foreground hover:bg-destructive/10 hover:text-destructive'
+                            >
+                                <LogOut className='h-5 w-5' />
+                            </button>
+                            <div className={cn(
+                                'absolute bottom-2 right-2 w-2.5 h-2.5 rounded-full border-2 border-background transition-colors duration-500',
+                                isConnected ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]' : 'bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.4)]'
+                            )} />
+                        </div>
+                    </TooltipTrigger>
                     <TooltipContent side='right' sideOffset={10} className='font-medium'>
-                        <p>Log out</p>
+                        <p>Log out ({isConnected ? 'Connected' : 'Reconnecting...'})</p>
                     </TooltipContent>
                 </Tooltip>
             </div>

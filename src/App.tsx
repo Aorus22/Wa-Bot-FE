@@ -190,7 +190,7 @@ function App() {
 		<ThemeProvider defaultTheme="system" storageKey="wa-bot-theme">
 			<TooltipProvider>
 				<div className="flex h-screen bg-background text-foreground overflow-hidden selection:bg-primary/20">
-					{/* Floating Live Status */}
+					{/* Floating Live Status - Moved to Sidebar indicator
 					<div className="fixed bottom-6 right-6 z-50 pointer-events-none md:bottom-8 md:right-8">
 						<div className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold border shadow-xl backdrop-blur-md pointer-events-auto transition-all duration-500 ${isConnected
 							? "bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400"
@@ -200,6 +200,7 @@ function App() {
 							<span className="tracking-wide uppercase text-[10px]">{isConnected ? "Live" : "Reconnecting..."}</span>
 						</div>
 					</div>
+					*/}
 
 					{/* Logout Confirmation Dialog */}
 					<AlertDialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
@@ -230,6 +231,7 @@ function App() {
 								activeItem={activeNavItem}
 								onNavItemSelect={setActiveNavItem}
 								onLogout={() => setIsLogoutDialogOpen(true)}
+								isConnected={isConnected}
 							/>
 						)}
 

@@ -7,14 +7,14 @@ import remarkGfm from 'remark-gfm'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { cn } from '@/lib/utils'
+import { api } from '@/lib/api'
 
 export function DocumentationPage() {
 	const [content, setContent] = useState<string>('Loading documentation...')
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
 	useEffect(() => {
-		fetch('/docs/api-reference.md')
-			.then(res => res.text())
+		api.getDocs()
 			.then(text => setContent(text))
 			.catch(err => {
 				console.error('Failed to load documentation:', err)
