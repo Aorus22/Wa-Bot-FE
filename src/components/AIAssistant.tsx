@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Bot, Send, X, Loader2, Sparkles, Code, MessageSquare } from 'lucide-react'
+import { Bot, Send, X, Loader2, Sparkles, MessageSquare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
 	Sheet,
@@ -7,7 +7,6 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from '@/components/ui/sheet'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Textarea } from '@/components/ui/textarea'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -68,7 +67,7 @@ export function AIAssistant({ currentCode, onApplyCode }: AIAssistantProps) {
 	return (
 		<>
 			{/* Floating Button */}
-			<div className='fixed bottom-6 right-6 z-40 group'>
+			<div className='absolute bottom-6 right-6 z-40 group'>
 				<div className='absolute inset-0 bg-primary/20 rounded-full blur-xl group-hover:bg-primary/40 transition-all duration-500 animate-pulse' />
 				<Button
 					onClick={() => setIsOpen(true)}

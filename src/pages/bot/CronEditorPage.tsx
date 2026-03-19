@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
-import { ArrowLeft, Save, Play, Code, Info, CheckCircle2, AlertCircle, Terminal, FileText, Activity, X, Sparkles } from 'lucide-react'
+import { ArrowLeft, Save, Play, Code, Info, CheckCircle2, AlertCircle, Terminal, FileText, Activity, X, Sparkles, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { api, type CronJob } from '@/lib/api'
@@ -24,219 +23,115 @@ export function CronEditorPage({ job, onBack, onViewDocs, isMobileView }: CronEd
 		name: '',
 		schedule: '0 * * * *',
 		script: `-- Scheduled Task\nprint("Executing sequence: " .. os.date())\nsend_text("628123456789@s.whatsapp.net", "Automatic scheduled broadcast")`,
-		is_active: true
+		enabled: true
 	})
-
-	const [isTesting, setIsTesting] = useState(false)
 	const [isSaving, setIsSaving] = useState(false)
-    const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null)
+	const [testResult, setTestResult] = useState<any>(null)
+	const [isTesting, setIsTesting] = useState(false)
     const [activeTab, setActiveTab] = useState('editor')
     const [proposedCode, setProposedCode] = useState<string | null>(null)
     const diffEditorRef = useRef<any>(null)
 
 	useEffect(() => {
-		if (job) {
-			setFormData(job)
-		}
+		if (job) setFormData(job)
 	}, [job])
 
-    const handleApplyAIChange = (code: string) => {
-        setProposedCode(code)
-        toast.info('AI proposed changes. Review in the editor.')
+    const handleApplyAIChange = (newCode: string) => {
+        setProposedCode(newCode)
+        if (isMobileView) setActiveTab('editor')
     }
 
     const handleAcceptChange = () => {
         if (proposedCode) {
             setFormData(prev => ({ ...prev, script: proposedCode }))
             setProposedCode(null)
-            toast.success('Changes accepted')
         }
     }
 
-    const handleRejectChange = () => {
-        setProposedCode(null)
-        toast.success('Changes rejected')
-    }
+    const handleRejectChange = () => setProposedCode(null)
 
 	const handleSave = async () => {
 		if (!formData.name || !formData.schedule || !formData.script) {
-			toast.error('All configuration fields are required')
+			toast.error('Please fill in all required fields')
 			return
 		}
-
 		try {
 			setIsSaving(true)
 			if (formData.id) {
-				await api.updateCronJob(formData.id, formData)
-				toast.success('Sequence configuration synchronized')
+				await api.updateCronJob(formData.id, formData as CronJob)
+				toast.success('Cron job updated successfully')
 			} else {
-				await api.createCronJob(formData)
-				toast.success('New automated process established')
+				await api.createCronJob(formData as CronJob)
+				toast.success('Cron job created successfully')
 			}
 			onBack()
-		} catch {
-			toast.error('Failed to synchronize configuration')
+		} catch (error) {
+			toast.error('Failed to save cron job')
 		} finally {
 			setIsSaving(false)
 		}
 	}
 
 	const handleTest = async () => {
-		if (!formData.script) {
-			toast.error('Script body required for execution')
-			return
-		}
-
 		try {
 			setIsTesting(true)
-            setTestResult(null)
-			await api.testCronJob(formData.script)
-			toast.success('Manual trigger initialized')
-            setTestResult({ success: true, message: 'Process started. Check system logs for output.' })
+			const result = await api.testCronJob({ script: formData.script || '' })
+			setTestResult(result)
             if (isMobileView) setActiveTab('debugger')
 		} catch (error: any) {
-			toast.error('Initialization failed')
-            setTestResult({ success: false, message: error.message })
+			setTestResult({ error: error.message })
 		} finally {
 			setIsTesting(false)
 		}
 	}
 
     const editorContent = (
-        <div className='p-4 md:p-6 space-y-6 flex-1 flex flex-col min-h-0'>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 shrink-0'>
-                <div className='space-y-2'>
-                    <Label className='text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1'>Process Name</Label>
-                    <Input
-                        placeholder='e.g., Daily Database Sync'
-                        value={formData.name}
-                        onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                        className='rounded-xl h-10 md:h-11 border-border/40 bg-muted/30 focus-visible:ring-primary/20'
-                    />
+        <div className="p-4 md:p-6 space-y-6 flex flex-col">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 shrink-0">
+                <div className="space-y-2">
+                    <Label className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Task Name</Label>
+                    <Input placeholder="e.g., Daily Broadcast" value={formData.name} onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))} className="rounded-xl h-10 md:h-11 border-border/40 bg-muted/30 focus-visible:ring-primary/20" />
                 </div>
-                <div className='space-y-2'>
-                    <Label className='text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1'>Temporal Schedule (Cron)</Label>
-                    <div className='flex gap-2'>
-                        <Input
-                            placeholder='0 0 * * *'
-                            value={formData.schedule}
-                            onChange={e => setFormData(prev => ({ ...prev, schedule: e.target.value }))}
-                            className='rounded-xl h-10 md:h-11 border-border/40 bg-muted/30 font-mono focus-visible:ring-primary/20 flex-1'
-                        />
-                        <Button 
-                            variant='outline' 
-                            size='icon' 
-                            className='rounded-xl h-10 md:h-11 w-10 md:w-11 shrink-0 border-border/40 bg-muted/20 hover:bg-primary/5 hover:text-primary'
-                            onClick={() => window.open('https://crontab.guru/', '_blank')}
-                        >
-                            <Info className='h-4 w-4' />
-                        </Button>
-                    </div>
+                <div className="space-y-2">
+                    <Label className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Cron Schedule</Label>
+                    <Input placeholder="0 * * * *" value={formData.schedule} onChange={e => setFormData(prev => ({ ...prev, schedule: e.target.value }))} className="rounded-xl h-10 md:h-11 border-border/40 bg-muted/30 font-mono focus-visible:ring-primary/20" />
                 </div>
             </div>
 
-            <div className='space-y-3 flex-1 flex flex-col min-h-[400px] md:min-h-0'>
-                <div className='flex items-center justify-between shrink-0'>
-                    <Label className='text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1 flex items-center gap-2'>
-                        <Code className='h-3 w-3 text-primary' />
-                        Execution Logic
+            <div className="space-y-3 flex flex-col">
+                <div className="flex items-center justify-between shrink-0">
+                    <Label className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1 flex items-center gap-2">
+                        <Code className="h-3 w-3 text-primary" /> Task Script Logic
                     </Label>
-                    <div className='flex gap-1 md:gap-2'>
-                        <Badge variant='outline' className='text-[8px] md:text-[9px] font-mono py-0 px-1 md:px-2'>os.date()</Badge>
-                        <Badge variant='outline' className='text-[8px] md:text-[9px] font-mono py-0 px-1 md:px-2 hidden sm:inline-flex'>send_text()</Badge>
+                    <div className="flex gap-1 md:gap-2">
+                        <Badge variant="outline" className="text-[8px] md:text-[9px] font-mono py-0 px-1 md:px-2">os.date()</Badge>
+                        <Badge variant="outline" className="text-[8px] md:text-[9px] font-mono py-0 px-1 md:px-2 hidden sm:inline-flex">send_text()</Badge>
                     </div>
                 </div>
-                <div className='flex-1 rounded-2xl border border-border/40 overflow-hidden bg-[#1e1e1e] shadow-inner relative'>
+                <div className="rounded-2xl border border-border/40 overflow-hidden bg-[#1e1e1e] shadow-inner relative" style={{ height: '450px' }}>
                     {proposedCode ? (
                         <>
-                            <div className='absolute top-3 right-3 z-10 flex items-center gap-1.5 p-1.5 bg-background/60 backdrop-blur-xl border border-border/40 rounded-xl shadow-2xl animate-in fade-in slide-in-from-top-2 duration-300'>
-                                <div className='flex items-center gap-1.5 px-2 border-r border-border/40 mr-1.5'>
-                                    <Sparkles className='h-3.5 w-3.5 text-primary animate-pulse' />
-                                    <span className='text-[10px] font-bold uppercase tracking-wider text-muted-foreground'>AI Suggestion</span>
+                            <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5 p-1.5 bg-background/60 backdrop-blur-xl border border-border/40 rounded-xl shadow-2xl animate-in fade-in slide-in-from-top-2 duration-300">
+                                <div className="flex items-center gap-1.5 px-2 border-r border-border/40 mr-1.5">
+                                    <Sparkles className="h-3.5 w-3.5 text-primary animate-pulse" />
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">AI Suggestion</span>
                                 </div>
-                                <div className='flex items-center bg-muted/30 rounded-lg p-0.5 border border-border/20'>
-                                    <Button 
-                                        size='icon' 
-                                        variant='ghost' 
-                                        className='h-6 w-6 rounded-md hover:bg-background/50'
-                                        onClick={() => diffEditorRef.current?.goToDiff('previous')}
-                                        title="Previous change"
-                                    >
-                                        <ArrowLeft className='h-3 w-3' />
-                                    </Button>
-                                    <div className='w-px h-3 bg-border/20 mx-0.5' />
-                                    <Button 
-                                        size='icon' 
-                                        variant='ghost' 
-                                        className='h-6 w-6 rounded-md hover:bg-background/50'
-                                        onClick={() => diffEditorRef.current?.goToDiff('next')}
-                                        title="Next change"
-                                    >
-                                        <Play className='h-3 w-3 rotate-90' />
-                                    </Button>
+                                <div className="flex items-center bg-muted/30 rounded-lg p-0.5 border border-border/20">
+                                    <Button size="icon" variant="ghost" className="h-6 w-6 rounded-md hover:bg-background/50" onClick={() => diffEditorRef.current?.goToDiff('previous')} title="Previous change"><ArrowLeft className="h-3 w-3" /></Button>
+                                    <div className="w-px h-3 bg-border/20 mx-0.5" />
+                                    <Button size="icon" variant="ghost" className="h-6 w-6 rounded-md hover:bg-background/50" onClick={() => diffEditorRef.current?.goToDiff('next')} title="Next change"><Play className="h-3 w-3 rotate-90" /></Button>
                                 </div>
-                                <Button 
-                                    size='sm' 
-                                    variant='ghost' 
-                                    className='h-7 px-2.5 rounded-lg text-[11px] font-bold text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors'
-                                    onClick={handleRejectChange}
-                                >
-                                    <X className='mr-1.5 h-3 w-3' /> Reject
-                                </Button>
-                                <Button 
-                                    size='sm' 
-                                    className='h-7 px-3.5 rounded-lg text-[11px] font-bold bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all'
-                                    onClick={handleAcceptChange}
-                                >
-                                    <CheckCircle2 className='mr-1.5 h-3 w-3' /> Accept
-                                </Button>
+                                <Button size="sm" variant="ghost" className="h-7 px-2.5 rounded-lg text-[11px] font-bold text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors" onClick={handleRejectChange}><X className="mr-1.5 h-3 w-3" /> Reject</Button>
+                                <Button size="sm" className="h-7 px-3.5 rounded-lg text-[11px] font-bold bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all" onClick={handleAcceptChange}><CheckCircle2 className="mr-1.5 h-3 w-3" /> Accept</Button>
                             </div>
-                            <DiffEditor
-                                height="100%"
-                                original={formData.script}
-                                modified={proposedCode}
-                                language="lua"
-                                theme="vs-dark"
-                                onMount={(editor) => {
-                                    diffEditorRef.current = editor;
-                                    // Allow editing the modified side
-                                    editor.getModifiedEditor().updateOptions({ readOnly: false });
-                                    
-                                    // Listen for changes in the modified editor to keep state in sync
-                                    editor.getModifiedEditor().onDidChangeModelContent(() => {
-                                        setProposedCode(editor.getModifiedEditor().getValue());
-                                    });
-                                }}
-                                options={{
-                                    renderSideBySide: false,
-                                    readOnly: false,
-                                    fontSize: isMobileView ? 11 : 12,
-                                    automaticLayout: true,
-                                    minimap: { enabled: false },
-                                    scrollBeyondLastLine: false,
-                                    useInlineViewWhenSpaceIsLimited: true,
-                                    renderOverviewRuler: false,
-                                }}
-                            />
+                            <DiffEditor height="100%" original={formData.script} modified={proposedCode} language="lua" theme="vs-dark" onMount={(editor) => {
+                                diffEditorRef.current = editor;
+                                editor.getModifiedEditor().updateOptions({ readOnly: false });
+                                editor.getModifiedEditor().onDidChangeModelContent(() => { setProposedCode(editor.getModifiedEditor().getValue()); });
+                            }} options={{ renderSideBySide: false, readOnly: false, fontSize: isMobileView ? 11 : 12, automaticLayout: true, minimap: { enabled: false }, scrollBeyondLastLine: false, useInlineViewWhenSpaceIsLimited: true, renderOverviewRuler: false }} />
                         </>
                     ) : (
-                        <Editor
-                            height="100%"
-                            defaultLanguage="lua"
-                            theme="vs-dark"
-                            value={formData.script}
-                            onChange={(val) => setFormData(prev => ({ ...prev, script: val || '' }))}
-                            options={{
-                                minimap: { enabled: false },
-                                fontSize: isMobileView ? 12 : 13,
-                                lineNumbers: 'on',
-                                roundedSelection: true,
-                                scrollBeyondLastLine: false,
-                                automaticLayout: true,
-                                padding: { top: 16, bottom: 16 },
-                                fixedOverflowWidgets: true
-                            }}
-                        />
+                        <Editor height="100%" defaultLanguage="lua" theme="vs-dark" value={formData.script} onChange={(val) => setFormData(prev => ({ ...prev, script: val || '' }))} options={{ minimap: { enabled: false }, fontSize: isMobileView ? 12 : 13, lineNumbers: 'on', roundedSelection: true, scrollBeyondLastLine: false, automaticLayout: true, padding: { top: 16, bottom: 16 }, fixedOverflowWidgets: true }} />
                     )}
                 </div>
             </div>
@@ -244,151 +139,88 @@ export function CronEditorPage({ job, onBack, onViewDocs, isMobileView }: CronEd
     )
 
     const debuggerContent = (
-        <div className={cn('bg-muted/10 flex flex-col h-full overflow-hidden shrink-0', isMobileView ? 'w-full' : 'w-[400px] lg:w-[450px]')}>
-            <div className='p-4 md:p-6 border-b border-border/40 bg-muted/30 shrink-0'>       
-                <h2 className='text-sm font-bold flex items-center gap-2 mb-4'>
-                    <Terminal className='h-4 w-4 text-primary' />
-                    Process Monitor
+        <div className="p-4 md:p-6 space-y-6 flex flex-col">
+            <div className="p-4 md:p-6 border border-border/40 bg-muted/30 rounded-2xl">
+                <h2 className="text-sm font-bold flex items-center gap-2 mb-4">
+                    <Terminal className="h-4 w-4 text-primary" /> Process Monitor
                 </h2>
-                <div className='space-y-3'>
-                    <Label className='text-[10px] font-bold uppercase tracking-wider text-muted-foreground'>Manual Execution</Label>
-                    <Button
-                        onClick={handleTest}
-                        disabled={isTesting}
-                        className='rounded-xl w-full h-10 font-bold'
-                    >
-                        {isTesting ? <span className='w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2' /> : <Play className='h-4 w-4 mr-2' />}
-                        Run Test Sequence
+                <div className="space-y-3">
+                    <Button onClick={handleTest} disabled={isTesting} className="w-full rounded-xl h-11 bg-primary shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all font-bold">
+                        {isTesting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Play className="h-4 w-4 mr-2" />} Run Simulation
                     </Button>
                 </div>
             </div>
-
-            <ScrollArea className='flex-1 p-4 md:p-6 min-h-0'>
-                {testResult ? (
-                    <div className='space-y-6'>
-                        <div className={cn(
-                            'p-4 rounded-2xl flex items-center gap-3 border shadow-sm',
-                            testResult.success ? 'bg-green-500/5 border-green-500/20 text-green-600 dark:text-green-400' : 'bg-destructive/5 border-destructive/20 text-destructive'    
-                        )}>
-                            {testResult.success ? <CheckCircle2 className='h-5 w-5' /> : <AlertCircle className='h-5 w-5' />}
-                            <div>
-                                <p className='text-sm font-bold'>{testResult.success ? 'Execution Success' : 'Execution Failed'}</p>
-                                <p className='text-[10px] opacity-80'>{testResult.success ? 'Manual trigger processed' : 'Review script logic'}</p>
-                            </div>
+            {testResult && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className={cn('p-4 rounded-2xl border flex items-center gap-4 shadow-sm', testResult.success ? 'bg-green-500/10 border-green-500/20 text-green-700 dark:text-green-400' : 'bg-destructive/10 border-destructive/20 text-destructive')}>
+                        <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center shrink-0 shadow-inner', testResult.success ? 'bg-green-500/20' : 'bg-destructive/20')}>
+                            {testResult.success ? <CheckCircle2 className="h-6 w-6" /> : <AlertCircle className="h-6 w-6" />}
                         </div>
-
-                        <div className='space-y-2'>
-                            <Label className='text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2'>
-                                <Activity className='h-3 w-3' /> Status Report
-                            </Label>
-                            <div className='p-4 rounded-xl bg-muted/50 border border-border/40 font-medium text-xs leading-relaxed'>
-                                {testResult.message}
-                            </div>
-                        </div>
-
-                        <div className='p-4 rounded-2xl bg-primary/5 border border-primary/10 space-y-3'>
-                            <div className='flex items-center gap-2 text-primary'>
-                                <Info className='h-4 w-4' />
-                                <span className='text-xs font-bold uppercase tracking-widest'>Engine Notice</span>
-                            </div>
-                            <p className='text-[11px] leading-relaxed text-muted-foreground'>
-                                Cron tests run in the background. Unlike triggers, they don't return live logs to this UI. Check the server console for print output.
-                            </p>
+                        <div>
+                            <p className="text-sm font-bold uppercase tracking-wider">{testResult.success ? 'Execution Success' : 'Execution Failed'}</p>
+                            <p className="text-xs opacity-80">{testResult.success ? 'The script ran without errors.' : 'Check the logs for details.'}</p>
                         </div>
                     </div>
-                ) : (
-                    <div className='h-full flex flex-col items-center justify-center text-center opacity-40 py-20'>
-                        <Activity className='h-12 w-12 mb-4 text-muted-foreground' />  
-                        <p className='text-sm font-medium'>Awaiting Initialization</p>     
-                        <p className='text-xs max-w-[200px] mt-1 mx-auto'>Click "Run Test Sequence" to manually execute the Lua process.</p>
+                    <div className="space-y-2">
+                        <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2"><Terminal className="h-3 w-3" /> Output Logs</Label>
+                        <div className="p-3 rounded-xl bg-black text-green-400 font-mono text-[10px] md:text-[11px] min-h-[120px] whitespace-pre-wrap leading-relaxed border border-white/5 shadow-inner">
+                            {testResult.logs?.length > 0 ? testResult.logs.join('\n') : '> No output recorded'}
+                            {testResult.error && <div className="text-destructive mt-2 font-bold">ERROR: {testResult.error}</div>}
+                        </div>
                     </div>
-                )}
-            </ScrollArea>
+                </div>
+            )}
         </div>
     )
 
 	return (
-		<div className="flex flex-col h-full w-full bg-background overflow-hidden">
-			{/* Unified Header */}
+		<div className="h-full w-full bg-background flex flex-col overflow-hidden relative">
 			<div className="p-4 md:p-6 border-b border-border/40 bg-muted/20 shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 				<div className="flex items-center gap-3 md:gap-4">
-					<Button 
-						variant="ghost" 
-						size="icon" 
-						onClick={onBack}
-						className="rounded-full h-8 w-8 md:h-10 md:w-10"
-					>
-						<ArrowLeft className="w-5 h-5" />
+					<Button variant="ghost" size="icon" onClick={onBack} className="rounded-full h-8 w-8 md:h-10 md:w-10">
+						<ArrowLeft className="h-5 w-5" />
 					</Button>
-					<div className="flex flex-col">
-						<div className="flex items-center gap-2">
-							<h1 className="text-lg md:text-xl font-bold tracking-tight">
-								{formData.id ? 'Task Configuration' : 'Establish Task'}
-							</h1>
-							{/* <Badge className={cn(
-                                "border-none rounded-full text-[10px] font-bold px-3 py-0.5",
-                                formData.is_active 
-                                    ? "bg-green-500/10 text-green-500 hover:bg-green-500/20" 
-                                    : "bg-muted text-muted-foreground"
-                            )}>
-								{formData.is_active ? 'ACTIVE' : 'INACTIVE'}
-							</Badge> */}
-						</div>
-                        <p className='text-[10px] md:text-xs text-muted-foreground hidden xs:block'>Define scheduled behavior and autonomous logic.</p>
+					<div>
+						<h1 className="text-lg md:text-xl font-bold tracking-tight">{formData.id ? 'Edit Sequence' : 'New Sequence'}</h1>
+						<p className="text-[10px] md:text-xs text-muted-foreground hidden xs:block">Configure schedule and automated script execution.</p>
 					</div>
 				</div>
 				<div className="flex items-center gap-2 sm:gap-3">
-                    <Button variant='outline' onClick={onViewDocs} className='rounded-xl h-9 md:h-10 px-3 md:px-4 text-xs md:text-sm hidden md:flex border-border/40'>
-                        <FileText className='mr-2 h-4 w-4' /> Docs       
-                    </Button>
-                    <Button variant='outline' onClick={onBack} className='rounded-xl h-9 md:h-10 px-3 md:px-4 text-xs md:text-sm flex-1 sm:flex-none border-border/40'>Cancel</Button>
-					<Button 
-						onClick={handleSave} 
-						disabled={isSaving}
-						className="rounded-xl h-9 md:h-10 px-4 md:px-6 text-xs md:text-sm font-bold shadow-lg shadow-primary/20 flex-1 sm:flex-none"
-					>
-						{isSaving ? <span className='w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2' /> : <Save className="mr-2 h-4 w-4" />}
-						Save <span className='hidden sm:inline'>Sequence</span>
+					<Button variant="outline" onClick={onBack} className="rounded-xl h-9 md:h-10 px-3 md:px-4 text-xs md:text-sm flex-1 sm:flex-none">Cancel</Button>
+					<Button onClick={handleSave} disabled={isSaving} className="rounded-xl h-9 md:h-10 px-4 md:px-6 text-xs md:text-sm font-bold shadow-lg shadow-primary/20 flex-1 sm:flex-none">
+						{isSaving ? <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2" /> : <Save className="mr-2 h-4 w-4" />} Save <span className="hidden sm:inline">Sequence</span>
 					</Button>
 				</div>
 			</div>
 
-			<div className='flex-1 flex flex-col md:flex-row overflow-hidden pb-16 md:pb-0'>  
-                {isMobileView ? (
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col h-full overflow-hidden">
-                        <div className="px-4 pt-2 shrink-0">
-                            <TabsList className="grid w-full grid-cols-2 rounded-xl h-10">
-                                <TabsTrigger value="editor" className="rounded-lg text-xs font-bold uppercase tracking-wider">Config</TabsTrigger>
-                                <TabsTrigger value="debugger" className="rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-2">
-                                    Monitor
-                                    {testResult && (
-                                        <div className={cn("w-1.5 h-1.5 rounded-full", testResult.success ? "bg-green-500" : "bg-destructive")} />
-                                    )}
-                                </TabsTrigger>
-                            </TabsList>
-                        </div>
-                        <TabsContent value="editor" className="flex-1 flex flex-col overflow-hidden m-0 p-0 outline-none">
-                            <div className="flex-1 min-h-0">
-                                {editorContent}
-                            </div>
-                        </TabsContent>
-                        <TabsContent value="debugger" className="flex-1 flex flex-col overflow-hidden m-0 p-0 outline-none">
-                            {debuggerContent}
-                        </TabsContent>
-                    </Tabs>
-                ) : (
-                    <>
-                        <div className='flex-1 flex flex-col border-r border-border/40 overflow-hidden min-h-0'>
-                            {editorContent}
-                        </div>
-                        {debuggerContent}
-                    </>
-                )}
-            </div>
-            <AIAssistant 
-                currentCode={formData.script} 
-                onApplyCode={handleApplyAIChange} 
-            />
+			<div className="flex-1 overflow-y-auto w-full">
+				<div className="flex flex-col min-h-full pb-32">
+					{isMobileView ? (
+						<Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+							<div className="px-4 pt-4 shrink-0">
+								<TabsList className="grid w-full grid-cols-2 rounded-xl h-10">
+									<TabsTrigger value="editor" className="rounded-lg text-xs font-bold uppercase tracking-wider">Config</TabsTrigger>
+									<TabsTrigger value="debugger" className="rounded-lg text-xs font-bold uppercase tracking-wider">Monitor</TabsTrigger>
+								</TabsList>
+							</div>
+							<TabsContent value="editor" className="m-0 p-0 outline-none">{editorContent}</TabsContent>
+							<TabsContent value="debugger" className="m-0 p-0 outline-none">{debuggerContent}</TabsContent>
+						</Tabs>
+					) : (
+						<div className="flex flex-col md:flex-row divide-x divide-border/40">
+							<div className="flex-1">{editorContent}</div>
+							<div className="w-[400px] lg:w-[450px]">{debuggerContent}</div>
+						</div>
+					)}
+				</div>
+			</div>
+
+            {isMobileView && activeTab === 'editor' && (
+				<div className="fixed bottom-20 right-6 z-50">
+					<AIAssistant currentCode={formData.script} onApplyCode={handleApplyAIChange} />
+				</div>
+			)}
+			{!isMobileView && <AIAssistant currentCode={formData.script} onApplyCode={handleApplyAIChange} />}
 		</div>
 	)
 }

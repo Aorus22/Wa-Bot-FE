@@ -39,10 +39,7 @@ function App() {
 	const [qrCode, setQrCode] = useState<string | null>(null)
 	const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false)
 
-	// Handle WebSocket messages via callback to avoid cascading renders
 	const handleWSMessage = useCallback((message: WSMessage) => {
-		console.log("Received WS message:", message)
-
 		switch (message.type) {
 			case "qr_code":
 				if (message.payload && message.payload.code) {
@@ -56,16 +53,8 @@ function App() {
 				break
 			case "new_message": {
 				const payload = message.payload
-				console.log("New message payload:", payload)
-
-				// Skip if already processed this message
-				if (processedMsgIds.current.has(payload.id)) {
-					console.log("Message already processed, skipping")
-					break
-				}
+				if (processedMsgIds.current.has(payload.id)) break
 				processedMsgIds.current.add(payload.id)
-
-				// If this is a message for the currently selected chat, pass it directly
 				setIncomingMessage({
 					chatId: payload.chatId,
 					message: {
@@ -81,8 +70,6 @@ function App() {
 						isAutomatic: payload.isAutomatic,
 					},
 				})
-
-				// Update chat list in-place with new message info
 				setChatUpdate({
 					chatId: payload.chatId,
 					lastMsg: payload.content,
@@ -122,7 +109,7 @@ function App() {
 				if (message.payload) {
 					setChatUpdate({
 						chatId: message.payload.chatId,
-						lastMsg: "", // Not used for name update
+						lastMsg: "",
 						lastTime: Date.now(),
 						msgId: "name-update-" + Date.now(),
 						chatName: message.payload.name,
@@ -140,7 +127,6 @@ function App() {
 			const status = await api.getStatus()
 			setIsLoggedIn(status.isLoggedIn)
 		} catch (error) {
-			console.error("Failed to check login status:", error)
 			setIsLoggedIn(false)
 		}
 	}, [])
@@ -151,25 +137,17 @@ function App() {
 			setIsLoggedIn(false)
 			setQrCode(null)
 			setIsLogoutDialogOpen(false)
-		} catch (error) {
-			console.error("Logout failed:", error)
-		}
+		} catch (error) {}
 	}
 
-	// Check login status on mount
 	useEffect(() => {
-		const init = async () => {
-			await checkLoginStatus()
-		}
-		init()
+		checkLoginStatus()
 	}, [checkLoginStatus])
 
 	useEffect(() => {
 		const handleResize = () => {
-			const mobile = window.innerWidth < 768
-			setIsMobileView(mobile)
+			setIsMobileView(window.innerWidth < 768)
 		}
-
 		window.addEventListener("resize", handleResize)
 		return () => window.removeEventListener("resize", handleResize)
 	}, [])
@@ -189,20 +167,8 @@ function App() {
 	return (
 		<ThemeProvider defaultTheme="system" storageKey="wa-bot-theme">
 			<TooltipProvider>
-				<div className="flex h-screen bg-background text-foreground overflow-hidden selection:bg-primary/20">
-					{/* Floating Live Status - Moved to Sidebar indicator
-					<div className="fixed bottom-6 right-6 z-50 pointer-events-none md:bottom-8 md:right-8">
-						<div className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold border shadow-xl backdrop-blur-md pointer-events-auto transition-all duration-500 ${isConnected
-							? "bg-green-500/10 border-green-500/20 text-green-600 dark:text-green-400"
-							: "bg-orange-500/10 border-orange-500/20 text-orange-600 dark:text-orange-400"
-							}`}>
-							<div className={`w-2.5 h-2.5 rounded-full ${isConnected ? "bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "bg-orange-500"}`} />
-							<span className="tracking-wide uppercase text-[10px]">{isConnected ? "Live" : "Reconnecting..."}</span>
-						</div>
-					</div>
-					*/}
-
-					{/* Logout Confirmation Dialog */}
+				<div className={cn("flex h-[100dvh] bg-background text-foreground overflow-hidden", isMobileView && "flex-col")}>
+					
 					<AlertDialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
 						<AlertDialogContent>
 							<AlertDialogHeader>
@@ -211,7 +177,7 @@ function App() {
 									<AlertDialogTitle>Confirm Log Out</AlertDialogTitle>
 								</div>
 								<AlertDialogDescription>
-									Are you sure you want to log out from this session? You will need to scan the QR code again to log back in.
+									Are you sure you want to log out? You will need to scan the QR code again.
 								</AlertDialogDescription>
 							</AlertDialogHeader>
 							<AlertDialogFooter>
@@ -223,9 +189,7 @@ function App() {
 						</AlertDialogContent>
 					</AlertDialog>
 
-					{/* Main Layout */}
-					<div className="flex w-full relative">
-						{/* Navigation Sidebar */}
+					<div className="flex-1 flex w-full relative overflow-hidden min-h-0">
 						{!isMobileView && (
 							<NavigationSidebar
 								activeItem={activeNavItem}
@@ -235,95 +199,69 @@ function App() {
 							/>
 						)}
 
-						{activeNavItem === "chat" ? (
-						        <ChatPage isMobileView={isMobileView} incomingMessage={incomingMessage} chatUpdate={chatUpdate} statusUpdate={statusUpdate} />
-						) : activeNavItem === "bot-management" ? (
-						        <BotManagementPage
-						                isMobileView={isMobileView}
-						                onEditTrigger={(t) => {
-						                        setEditingTrigger(t)
-						                        setActiveNavItem("trigger-editor")
-						                }}
-						                onViewDocs={() => setActiveNavItem("documentation")}
-						        />
-						) : activeNavItem === "cron-management" ? (
-						        <CronManagementPage
-						                isMobileView={isMobileView}
-						                onEditCron={(j) => {
-						                        setEditingCron(j)
-						                        setActiveNavItem("cron-editor")
-						                }}
-						                onViewDocs={() => setActiveNavItem("documentation")}
-						        />
-						) : activeNavItem === "documentation" ? (
-						        <DocumentationPage />
-						) : activeNavItem === "trigger-editor" ? (
-						        <TriggerEditorPage
-						                isMobileView={isMobileView}
-						                trigger={editingTrigger}
-						                onBack={() => {
-						                        setEditingTrigger(null)
-						                        setActiveNavItem("bot-management")
-						                }}
-						                onViewDocs={() => setActiveNavItem("documentation")}
-						        />
-						) : (
-						        <CronEditorPage
-						                isMobileView={isMobileView}
-						                job={editingCron}
-						                onBack={() => {
-						                        setEditingCron(null)
-						                        setActiveNavItem("cron-management")
-						                }}
-						                onViewDocs={() => setActiveNavItem("documentation")}
-						        />
-						)}
-						{/* Mobile Navigation */}
-						{isMobileView && (
-							<div className="fixed bottom-0 left-0 right-0 h-16 bg-background border-t border-border/40 flex items-center justify-around px-6 z-50 md:hidden">
-								<button
-									onClick={() => setActiveNavItem("chat")}
-									className={cn(
-										"flex flex-col items-center gap-1 p-2 transition-colors",
-										activeNavItem === "chat" ? "text-primary" : "text-muted-foreground"
-									)}
-								>
-									<MessageSquare className="h-5 w-5" />
-									<span className="text-[10px] font-bold uppercase tracking-wider">Chats</span>
-								</button>
-								<button
-									onClick={() => setActiveNavItem("bot-management")}
-									className={cn(
-										"flex flex-col items-center gap-1 p-2 transition-colors",
-										activeNavItem === "bot-management" || activeNavItem === "trigger-editor" ? "text-primary" : "text-muted-foreground"
-									)}
-								>
-									<Bot className="h-5 w-5" />
-									<span className="text-[10px] font-bold uppercase tracking-wider">Triggers</span>
-								</button>
-								<button
-									onClick={() => setActiveNavItem("cron-management")}
-									className={cn(
-										"flex flex-col items-center gap-1 p-2 transition-colors",
-										activeNavItem === "cron-management" || activeNavItem === "cron-editor" ? "text-primary" : "text-muted-foreground"
-									)}
-								>
-									<Clock className="h-5 w-5" />
-									<span className="text-[10px] font-bold uppercase tracking-wider">Cron</span>
-								</button>
-								<button
-									onClick={() => setActiveNavItem("documentation")}
-									className={cn(
-										"flex flex-col items-center gap-1 p-2 transition-colors",
-										activeNavItem === "documentation" ? "text-primary" : "text-muted-foreground"
-									)}
-								>
-									<FileText className="h-5 w-5" />
-									<span className="text-[10px] font-bold uppercase tracking-wider">Docs</span>
-								</button>
-							</div>
-						)}
+						<div className="flex-1 flex flex-col min-h-0 w-full overflow-hidden">
+							{activeNavItem === "chat" ? (
+									<ChatPage isMobileView={isMobileView} incomingMessage={incomingMessage} chatUpdate={chatUpdate} statusUpdate={statusUpdate} />
+							) : activeNavItem === "bot-management" ? (
+									<BotManagementPage
+											isMobileView={isMobileView}
+											onEditTrigger={(t) => {
+													setEditingTrigger(t)
+													setActiveNavItem("trigger-editor")
+											}}
+											onViewDocs={() => setActiveNavItem("documentation")}
+									/>
+							) : activeNavItem === "cron-management" ? (
+									<CronManagementPage
+											isMobileView={isMobileView}
+											onEditCron={(j) => {
+													setEditingCron(j)
+													setActiveNavItem("cron-editor")
+											}}
+											onViewDocs={() => setActiveNavItem("documentation")}
+									/>
+							) : activeNavItem === "documentation" ? (
+									<DocumentationPage />
+							) : activeNavItem === "trigger-editor" ? (
+									<TriggerEditorPage
+											isMobileView={isMobileView}
+											trigger={editingTrigger}
+											onBack={() => {
+													setEditingTrigger(null)
+													setActiveNavItem("bot-management")
+											}}
+											onViewDocs={() => setActiveNavItem("documentation")}
+									/>
+							) : (
+									<CronEditorPage
+											isMobileView={isMobileView}
+											job={editingCron}
+											onBack={() => {
+													setEditingCron(null)
+													setActiveNavItem("cron-management")
+											}}
+											onViewDocs={() => setActiveNavItem("documentation")}
+									/>
+							)}
+						</div>
 					</div>
+
+					{isMobileView && (
+						<div className="h-16 bg-background border-t border-border/40 flex items-center justify-around px-6 shrink-0 z-50">
+								<button onClick={() => setActiveNavItem("chat")} className={cn("flex flex-col items-center gap-1 p-2", activeNavItem === "chat" ? "text-primary" : "text-muted-foreground")}>
+									<MessageSquare className="h-5 w-5" /><span className="text-[10px] font-bold uppercase">Chats</span>
+								</button>
+								<button onClick={() => setActiveNavItem("bot-management")} className={cn("flex flex-col items-center gap-1 p-2", activeNavItem === "bot-management" || activeNavItem === "trigger-editor" ? "text-primary" : "text-muted-foreground")}>
+									<Bot className="h-5 w-5" /><span className="text-[10px] font-bold uppercase">Triggers</span>
+								</button>
+								<button onClick={() => setActiveNavItem("cron-management")} className={cn("flex flex-col items-center gap-1 p-2", activeNavItem === "cron-management" || activeNavItem === "cron-editor" ? "text-primary" : "text-muted-foreground")}>
+									<Clock className="h-5 w-5" /><span className="text-[10px] font-bold uppercase">Cron</span>
+								</button>
+								<button onClick={() => setActiveNavItem("documentation")} className={cn("flex flex-col items-center gap-1 p-2", activeNavItem === "documentation" ? "text-primary" : "text-muted-foreground")}>
+									<FileText className="h-5 w-5" /><span className="text-[10px] font-bold uppercase">Docs</span>
+								</button>
+						</div>
+					)}
 					<Toaster position="top-center" />
 				</div>
 			</TooltipProvider>
