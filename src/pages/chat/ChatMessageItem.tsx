@@ -5,6 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils"
 import { FileText, MoreVertical, Reply, Edit3, Trash2, Star, Download, ExternalLink } from "lucide-react"
 import { LazyMedia } from "@/components/LazyMedia"
+import { isMarkdownContent } from "./renderMd"
 
 export const ChatMessageItem = memo(({
 	message,
@@ -243,7 +244,7 @@ export const ChatMessageItem = memo(({
 								</div>
 							)}
 							{message.content && !["[Image]", "[Video]", "[Sticker]", "[Document]"].includes(message.content) && !isDocument && (
-							        <div className="break-words [word-break:break-word] leading-relaxed whitespace-pre-wrap relative z-10">{renderFormattedContent(message.content)}</div>
+							        <div className={cn("break-words [word-break:break-word] leading-relaxed relative z-10", !isMarkdownContent(message.content) && "whitespace-pre-wrap")}>{renderFormattedContent(message.content)}</div>
 							)}							<div className={cn("flex items-center gap-1 mt-1 justify-end", "text-[10px] font-medium opacity-50 uppercase tracking-tight")}>
 								<span>{formatTime(message.timestamp)}</span>
 								{isMe && (

@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef, useCallback, memo, useMemo } from "react"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Send, ArrowLeft, MessageSquare, X, MoreVertical, Search } from "lucide-react"
+import { Send, ArrowLeft, MessageSquare, X, MoreVertical, Search, FileText } from "lucide-react"
 import { api, type Chat, type Message } from "@/lib/api"
 import { cn } from "@/lib/utils"
+import { renderFormattedContent, encodeMarkdown } from "./renderMd"
 import { toast } from "sonner"
 import { ChatInfoSheetModal } from "./ChatInfoSheetModal"
 import { ChatImageViewerModal } from "./ChatImageViewerModal"
@@ -95,34 +97,6 @@ const formatDate = (timestamp: number) => {
     return date.toLocaleDateString([], { day: "numeric", month: "long", year: "numeric" })
 }
 
-const renderFormattedContent = (content: string) => {
-    if (!content) return null
-
-    const parts = content.split(/(\*.*?\*|_.*?_|~.*?~|`.*?`|\n|https?:\/\/[^\s]+)/g)
-
-    return parts.map((part, index) => {
-        if (part.startsWith("*") && part.endsWith("*")) {
-            return <strong key={index}>{part.slice(1, -1)}</strong>
-        }
-        if (part.startsWith("_") && part.endsWith("_")) {
-            return <em key={index}>{part.slice(1, -1)}</em>
-        }
-        if (part.startsWith("~") && part.endsWith("~")) {
-            return <del key={index}>{part.slice(1, -1)}</del>
-        }
-        if (part.startsWith("`") && part.endsWith("`")) {
-            return <code key={index} className="bg-muted px-1 rounded">{part.slice(1, -1)}</code>
-        }
-        if (part === "\n") {
-            return <br key={index} />
-        }
-        if (part.match(/^https?:\/\/[^\s]+$/)) {
-            return <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline underline-offset-2 break-all">{part}</a>
-        }
-        return part
-    })
-    }
-
     export const ChatArea = memo(({
  
     chat, 
@@ -146,6 +120,7 @@ const renderFormattedContent = (content: string) => {
     const [showFavoriteBtn, setShowFavoriteBtn] = useState<string | null>(null)
     const [replyTo, setReplyTo] = useState<Message | null>(null)
     const [editingMessage, setEditingMessage] = useState<Message | null>(null)
+    const [isMdMode, setIsMdMode] = useState(false)
     const [isMediaSheetOpen, setIsMediaSheetOpen] = useState(false)
     const [isSearchOpen, setIsSearchOpen] = useState(false)
     const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null)
@@ -369,7 +344,8 @@ const renderFormattedContent = (content: string) => {
 
     const handleSendMessage = async () => {
         if (!inputMessage.trim() || !chat || sending) return
-        const text = inputMessage.trim()
+        const raw = inputMessage.trim()
+        const text = isMdMode ? encodeMarkdown(raw) : raw
         setInputMessage("")
         setSending(true)
 
@@ -683,27 +659,64 @@ const renderFormattedContent = (content: string) => {
                         <ChatEmojiPickerPopover onEmojiSelect={addEmoji} />
                         <ChatStickerPickerPopover onStickerSelect={handleStickerSelect} />
                         <ChatAttachmentPopover onPickMedia={() => mediaInputRef.current?.click()} onPickDocument={() => documentInputRef.current?.click()} />
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setIsMdMode(v => !v)}
+                            className={cn(
+                                "rounded-full transition-all duration-200",
+                                isMdMode
+                                    ? "text-primary bg-primary/10 hover:bg-primary/15"
+                                    : "text-muted-foreground hover:bg-muted"
+                            )}
+                            title={isMdMode ? "Markdown mode ON" : "Markdown mode OFF"}
+                        >
+                            <FileText className="h-5 w-5" />
+                        </Button>
                     </div>
                     <div className="flex-1 relative">
-                        <Input
-                            ref={inputRef}
-                            placeholder={editingMessage ? "Edit message..." : replyTo ? "Reply to message..." : "Type a message..."}
-                            value={inputMessage}
-                            onChange={e => setInputMessage(e.target.value)}
-                            onKeyDown={e => {
-                                if (e.key === "Enter" && !e.shiftKey) {
-                                    e.preventDefault()
-                                    handleSendMessage()
-                                } else if (e.key === "Escape") {
-                                    e.preventDefault()
-                                    setEditingMessage(null)
-                                    setReplyTo(null)
-                                    setInputMessage("")
-                                }
-                            }}
-                            className="pr-12 min-h-[44px] bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary/20 rounded-2xl py-3"
-                            disabled={sending}
-                        />
+                        {isMdMode ? (
+                            <Textarea
+                                ref={inputRef as React.Ref<HTMLTextAreaElement>}
+                                placeholder={editingMessage ? "Edit message..." : replyTo ? "Reply to message..." : "Write markdown..."}
+                                value={inputMessage}
+                                onChange={e => setInputMessage(e.target.value)}
+                                onKeyDown={e => {
+                                    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                                        e.preventDefault()
+                                        handleSendMessage()
+                                    } else if (e.key === "Escape") {
+                                        e.preventDefault()
+                                        setEditingMessage(null)
+                                        setReplyTo(null)
+                                        setInputMessage("")
+                                    }
+                                }}
+                                className="pr-12 min-h-[44px] max-h-[200px] resize-none bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary/20 rounded-2xl py-3 text-sm"
+                                disabled={sending}
+                                rows={3}
+                            />
+                        ) : (
+                            <Input
+                                ref={inputRef}
+                                placeholder={editingMessage ? "Edit message..." : replyTo ? "Reply to message..." : "Type a message..."}
+                                value={inputMessage}
+                                onChange={e => setInputMessage(e.target.value)}
+                                onKeyDown={e => {
+                                    if (e.key === "Enter" && !e.shiftKey) {
+                                        e.preventDefault()
+                                        handleSendMessage()
+                                    } else if (e.key === "Escape") {
+                                        e.preventDefault()
+                                        setEditingMessage(null)
+                                        setReplyTo(null)
+                                        setInputMessage("")
+                                    }
+                                }}
+                                className="pr-12 min-h-[44px] bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary/20 rounded-2xl py-3"
+                                disabled={sending}
+                            />
+                        )}
                         <Button size="icon" onClick={handleSendMessage} disabled={!inputMessage.trim() || sending} className={cn("absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-xl transition-all duration-300", inputMessage.trim() ? "bg-primary text-primary-foreground scale-100 shadow-md" : "bg-transparent text-muted-foreground scale-90")}>
                             <Send className="h-4 w-4" />
                         </Button>
