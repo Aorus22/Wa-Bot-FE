@@ -3,7 +3,6 @@ import { ArrowLeft, Trash2, ChevronDown, ChevronRight, Globe, Filter } from 'luc
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { api, type WebhookLog, type Webhook } from '@/lib/api'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
@@ -168,7 +167,7 @@ export function WebhookLogPage({ onBack, isMobileView }: WebhookLogPageProps) {
                 </div>
             </div>
 
-            <ScrollArea className="flex-1">
+            <div className="flex-1 overflow-y-auto">
                 <div className="p-4 md:p-8 space-y-3">
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-24 gap-4 opacity-50">
@@ -281,7 +280,7 @@ export function WebhookLogPage({ onBack, isMobileView }: WebhookLogPageProps) {
                         </>
                     )}
                 </div>
-            </ScrollArea>
+            </div>
         </div>
     )
 }
