@@ -257,7 +257,7 @@ export function CronManagementPage({ onEditCron, onViewDocs, isMobileView }: Cro
                             isMobileView ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
                         )}>
                             {filteredJobs.map((job) => (
-                                <Card key={job.id} className="group relative overflow-hidden border-border/40 bg-card/50 hover:bg-card hover:border-primary/30 transition-all rounded-[1.5rem]">
+                                <Card key={job.id} className="pb-0 group relative overflow-hidden border-border/40 bg-card/50 hover:bg-card hover:border-primary/30 transition-all rounded-[1.5rem]">
                                     <CardHeader className="pb-3">
                                         <div className="flex items-start justify-between gap-4">
                                             <div className="space-y-1 overflow-hidden">

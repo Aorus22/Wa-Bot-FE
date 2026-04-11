@@ -272,7 +272,7 @@ export function WebhookManagementPage({ onEditWebhook, onViewDocs, onViewLogs, i
 							isMobileView ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
 						)}>
 							{filteredWebhooks.map((webhook) => (
-								<Card key={webhook.id} className="group relative overflow-hidden border-border/40 bg-card/50 hover:bg-card hover:border-primary/30 transition-all rounded-[1.5rem]">
+								<Card key={webhook.id} className="pb-0 group relative overflow-hidden border-border/40 bg-card/50 hover:bg-card hover:border-primary/30 transition-all rounded-[1.5rem]">
 									<CardHeader className="pb-3">
 										<div className="flex items-start justify-between gap-4">
 											<div className="space-y-1 overflow-hidden">
@@ -283,6 +283,13 @@ export function WebhookManagementPage({ onEditWebhook, onViewDocs, onViewLogs, i
 													<Badge variant="outline" className="font-mono text-[10px] py-0 px-2 bg-muted/50 border-border/40 text-muted-foreground">
 														/webhook/{webhook.path}
 													</Badge>
+													<button
+														onClick={() => copyWebhookUrl(webhook.path)}
+														className="inline-flex items-center justify-center rounded-md p-0.5 hover:bg-primary/10 hover:text-primary text-muted-foreground transition-colors"
+														title="Copy URL"
+													>
+														<Copy className="w-3 h-3" />
+													</button>
 													{webhook.secret && (
 														<Lock className="h-3 w-3 text-muted-foreground" />
 													)}
