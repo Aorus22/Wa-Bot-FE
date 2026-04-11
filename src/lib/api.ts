@@ -348,10 +348,10 @@ class ApiClient {	private baseUrl: string
 		return response.text()
 	}
 
-	async chatAssistant(prompt: string, currentCode?: string): Promise<{ answer: string }> {
+	async chatAssistant(prompt: string, currentCode?: string, model?: string): Promise<{ answer: string }> {
 		return this.request<{ answer: string }>("/ai/assistant", {
 			method: "POST",
-			body: JSON.stringify({ prompt, currentCode }),
+			body: JSON.stringify({ prompt, currentCode, model }),
 		})
 	}
 

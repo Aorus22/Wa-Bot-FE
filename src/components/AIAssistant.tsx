@@ -8,12 +8,26 @@ import {
 	SheetTitle,
 } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { cn } from '@/lib/utils'
 import { api } from '@/lib/api'
+
+const AI_MODELS = [
+	{ value: 'gemma-3-27b-it', label: 'Gemma 3 27B' },
+	{ value: 'gemma-4-31b-it', label: 'Gemma 4 31B' },
+	{ value: 'gemma-4-26b-a4b-it', label: 'Gemma 4 26B A4B' },
+	{ value: 'gemini-3.1-flash-lite-preview', label: 'Gemini 3.1 Flash Lite' },
+] as const
 
 interface Message {
 	role: 'user' | 'assistant'
@@ -30,6 +44,7 @@ export function AIAssistant({ currentCode, onApplyCode }: AIAssistantProps) {
 	const [prompt, setPrompt] = useState('')
 	const [messages, setMessages] = useState<Message[]>([])
 	const [isLoading, setIsLoading] = useState(false)
+	const [selectedModel, setSelectedModel] = useState('gemma-3-27b-it')
 	const scrollRef = useRef<HTMLDivElement>(null)
 
 	useEffect(() => {
@@ -48,9 +63,9 @@ export function AIAssistant({ currentCode, onApplyCode }: AIAssistantProps) {
 		setIsLoading(true)
 
 		try {
-			const data = await api.chatAssistant(userMessage, currentCode)
+			const data = await api.chatAssistant(userMessage, currentCode, selectedModel)
 			setMessages(prev => [...prev, { role: 'assistant', content: data.answer }])
-			
+
 			// Auto-apply if code block found
 			const codeMatch = data.answer.match(/```lua\n([\s\S]*?)```/)
 			if (codeMatch && codeMatch[1]) {
@@ -80,8 +95,8 @@ export function AIAssistant({ currentCode, onApplyCode }: AIAssistantProps) {
 			</div>
 
 			<Sheet open={isOpen} onOpenChange={setIsOpen} modal={false}>
-				<SheetContent 
-					side='right' 
+				<SheetContent
+					side='right'
 					hideOverlay={true}
 					showCloseButton={false}
 					className='w-[90vw] sm:w-[600px] sm:max-w-none p-0 flex flex-col h-full border-l border-border/40 shadow-2xl z-50 bg-background/95 backdrop-blur-md transition-all duration-300 overflow-hidden'
@@ -99,7 +114,7 @@ export function AIAssistant({ currentCode, onApplyCode }: AIAssistantProps) {
 					</SheetHeader>
 
 					<div className='flex-1 min-h-0 flex flex-col w-full overflow-hidden'>
-						<div 
+						<div
 							ref={scrollRef}
 							className='flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 pb-12 w-full custom-scrollbar'
 						>
@@ -141,9 +156,9 @@ export function AIAssistant({ currentCode, onApplyCode }: AIAssistantProps) {
 															<div className='rounded-lg my-2 border border-border/40 bg-black/50 group/code w-full min-w-0 flex flex-col overflow-hidden'>
 																<div className='flex items-center justify-between px-3 py-1.5 bg-muted/50 border-b border-border/40 shrink-0'>
 																	<span className='text-[10px] font-bold uppercase text-muted-foreground'>{match[1]}</span>
-																	<Button 
-																		variant='ghost' 
-																		size='sm' 
+																	<Button
+																		variant='ghost'
+																		size='sm'
 																		className='h-6 px-2 text-[10px] font-bold gap-1.5 hover:bg-primary/20 hover:text-primary rounded-md transition-all active:scale-95'
 																		onClick={() => onApplyCode?.(codeStr)}
 																	>
@@ -156,10 +171,10 @@ export function AIAssistant({ currentCode, onApplyCode }: AIAssistantProps) {
 																		style={vscDarkPlus}
 																		language={match[1]}
 																		PreTag="div"
-																		customStyle={{ 
-																			margin: 0, 
-																			padding: '1rem', 
-																			fontSize: '11px', 
+																		customStyle={{
+																			margin: 0,
+																			padding: '1rem',
+																			fontSize: '11px',
 																			background: 'transparent',
 																			width: 'max-content',
 																			minWidth: '100%'
@@ -199,10 +214,22 @@ export function AIAssistant({ currentCode, onApplyCode }: AIAssistantProps) {
 						</div>
 
 						<div className='p-4 border-t border-border/40 shrink-0 bg-background/50'>
-							<form 
+							<form
 								onSubmit={handleSubmit}
 								className='relative flex items-end gap-2 bg-muted/30 border border-border/40 p-1 rounded-xl focus-within:ring-1 focus-within:ring-primary/30 transition-all'
 							>
+								<Select value={selectedModel} onValueChange={setSelectedModel}>
+									<SelectTrigger className='h-9 w-auto min-w-[120px] max-w-[180px] shrink-0 border-0 bg-background/50 rounded-lg text-[11px] font-semibold ml-0.5 mb-0.5 focus:ring-0'>
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										{AI_MODELS.map(m => (
+											<SelectItem key={m.value} value={m.value} className='text-xs'>
+												{m.label}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
 								<Textarea
 									placeholder='Ask something...'
 									className='min-h-[44px] max-h-32 flex-1 resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent py-3 px-3 scrollbar-none text-sm'
@@ -215,10 +242,10 @@ export function AIAssistant({ currentCode, onApplyCode }: AIAssistantProps) {
 										}
 									}}
 								/>
-								<Button 
-									type='submit' 
-									size='icon' 
-									className='h-9 w-9 shrink-0 rounded-lg mb-0.5 mr-0.5 shadow-sm active:scale-95 transition-transform' 
+								<Button
+									type='submit'
+									size='icon'
+									className='h-9 w-9 shrink-0 rounded-lg mb-0.5 mr-0.5 shadow-sm active:scale-95 transition-transform'
 									disabled={!prompt.trim() || isLoading}
 								>
 									{isLoading ? <Loader2 className='h-4 w-4 animate-spin' /> : <Send className='h-4 w-4' />}
