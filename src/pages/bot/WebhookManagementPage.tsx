@@ -80,7 +80,8 @@ export function WebhookManagementPage({ onEditWebhook, onViewDocs, onViewLogs, i
 	}
 
 	const copyWebhookUrl = (path: string) => {
-		const url = `${window.location.origin}/webhook/${path}`
+		const apiBase = import.meta.env.VITE_API_URL?.replace(/\/api$/, '') || window.location.origin
+		const url = `${apiBase}/webhook/${path}`
 		navigator.clipboard.writeText(url)
 		toast.success('Webhook URL copied')
 	}
