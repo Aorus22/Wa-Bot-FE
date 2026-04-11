@@ -15,10 +15,11 @@ import { cn } from '@/lib/utils'
 interface WebhookManagementPageProps {
 	onEditWebhook: (webhook: Webhook | null) => void
 	onViewDocs: () => void
+	onViewLogs: () => void
 	isMobileView?: boolean
 }
 
-export function WebhookManagementPage({ onEditWebhook, onViewDocs, isMobileView }: WebhookManagementPageProps) {
+export function WebhookManagementPage({ onEditWebhook, onViewDocs, onViewLogs, isMobileView }: WebhookManagementPageProps) {
 	const [webhooks, setWebhooks] = useState<Webhook[]>([])
 	const [loading, setLoading] = useState(true)
 	const [searchQuery, setSearchQuery] = useState('')
@@ -182,6 +183,15 @@ export function WebhookManagementPage({ onEditWebhook, onViewDocs, isMobileView 
 								<Button
 									variant='ghost'
 									size='icon'
+									onClick={onViewLogs}
+									className='h-8 w-8 rounded-lg sm:hidden'
+									title='View Request Logs'
+								>
+									<Activity className='h-4 w-4' />
+								</Button>
+								<Button
+									variant='ghost'
+									size='icon'
 									onClick={() => setIsDeleteAllOpen(true)}
 									className='h-8 w-8 rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10'
 									title='Delete ALL Webhooks'
@@ -208,6 +218,14 @@ export function WebhookManagementPage({ onEditWebhook, onViewDocs, isMobileView 
 									<Upload className='h-4 w-4' />
 								</Button>
 							</div>
+
+							<Button
+								variant='outline'
+								onClick={onViewLogs}
+								className='rounded-xl h-10 px-4 border-border/40 hidden sm:flex'
+							>
+								<Activity className='mr-2 h-4 w-4' /> Logs
+							</Button>
 
 							<Button
 								variant='outline'

@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { ModeToggle } from './ModeToggle'
 
-export type NavItem = 'chat' | 'bot-management' | 'cron-management' | 'webhook-management' | 'documentation' | 'trigger-editor' | 'cron-editor' | 'webhook-editor'
+export type NavItem = 'chat' | 'bot-management' | 'cron-management' | 'webhook-management' | 'webhook-log' | 'documentation' | 'trigger-editor' | 'cron-editor' | 'webhook-editor'
 
 interface NavigationSidebarProps {
     activeItem: NavItem

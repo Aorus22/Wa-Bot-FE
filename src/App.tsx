@@ -15,6 +15,7 @@ import { CronManagementPage } from "@/pages/bot/CronManagementPage"
 import { CronEditorPage } from "@/pages/bot/CronEditorPage"
 import { WebhookManagementPage } from "@/pages/bot/WebhookManagementPage"
 import { WebhookEditorPage } from "@/pages/bot/WebhookEditorPage"
+import { WebhookLogPage } from "@/pages/bot/WebhookLogPage"
 import { DocumentationPage } from "@/pages/documentation/DocumentationPage"
 import {
 	AlertDialog,
@@ -231,6 +232,12 @@ function App() {
 										setActiveNavItem("webhook-editor")
 									}}
 									onViewDocs={() => setActiveNavItem("documentation")}
+									onViewLogs={() => setActiveNavItem("webhook-log")}
+								/>
+					) : activeNavItem === "webhook-log" ? (
+								<WebhookLogPage
+									isMobileView={isMobileView}
+									onBack={() => setActiveNavItem("webhook-management")}
 								/>
 					) : activeNavItem === "webhook-editor" ? (
 							<WebhookEditorPage

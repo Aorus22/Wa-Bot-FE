@@ -75,6 +75,19 @@ export type Webhook = {
         updated_at?: string
 }
 
+export type WebhookLog = {
+        id: string
+        webhook_id: string
+        webhook_path: string
+        source_ip: string
+        method: string
+        headers: string
+        body: string
+        query_params: string
+        status_code: number
+        created_at: number
+}
+
 class ApiClient {	private baseUrl: string
 
 	constructor(baseUrl: string = API_BASE) {
@@ -309,6 +322,25 @@ class ApiClient {	private baseUrl: string
 			method: "POST",
 			body: JSON.stringify(data),
 		})
+	}
+
+	async getWebhookLogs(params?: { webhook_id?: string; limit?: number; offset?: number }): Promise<{
+		logs: WebhookLog[]; total: number; limit: number; offset: number
+	}> {
+		const query = new URLSearchParams()
+		if (params?.webhook_id) query.set("webhook_id", params.webhook_id)
+		if (params?.limit) query.set("limit", String(params.limit))
+		if (params?.offset) query.set("offset", String(params.offset))
+		const qs = query.toString()
+		return this.request(`/webhooks/logs${qs ? "?" + qs : ""}`)
+	}
+
+	async deleteAllWebhookLogs(): Promise<void> {
+		const response = await fetch(`${this.baseUrl}/webhooks/logs`, {
+			method: "DELETE",
+			headers: { "Content-Type": "application/json" },
+		})
+		if (!response.ok) throw new Error("Failed to clear logs")
 	}
 
 	async getDocs(): Promise<string> {
