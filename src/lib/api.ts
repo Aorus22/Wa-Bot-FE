@@ -64,6 +64,17 @@ export type CronJob = {
         updated_at?: string
 }
 
+export type Webhook = {
+        id: string
+        name: string
+        path: string
+        script: string
+        secret?: string
+        is_active: boolean
+        created_at?: string
+        updated_at?: string
+}
+
 class ApiClient {	private baseUrl: string
 
 	constructor(baseUrl: string = API_BASE) {
@@ -260,6 +271,43 @@ class ApiClient {	private baseUrl: string
 		return this.request<any>("/cron/test", {
 			method: "POST",
 			body: JSON.stringify({ script }),
+		})
+	}
+
+	async getWebhooks(): Promise<Webhook[]> {
+		return this.request<Webhook[]>("/webhooks")
+	}
+
+	async createWebhook(webhook: Partial<Webhook>): Promise<Webhook> {
+		return this.request<Webhook>("/webhooks", {
+			method: "POST",
+			body: JSON.stringify(webhook),
+		})
+	}
+
+	async updateWebhook(id: string, webhook: Partial<Webhook>): Promise<Webhook> {
+		return this.request<Webhook>(`/webhooks/${id}`, {
+			method: "PUT",
+			body: JSON.stringify(webhook),
+		})
+	}
+
+	async deleteWebhook(id: string): Promise<{ status: string }> {
+		return this.request<{ status: string }>(`/webhooks/${id}`, {
+			method: "DELETE",
+		})
+	}
+
+	async deleteAllWebhooks(): Promise<{ status: string }> {
+		return this.request<{ status: string }>("/webhooks", {
+			method: "DELETE",
+		})
+	}
+
+	async testWebhook(data: { path: string; script: string; method: string; body: string }): Promise<any> {
+		return this.request<any>("/webhooks/test", {
+			method: "POST",
+			body: JSON.stringify(data),
 		})
 	}
 

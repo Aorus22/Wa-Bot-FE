@@ -1,18 +1,20 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { NavigationSidebar, type NavItem } from "@/pages/layout/NavigationSidebar"
 import { useWebSocket, type WSMessage } from "@/hooks/use-websocket"
-import { api, type Message, type Trigger, type CronJob } from "@/lib/api"
+import { api, type Message, type Trigger, type CronJob, type Webhook } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
-import { Loader2, AlertCircle, MessageSquare, Bot, FileText, Clock } from "lucide-react"
+import { Loader2, AlertCircle, MessageSquare, Bot, FileText, Clock, Globe } from "lucide-react"
 import { LoginPage } from "@/pages/login/LoginPage"
 import { ChatPage } from "@/pages/chat/ChatPage"
 import { BotManagementPage } from "@/pages/bot/BotManagementPage"
 import { TriggerEditorPage } from "@/pages/bot/TriggerEditorPage"
 import { CronManagementPage } from "@/pages/bot/CronManagementPage"
 import { CronEditorPage } from "@/pages/bot/CronEditorPage"
+import { WebhookManagementPage } from "@/pages/bot/WebhookManagementPage"
+import { WebhookEditorPage } from "@/pages/bot/WebhookEditorPage"
 import { DocumentationPage } from "@/pages/documentation/DocumentationPage"
 import {
 	AlertDialog,
@@ -33,6 +35,7 @@ function App() {
 	const [activeNavItem, setActiveNavItem] = useState<NavItem>("chat")
 	const [editingTrigger, setEditingTrigger] = useState<Trigger | null>(null)
 	const [editingCron, setEditingCron] = useState<CronJob | null>(null)
+	const [editingWebhook, setEditingWebhook] = useState<Webhook | null>(null)
 	const processedMsgIds = useRef<Set<string>>(new Set())
 
 	const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
@@ -220,6 +223,24 @@ function App() {
 											}}
 											onViewDocs={() => setActiveNavItem("documentation")}
 									/>
+					) : activeNavItem === "webhook-management" ? (
+							<WebhookManagementPage
+									isMobileView={isMobileView}
+									onEditWebhook={(w) => {
+										setEditingWebhook(w)
+										setActiveNavItem("webhook-editor")
+									}}
+									onViewDocs={() => setActiveNavItem("documentation")}
+								/>
+					) : activeNavItem === "webhook-editor" ? (
+							<WebhookEditorPage
+									isMobileView={isMobileView}
+									webhook={editingWebhook}
+									onBack={() => {
+										setEditingWebhook(null)
+										setActiveNavItem("webhook-management")
+									}}
+								/>
 							) : activeNavItem === "documentation" ? (
 									<DocumentationPage />
 							) : activeNavItem === "trigger-editor" ? (
@@ -256,6 +277,9 @@ function App() {
 									<Clock className="h-5 w-5" /><span className="text-[10px] font-bold uppercase">Cron</span>
 								</button>
 								<button onClick={() => setActiveNavItem("documentation")} className={cn("flex flex-col items-center gap-1 p-2", activeNavItem === "documentation" ? "text-primary" : "text-muted-foreground")}>
+						<button onClick={() => setActiveNavItem("webhook-management")} className={cn("flex flex-col items-center gap-1 p-2", activeNavItem === "webhook-management" || activeNavItem === "webhook-editor" ? "text-primary" : "text-muted-foreground")}>
+							<Globe className="h-5 w-5" /><span className="text-[10px] font-bold uppercase">Webhooks</span>
+						</button>
 									<FileText className="h-5 w-5" /><span className="text-[10px] font-bold uppercase">Docs</span>
 								</button>
 						</div>

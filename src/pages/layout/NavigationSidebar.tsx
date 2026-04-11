@@ -1,9 +1,9 @@
-import { MessageSquare, Bot, LogOut, FileText, Clock } from 'lucide-react'
+import { MessageSquare, Bot, LogOut, FileText, Clock, Globe } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { ModeToggle } from './ModeToggle'
 
-export type NavItem = 'chat' | 'bot-management' | 'cron-management' | 'documentation' | 'trigger-editor' | 'cron-editor'
+export type NavItem = 'chat' | 'bot-management' | 'cron-management' | 'webhook-management' | 'documentation' | 'trigger-editor' | 'cron-editor' | 'webhook-editor'
 
 interface NavigationSidebarProps {
     activeItem: NavItem
@@ -34,6 +34,12 @@ export function NavigationSidebar({ activeItem, onNavItemSelect, onLogout, isCon
                     label='Cron Jobs'
                     isActive={activeItem === 'cron-management' || activeItem === 'cron-editor'}
                     onClick={() => onNavItemSelect('cron-management')}
+                />
+                <NavButton
+                    icon={<Globe className='h-5 w-5' />}
+                    label='Webhooks'
+                    isActive={activeItem === 'webhook-management' || activeItem === 'webhook-editor'}
+                    onClick={() => onNavItemSelect('webhook-management')}
                 />
                 <NavButton
                     icon={<FileText className='h-5 w-5' />}
