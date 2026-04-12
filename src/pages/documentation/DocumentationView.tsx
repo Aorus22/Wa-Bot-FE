@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { prism, vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { cn } from '@/lib/utils'
 import { api } from '@/lib/api'
+import { useTheme } from '@/components/theme-provider'
 
 export function DocumentationView() {
+    const { theme } = useTheme()
     const [content, setContent] = useState<string>('Loading documentation...')
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
@@ -116,20 +118,28 @@ export function DocumentationView() {
                                     },
                                     code({ node, inline, className, children, ...props }: any) {
                                         const match = /language-(\w+)/.exec(className || '')
+                                        const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+                                        
                                         return !inline && match ? (
-                                            <div className='rounded-xl overflow-hidden my-6 border border-border/40 shadow-sm'>
+                                            <div className='not-prose rounded-xl overflow-hidden mt-0 mb-6 border border-border/40 bg-muted/20 dark:bg-muted/10 pt-3 pb-4 px-4'>
                                                 <SyntaxHighlighter
-                                                    style={vscDarkPlus}
+                                                    style={isDark ? vscDarkPlus : prism}
                                                     language={match[1]}
                                                     PreTag="div"
-                                                    customStyle={{ margin: 0, padding: '1.5rem', fontSize: '13px' }}
+                                                    codeTagProps={{ style: { background: 'transparent', padding: 0 } }}
+                                                    customStyle={{ 
+                                                        margin: 0, 
+                                                        padding: 0, 
+                                                        fontSize: '13px',
+                                                        background: 'transparent'
+                                                    }}
                                                     {...props}
                                                 >
                                                     {String(children).replace(/\n$/, '')}
                                                 </SyntaxHighlighter>
                                             </div>
                                         ) : (
-                                            <code className={cn("bg-muted px-1.5 py-0.5 rounded-md font-mono text-[0.9em]", className)} {...props}>
+                                            <code className={cn("bg-primary/5 text-primary px-1.5 py-0.5 rounded-md font-mono text-[0.85em] border border-primary/10", className)} {...props}>
                                                 {children}
                                             </code>
                                         )

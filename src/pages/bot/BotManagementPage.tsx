@@ -226,7 +226,7 @@ export function BotManagementPage({ onEditTrigger, onViewDocs, isMobileView }: B
                                                                 onClick={() => onEditTrigger(null)}
                                                                 className='rounded-xl px-6 h-10 font-bold shadow-lg shadow-primary/20'
                                                         >
-                                                                <Plus className='mr-2 h-4 w-4' /> New Trigger
+                                                                <Plus className='mr-2 h-4 w-4' /> New
                                                         </Button>
                                                 )}
                                         </div>
@@ -240,19 +240,19 @@ export function BotManagementPage({ onEditTrigger, onViewDocs, isMobileView }: B
                                                         <p className='font-medium'>Loading triggers...</p>
                                                 </div>
                                         ) : filteredTriggers.length === 0 ? (
-                                                <div className='flex flex-col items-center justify-center py-16 md:py-24 border-2 border-dashed border-border/40 rounded-[1.5rem] md:rounded-[2rem] text-center space-y-4 md:space-y-5 bg-muted/5 max-w-md mx-auto'>
-                                                        <div className='w-16 h-16 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground'>
-                                                                <Zap className='h-8 w-8' />
+                                                <div className='flex flex-col items-center justify-center py-20 md:py-32 border-2 border-dashed border-border/40 rounded-[2rem] md:rounded-[3rem] text-center space-y-6 bg-muted/5'>
+                                                        <div className='w-20 h-20 rounded-3xl bg-muted flex items-center justify-center text-muted-foreground'>
+                                                                <Zap className='h-10 w-10' />
                                                         </div>
-                                                        <div className='space-y-1.5 px-4'>
-                                                                <h3 className='text-lg md:text-xl font-bold'>No triggers found</h3>
-                                                                <p className='text-xs md:text-sm text-muted-foreground'>Create your first dynamic trigger to start automating your bot.</p>
+                                                        <div className='space-y-2 px-4'>
+                                                                <h3 className='text-xl font-bold'>No triggers found</h3>
+                                                                <p className='text-muted-foreground max-w-xs mx-auto'>Create your first dynamic trigger to start automating your bot.</p>
                                                         </div>
                                                         <Button
                                                                 onClick={() => onEditTrigger(null)}
-                                                                className='rounded-xl px-6 shadow-lg shadow-primary/10 text-sm'
+                                                                className='rounded-xl px-8 h-11 font-bold'
                                                         >
-                                                                <Plus className='mr-2 h-4 w-4' /> Create Trigger
+                                                                <Plus className='mr-2 h-5 w-5' /> New
                                                         </Button>
                                                 </div>
                                         ) : (
@@ -261,20 +261,11 @@ export function BotManagementPage({ onEditTrigger, onViewDocs, isMobileView }: B
                                                                 <Card 
                                                                         key={trigger.id} 
                                                                         onClick={() => onEditTrigger(trigger)}
-                                                                        className='rounded-[1.5rem] md:rounded-[2rem] border-border/40 hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 flex flex-col bg-card/50 backdrop-blur-sm overflow-hidden cursor-pointer hover:bg-muted/30 group !gap-0 !py-0'
+                                                                        className='rounded-[1.5rem] md:rounded-[2rem] border-border/40 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 flex flex-col bg-card/50 backdrop-blur-sm overflow-hidden cursor-pointer hover:bg-card group !gap-0 !py-0 hover:-translate-y-1'
                                                                 >
                                                                         <div className='px-3 md:px-4 py-2.5 md:py-3'>
                                                                                 <div className='flex items-center justify-between mb-2'>
                                                                                         <div className='flex items-center gap-1.5'>
-                                                                                                <Badge
-                                                                                                        variant='outline'
-                                                                                                        className={cn(
-                                                                                                                'rounded-full px-2 py-0.5 border-none text-[10px] font-bold uppercase tracking-wider',
-                                                                                                                trigger.is_active ? 'bg-green-500/10 text-green-600 dark:text-green-400' : 'bg-muted text-muted-foreground'
-                                                                                                        )}
-                                                                                                >
-                                                                                                        {trigger.is_active ? 'Active' : 'Disabled'}
-                                                                                                </Badge>
                                                                                                 <Badge className={cn(
                                                                                                         'rounded-full px-2 py-0.5 font-bold gap-0.5 text-[9px] shadow-sm',
                                                                                                         trigger.priority > 0 ? 'bg-primary' : trigger.priority < 0 ? 'bg-orange-500' : 'bg-muted text-muted-foreground border-none'
@@ -283,26 +274,13 @@ export function BotManagementPage({ onEditTrigger, onViewDocs, isMobileView }: B
                                                                                                         {trigger.priority}
                                                                                                 </Badge>
                                                                                         </div>
-                                                                                        <div className='flex items-center gap-1.5'>
-                                                                                                <div onClick={(e) => e.stopPropagation()} className='flex items-center'>
-                                                                                                        <Switch
-                                                                                                                size='sm'
-                                                                                                                checked={trigger.is_active}
-                                                                                                                onCheckedChange={() => toggleStatus(trigger)}
-                                                                                                                className='data-[state=checked]:bg-green-500'
-                                                                                                        />
-                                                                                                </div>
-                                                                                                <Button
-                                                                                                        variant='ghost'
-                                                                                                        size='icon'
-                                                                                                        className='h-5 w-5 rounded-full text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors flex items-center justify-center'
-                                                                                                        onClick={(e) => {
-                                                                                                                e.stopPropagation();
-                                                                                                                setDeleteId(trigger.id);
-                                                                                                        }}
-                                                                                                >
-                                                                                                        <Trash2 className='h-3 w-3' />
-                                                                                                </Button>
+                                                                                        <div onClick={(e) => e.stopPropagation()} className='flex items-center'>
+                                                                                                <Switch
+                                                                                                        size='sm'
+                                                                                                        checked={trigger.is_active}
+                                                                                                        onCheckedChange={() => toggleStatus(trigger)}
+                                                                                                        className='data-[state=checked]:bg-green-500'
+                                                                                                />
                                                                                         </div>
                                                                                 </div>
                                                                                 <CardTitle className='text-sm md:text-base truncate group-hover:text-primary transition-colors mb-2'>{trigger.name}</CardTitle>
@@ -320,6 +298,17 @@ export function BotManagementPage({ onEditTrigger, onViewDocs, isMobileView }: B
                                                                                                 {trigger.script}
                                                                                         </p>
                                                                                 </div>
+                                                                        </div>
+                                                                        <div className="flex items-center justify-end p-2 px-3 border-t bg-muted/30 mt-2" onClick={(e) => e.stopPropagation()}>
+                                                                                <Button 
+                                                                                        variant="ghost" 
+                                                                                        size="icon" 
+                                                                                        className="h-7 w-7 rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors"
+                                                                                        onClick={() => setDeleteId(trigger.id)}
+                                                                                        title="Delete Trigger"
+                                                                                >
+                                                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                                                </Button>
                                                                         </div>
                                                                 </Card>
                                                         ))}

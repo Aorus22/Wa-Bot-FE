@@ -241,7 +241,7 @@ export function WebhookManagementPage({ onEditWebhook, onViewDocs, onViewLogs, i
 									onClick={() => onEditWebhook(null)}
 									className='rounded-xl px-6 h-10 font-bold shadow-lg shadow-primary/20'
 								>
-									<Plus className='mr-2 h-4 w-4' /> New Webhook
+									<Plus className='mr-2 h-4 w-4' /> New
 								</Button>
 							)}
 						</div>
@@ -264,89 +264,83 @@ export function WebhookManagementPage({ onEditWebhook, onViewDocs, onViewLogs, i
 								<p className='text-muted-foreground max-w-xs mx-auto'>Create your first webhook endpoint to receive HTTP triggers and run Lua scripts.</p>
 							</div>
 							<Button onClick={() => onEditWebhook(null)} className='rounded-xl px-8 h-11 font-bold'>
-								<Plus className='mr-2 h-5 w-5' /> Create First Webhook
+								<Plus className='mr-2 h-5 w-5' /> New
 							</Button>
 						</div>
 					) : (
 						<div className={cn(
-							"grid gap-4 pb-10",
-							isMobileView ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+							"grid gap-3 md:gap-4 pb-10",
+							isMobileView ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
 						)}>
 							{filteredWebhooks.map((webhook) => (
-								<Card key={webhook.id} className="pb-0 group relative overflow-hidden border-border/40 bg-card/50 hover:bg-card hover:border-primary/30 transition-all rounded-[1.5rem]">
-									<CardHeader className="pb-3">
-										<div className="flex items-start justify-between gap-4">
+								<Card 
+									key={webhook.id} 
+									onClick={() => onEditWebhook(webhook)}
+									className="!py-0 !gap-0 group relative overflow-hidden border-border/40 bg-muted/5 hover:bg-card hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 rounded-[1.5rem] md:rounded-[2rem] cursor-pointer hover:shadow-2xl hover:shadow-primary/10 flex flex-col"
+								>
+									<div className="px-3 md:px-4 py-3">
+										<div className="flex items-start justify-between mb-2">
 											<div className="space-y-1 overflow-hidden">
-												<CardTitle className="text-base font-bold truncate">
+												<CardTitle className="text-sm md:text-base font-bold truncate group-hover:text-primary transition-colors">
 													{webhook.name}
 												</CardTitle>
 												<div className="flex items-center gap-1.5">
-													<Badge variant="outline" className="font-mono text-[10px] py-0 px-2 bg-muted/50 border-border/40 text-muted-foreground">
-														/webhook/{webhook.path}
+													<Badge variant="outline" className="font-mono text-[9px] py-0 px-2 bg-muted/50 border-border/40 text-muted-foreground">
+														/{webhook.path}
 													</Badge>
 													<button
-														onClick={() => copyWebhookUrl(webhook.path)}
+														onClick={(e) => { e.stopPropagation(); copyWebhookUrl(webhook.path); }}
 														className="inline-flex items-center justify-center rounded-md p-0.5 hover:bg-primary/10 hover:text-primary text-muted-foreground transition-colors"
 														title="Copy URL"
 													>
-														<Copy className="w-3 h-3" />
+														<Copy className="w-2.5 h-2.5" />
 													</button>
-													{webhook.secret && (
-														<Lock className="h-3 w-3 text-muted-foreground" />
-													)}
 												</div>
 											</div>
-											<Switch
-												checked={webhook.is_active}
-												onCheckedChange={() => toggleStatus(webhook)}
-												className="data-[state=checked]:bg-primary"
-											/>
-										</div>
-									</CardHeader>
-
-									<CardContent className="pb-4">
-										<div className="flex items-center gap-2 text-muted-foreground">
-											<div className="p-1.5 rounded-lg bg-primary/5 text-primary">
-												<Code className="w-3.5 h-3.5" />
+											<div onClick={(e) => e.stopPropagation()} className="flex items-center">
+												<Switch
+													size="sm"
+													checked={webhook.is_active}
+													onCheckedChange={() => toggleStatus(webhook)}
+													className="data-[state=checked]:bg-green-500"
+												/>
 											</div>
-											<span className="text-xs font-medium">Lua Engine</span>
 										</div>
 
-										<div className="mt-4 flex items-center text-[10px] text-muted-foreground/70 font-bold uppercase tracking-wider">
-											<Activity className="w-3 h-3 mr-1.5 text-primary/60" />
-											Updated {new Date(webhook.updated_at || webhook.created_at || '').toLocaleDateString()}
+										<div className="flex items-center gap-2 text-muted-foreground mt-3">
+											<div className="p-1 rounded-lg bg-primary/5 text-primary">
+												<Code className="w-3 h-3" />
+											</div>
+											<span className="text-[10px] font-medium uppercase tracking-wider">Lua Engine</span>
+											{webhook.secret && (
+												<Lock className="h-2.5 w-2.5 text-muted-foreground ml-auto" />
+											)}
 										</div>
-									</CardContent>
 
-									<div className="flex items-center justify-between p-2 px-3 border-t bg-muted/30">
-										<div className="flex gap-1">
-											<Button
-												variant="ghost"
-												size="icon"
-												className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
-												onClick={() => copyWebhookUrl(webhook.path)}
-												title="Copy URL"
-											>
-												<Copy className="w-4 h-4" />
-											</Button>
-											<Button
-												variant="ghost"
-												size="icon"
-												className="h-8 w-8 rounded-lg"
-												onClick={() => onEditWebhook(webhook)}
-												title="Edit Script"
-											>
-												<Code className="w-4 h-4" />
-											</Button>
+										<div className="mt-2 flex items-center text-[9px] text-muted-foreground/70 font-bold uppercase tracking-wider">
+											<Activity className="w-2.5 h-2.5 mr-1.5 text-primary/60" />
+											{new Date(webhook.updated_at || webhook.created_at || '').toLocaleDateString()}
 										</div>
+									</div>
+
+									<div className="flex items-center justify-between p-2 px-3 border-t bg-muted/30 mt-2" onClick={(e) => e.stopPropagation()}>
 										<Button
 											variant="ghost"
 											size="icon"
-											className="h-8 w-8 rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors"
+											className="h-7 w-7 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
+											onClick={() => copyWebhookUrl(webhook.path)}
+											title="Copy URL"
+										>
+											<Copy className="w-3.5 h-3.5" />
+										</Button>
+										<Button
+											variant="ghost"
+											size="icon"
+											className="h-7 w-7 rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors"
 											onClick={() => setDeleteId(webhook.id)}
 											title="Delete Webhook"
 										>
-											<Trash2 className="w-4 h-4" />
+											<Trash2 className="w-3.5 h-3.5" />
 										</Button>
 									</div>
 								</Card>

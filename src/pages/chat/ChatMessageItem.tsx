@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import { FileText, MoreVertical, Reply, Edit3, Trash2, Star, Download, ExternalLink } from "lucide-react"
+import { FileText, MoreVertical, Reply, Edit3, Trash2, Star, Download, ExternalLink, Bot } from "lucide-react"
 import { LazyMedia } from "@/components/LazyMedia"
 import { isMarkdownContent } from "./renderMd"
 
@@ -109,21 +109,9 @@ export const ChatMessageItem = memo(({
 						<span className="text-[11px] font-bold mb-1 ml-1 text-primary/80">{message.senderName || message.from.split("@")[0]}</span>
 					)}
 
-					{message.isAutomatic && (
-						<span
-							className={cn(
-								"text-[10px] font-bold mb-1 px-1 uppercase tracking-widest flex items-center gap-1",
-								isMe ? "text-indigo-500 dark:text-indigo-400" : "text-blue-500"
-							)}
-						>
-							<span className={cn("w-1 h-1 rounded-full", isMe ? "bg-indigo-500 dark:bg-indigo-400" : "bg-blue-500")} />
-							Bot Response
-						</span>
-					)}
-
 					{repliedMsg && (
 						<div
-						        className="mb-2 p-2 bg-black/5 dark:bg-white/5 rounded-lg border-l-4 border-primary text-[12px] opacity-80 cursor-pointer hover:opacity-100 transition-opacity relative z-10"
+						        className="mb-2 p-2 bg-black/5 dark:bg-white/5 rounded-r-lg border-l-4 border-primary text-[12px] opacity-80 cursor-pointer hover:opacity-100 transition-opacity relative z-10"
 						        onClick={() => document.getElementById(repliedMsg.id)?.scrollIntoView({ behavior: "smooth", block: "center" })}
 						>							<p className="font-bold text-primary">{repliedMsg.from === "me" ? "You" : repliedMsg.senderName || "Unknown"}</p>
 							<p className="truncate opacity-70">{repliedMsg.content}</p>
@@ -170,14 +158,14 @@ export const ChatMessageItem = memo(({
 								isMe
 									? cn(
 										"bg-[#dcf8c6] dark:bg-[#005c4b] text-[#303030] dark:text-[#e9edef]",
-										message.isAutomatic && "bg-[#e8eaff] dark:bg-[#2e334d]",
+										message.isAutomatic && "bg-[#ebf5ff] dark:bg-[#1a2d4d]",
 										isLastInSequence ? "rounded-tr-none" : "",
 										isPending && "opacity-70",
 										isFailed && "bg-destructive text-destructive-foreground"
 									)
 									: cn(
 										"bg-white dark:bg-[#202c33] text-[#303030] dark:text-[#e9edef]",
-										message.isAutomatic && "bg-[#eef2ff] dark:bg-[#1e2235] border-l-[3px] border-indigo-500 dark:border-indigo-400",
+										message.isAutomatic && "bg-[#f0f2f5] dark:bg-[#111b21]",
 										isLastInSequence ? "rounded-tl-none" : ""
 									)
 							)}
@@ -245,7 +233,16 @@ export const ChatMessageItem = memo(({
 							)}
 							{message.content && !["[Image]", "[Video]", "[Sticker]", "[Document]"].includes(message.content) && !isDocument && (
 							        <div className={cn("break-words [word-break:break-word] leading-relaxed relative z-10", !isMarkdownContent(message.content) && "whitespace-pre-wrap")}>{renderFormattedContent(message.content)}</div>
-							)}							<div className={cn("flex items-center gap-1 mt-1 justify-end", "text-[10px] font-medium opacity-50 uppercase tracking-tight")}>
+							)}							<div className={cn("flex items-center gap-1.5 mt-1 justify-end", "text-[10px] font-medium opacity-50 uppercase tracking-tight")}>
+								{message.isAutomatic && (
+									<div className={cn(
+										"flex items-center gap-1 px-1.5 py-0.5 rounded-full",
+										isMe ? "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400" : "bg-primary/10 text-primary"
+									)}>
+										<Bot className="h-3 w-3" />
+										<span className="font-bold text-[9px] tracking-wide">BOT</span>
+									</div>
+								)}
 								<span>{formatTime(message.timestamp)}</span>
 								{isMe && (
 									<span className="flex items-center ml-0.5">

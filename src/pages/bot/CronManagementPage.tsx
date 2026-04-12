@@ -225,7 +225,7 @@ export function CronManagementPage({ onEditCron, onViewDocs, isMobileView }: Cro
                                     onClick={() => onEditCron(null)}
                                     className='rounded-xl px-6 h-10 font-bold shadow-lg shadow-primary/20'
                                 >
-                                    <Plus className='mr-2 h-4 w-4' /> New Job
+                                    <Plus className='mr-2 h-4 w-4' /> New
                                 </Button>
                             )}
                         </div>
@@ -248,77 +248,71 @@ export function CronManagementPage({ onEditCron, onViewDocs, isMobileView }: Cro
                                 <p className='text-muted-foreground max-w-xs mx-auto'>Create your first automated task to begin autonomous operations.</p>
                             </div>
                             <Button onClick={() => onEditCron(null)} className='rounded-xl px-8 h-11 font-bold'>
-                                <Plus className='mr-2 h-5 w-5' /> Initialize First Job
+                                <Plus className='mr-2 h-5 w-5' /> New
                             </Button>
                         </div>
                     ) : (
                         <div className={cn(
-                            "grid gap-4 pb-10",
-                            isMobileView ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+                            "grid gap-3 md:gap-4 pb-10",
+                            isMobileView ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
                         )}>
                             {filteredJobs.map((job) => (
-                                <Card key={job.id} className="pb-0 group relative overflow-hidden border-border/40 bg-card/50 hover:bg-card hover:border-primary/30 transition-all rounded-[1.5rem]">
-                                    <CardHeader className="pb-3">
-                                        <div className="flex items-start justify-between gap-4">
+                                <Card 
+                                    key={job.id} 
+                                    onClick={() => onEditCron(job)}
+                                    className="!py-0 !gap-0 group relative overflow-hidden border-border/40 bg-muted/5 hover:bg-card hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 rounded-[1.5rem] md:rounded-[2rem] cursor-pointer hover:shadow-2xl hover:shadow-primary/10 flex flex-col"
+                                >
+                                    <div className="px-3 md:px-4 py-3">
+                                        <div className="flex items-start justify-between mb-2">
                                             <div className="space-y-1 overflow-hidden">
-                                                <CardTitle className="text-base font-bold truncate">
+                                                <CardTitle className="text-sm md:text-base font-bold truncate group-hover:text-primary transition-colors">
                                                     {job.name}
                                                 </CardTitle>
-                                                <Badge variant="outline" className="font-mono text-[10px] py-0 px-2 bg-muted/50 border-border/40 text-muted-foreground">
+                                                <Badge variant="outline" className="font-mono text-[9px] py-0 px-2 bg-muted/50 border-border/40 text-muted-foreground">
                                                     {job.schedule}
                                                 </Badge>
                                             </div>
-                                            <Switch 
-                                                checked={job.is_active} 
-                                                onCheckedChange={() => toggleStatus(job)}
-                                                className="data-[state=checked]:bg-primary"
-                                            />
-                                        </div>
-                                    </CardHeader>
-
-                                    <CardContent className="pb-4">
-                                        <div className="flex items-center gap-2 text-muted-foreground">
-                                            <div className="p-1.5 rounded-lg bg-primary/5 text-primary">
-                                                <Code className="w-3.5 h-3.5" />
+                                            <div onClick={(e) => e.stopPropagation()} className="flex items-center">
+                                                <Switch 
+                                                    size="sm"
+                                                    checked={job.is_active} 
+                                                    onCheckedChange={() => toggleStatus(job)}
+                                                    className="data-[state=checked]:bg-green-500"
+                                                />
                                             </div>
-                                            <span className="text-xs font-medium">Lua Engine</span>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 text-muted-foreground mt-3">
+                                            <div className="p-1 rounded-lg bg-primary/5 text-primary">
+                                                <Code className="w-3 h-3" />
+                                            </div>
+                                            <span className="text-[10px] font-medium uppercase tracking-wider">Lua Engine</span>
                                         </div>
                                         
-                                        <div className="mt-4 flex items-center text-[10px] text-muted-foreground/70 font-bold uppercase tracking-wider">
-                                            <Activity className="w-3 h-3 mr-1.5 text-primary/60" />
-                                            Updated {new Date(job.updated_at || job.created_at || '').toLocaleDateString()}
+                                        <div className="mt-2 flex items-center text-[9px] text-muted-foreground/70 font-bold uppercase tracking-wider">
+                                            <Activity className="w-2.5 h-2.5 mr-1.5 text-primary/60" />
+                                            {new Date(job.updated_at || job.created_at || '').toLocaleDateString()}
                                         </div>
-                                    </CardContent>
+                                    </div>
 
-                                     <div className="flex items-center justify-between p-2 px-3 border-t bg-muted/30">
-                                        <div className="flex gap-1">
-                                            <Button 
-                                                variant="ghost" 
-                                                size="icon" 
-                                                className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
-                                                onClick={() => handleRunNow(job)}
-                                                title="Run Now"
-                                            >
-                                                <Play className="w-4 h-4" />
-                                            </Button>
-                                            <Button 
-                                                variant="ghost" 
-                                                size="icon" 
-                                                className="h-8 w-8 rounded-lg"
-                                                onClick={() => onEditCron(job)}
-                                                title="Edit Script"
-                                            >
-                                                <Code className="w-4 h-4" />
-                                            </Button>
-                                        </div>
+                                     <div className="flex items-center justify-between p-2 px-3 border-t bg-muted/30 mt-2" onClick={(e) => e.stopPropagation()}>
                                         <Button 
                                             variant="ghost" 
                                             size="icon" 
-                                            className="h-8 w-8 rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors"
+                                            className="h-7 w-7 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
+                                            onClick={() => handleRunNow(job)}
+                                            title="Run Now"
+                                        >
+                                            <Play className="w-3.5 h-3.5" />
+                                        </Button>
+                                        <Button 
+                                            variant="ghost" 
+                                            size="icon" 
+                                            className="h-7 w-7 rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors"
                                             onClick={() => setDeleteId(job.id)}
                                             title="Delete Job"
                                         >
-                                            <Trash2 className="w-4 h-4" />
+                                            <Trash2 className="w-3.5 h-3.5" />
                                         </Button>
                                     </div>
                                 </Card>
