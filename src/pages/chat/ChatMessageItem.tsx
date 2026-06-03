@@ -111,9 +111,9 @@ export const ChatMessageItem = memo(({
 
 					{repliedMsg && (
 						<div
-						        className="mb-2 p-2 bg-black/5 dark:bg-white/5 rounded-r-lg border-l-4 border-primary text-[12px] opacity-80 cursor-pointer hover:opacity-100 transition-opacity relative z-10"
+						        className="mb-0 p-2 bg-black/5 dark:bg-white/5 border-l-4 border-primary text-[12px] opacity-80 cursor-pointer hover:opacity-100 transition-opacity relative z-10 max-w-[65vw] sm:max-w-[320px] overflow-hidden"
 						        onClick={() => document.getElementById(repliedMsg.id)?.scrollIntoView({ behavior: "smooth", block: "center" })}
-						>							<p className="font-bold text-primary">{repliedMsg.from === "me" ? "You" : repliedMsg.senderName || "Unknown"}</p>
+						>							<p className="font-bold text-primary truncate">{repliedMsg.from === "me" ? "You" : repliedMsg.senderName || "Unknown"}</p>
 							<p className="truncate opacity-70">{repliedMsg.content}</p>
 						</div>
 					)}
@@ -157,21 +157,19 @@ export const ChatMessageItem = memo(({
 								"px-3.5 py-2 rounded-2xl text-[14.5px] relative transition-all duration-200 shadow-[0_1px_0.5px_rgba(0,0,0,0.13)]",
 								isMe
 									? cn(
-										"bg-[#dcf8c6] dark:bg-[#005c4b] text-[#303030] dark:text-[#e9edef]",
+										"bg-[#dcf8c6] dark:bg-[#005c4b] text-[#303030] dark:text-[#e9edef] rounded-tr-none",
 										message.isAutomatic && "bg-[#ebf5ff] dark:bg-[#1a2d4d]",
-										isLastInSequence ? "rounded-tr-none" : "",
 										isPending && "opacity-70",
 										isFailed && "bg-destructive text-destructive-foreground"
 									)
 									: cn(
-										"bg-white dark:bg-[#202c33] text-[#303030] dark:text-[#e9edef]",
+										"bg-white dark:bg-[#202c33] text-[#303030] dark:text-[#e9edef] rounded-tl-none",
 										message.isAutomatic && "bg-[#f0f2f5] dark:bg-[#111b21]",
-										isLastInSequence ? "rounded-tl-none" : ""
 									)
 							)}
 						>
 							{isImage && isMedia && (
-							        <div className="mb-2 -mx-[14px] -mt-2 overflow-hidden relative z-10 min-w-[150px] min-h-[100px] rounded-t-2xl">
+							        <div className={cn("mb-2 -mx-[14px] -mt-2 overflow-hidden relative z-10 min-w-[150px] min-h-[100px] rounded-t-2xl", isMe ? "rounded-tr-none" : "rounded-tl-none")}>
 							                <LazyMedia										src={getMediaUrl(message.mediaUrl)}
 										alt="Image"
 										className="w-full max-w-[320px] max-h-[300px] h-auto object-cover object-center hover:scale-[1.02] transition-transform duration-500 cursor-zoom-in"
@@ -185,7 +183,7 @@ export const ChatMessageItem = memo(({
 								</div>
 							)}
 							{isVideo && isMedia && (
-							        <div className="mb-2 -mx-[14px] -mt-2 overflow-hidden relative z-10 min-w-[200px] min-h-[150px] rounded-t-2xl bg-black/10 flex items-center justify-center aspect-video">
+							        <div className={cn("mb-2 -mx-[14px] -mt-2 overflow-hidden relative z-10 min-w-[200px] min-h-[150px] rounded-t-2xl bg-black/10 flex items-center justify-center aspect-video", isMe ? "rounded-tr-none" : "rounded-tl-none")}>
 							                <LazyMedia 
 							                        type="video"
 							                        src={getMediaUrl(message.mediaUrl)} 
@@ -195,7 +193,7 @@ export const ChatMessageItem = memo(({
 							        </div>
 							)}
 							                {isDocument && isMedia && (
-							                        <div className="flex flex-col gap-2 mb-1 p-2 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 relative z-10 min-w-[200px] sm:min-w-[240px]">
+							                        <div className={cn("flex flex-col gap-2 p-2 bg-black/5 dark:bg-white/5 rounded-t-2xl relative z-10 min-w-[200px] sm:min-w-[240px] max-w-[65vw] sm:max-w-[320px] -mx-[14px] -mt-2", isMe ? "rounded-tr-none" : "rounded-tl-none")}>
 									<div className="flex items-center gap-3">
 										<div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
 											<FileText className="h-6 w-6 text-primary" />
