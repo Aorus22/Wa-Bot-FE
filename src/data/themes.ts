@@ -2,170 +2,106 @@ export interface ThemePreset {
 	name: string
 	label: string
 	colors: {
-		foreground: string
 		background: string
-		cursor: string
-		black: string
-		red: string
-		green: string
-		yellow: string
-		blue: string
-		magenta: string
-		cyan: string
-		white: string
-		brightBlack: string
-		brightRed: string
-		brightGreen: string
-		brightYellow: string
-		brightBlue: string
-		brightMagenta: string
-		brightCyan: string
-		brightWhite: string
+		foreground: string
+		card: string
+		cardForeground: string
+		primary: string
+		primaryForeground: string
+		secondary: string
+		secondaryForeground: string
+		muted: string
+		mutedForeground: string
+		accent: string
+		accentForeground: string
+		destructive: string
+		destructiveForeground: string
+		border: string
+		input: string
+		ring: string
 	}
 }
 
 export const themes: ThemePreset[] = [
-	{
-		name: 'default',
-		label: 'Default Dark',
-		colors: {
-			foreground: '#d4d4d4', background: '#1e1e1e', cursor: '#aeafad',
-			black: '#1e1e1e', red: '#f44747', green: '#6a9955', yellow: '#d7ba7d',
-			blue: '#569cd6', magenta: '#c586c0', cyan: '#4ec9b0', white: '#d4d4d4',
-			brightBlack: '#808080', brightRed: '#f44747', brightGreen: '#6a9955', brightYellow: '#d7ba7d',
-			brightBlue: '#569cd6', brightMagenta: '#c586c0', brightCyan: '#4ec9b0', brightWhite: '#ffffff',
-		}
-	},
-	{
-		name: 'monokai',
-		label: 'Monokai',
-		colors: {
-			foreground: '#f8f8f2', background: '#272822', cursor: '#f8f8f0',
-			black: '#272822', red: '#f92672', green: '#a6e22e', yellow: '#f4bf75',
-			blue: '#66d9ef', magenta: '#ae81ff', cyan: '#a1efe4', white: '#f8f8f2',
-			brightBlack: '#75715e', brightRed: '#f92672', brightGreen: '#a6e22e', brightYellow: '#f4bf75',
-			brightBlue: '#66d9ef', brightMagenta: '#ae81ff', brightCyan: '#a1efe4', brightWhite: '#f9f8f5',
-		}
-	},
-	{
-		name: 'solarized-dark',
-		label: 'Solarized Dark',
-		colors: {
-			foreground: '#839496', background: '#002b36', cursor: '#93a1a1',
-			black: '#073642', red: '#dc322f', green: '#859900', yellow: '#b58900',
-			blue: '#268bd2', magenta: '#d33682', cyan: '#2aa198', white: '#eee8d5',
-			brightBlack: '#586e75', brightRed: '#cb4b16', brightGreen: '#586e75', brightYellow: '#657b83',
-			brightBlue: '#839496', brightMagenta: '#6c71c4', brightCyan: '#93a1a1', brightWhite: '#fdf6e3',
-		}
-	},
-	{
-		name: 'solarized-light',
-		label: 'Solarized Light',
-		colors: {
-			foreground: '#657b83', background: '#fdf6e3', cursor: '#586e75',
-			black: '#eee8d5', red: '#dc322f', green: '#859900', yellow: '#b58900',
-			blue: '#268bd2', magenta: '#d33682', cyan: '#2aa198', white: '#073642',
-			brightBlack: '#93a1a1', brightRed: '#cb4b16', brightGreen: '#93a1a1', brightYellow: '#839496',
-			brightBlue: '#657b83', brightMagenta: '#6c71c4', brightCyan: '#586e75', brightWhite: '#002b36',
-		}
-	},
-	{
-		name: 'light',
-		label: 'Light',
-		colors: {
-			foreground: '#383a42', background: '#fafafa', cursor: '#526eff',
-			black: '#383a42', red: '#e45649', green: '#50a14f', yellow: '#c18401',
-			blue: '#4078f2', magenta: '#a626a4', cyan: '#0184bc', white: '#fafafa',
-			brightBlack: '#a0a1a7', brightRed: '#e45649', brightGreen: '#50a14f', brightYellow: '#c18401',
-			brightBlue: '#4078f2', brightMagenta: '#a626a4', brightCyan: '#0184bc', brightWhite: '#ffffff',
-		}
-	},
-	{
-		name: 'dracula',
-		label: 'Dracula',
-		colors: {
-			foreground: '#f8f8f2', background: '#282a36', cursor: '#f8f8f2',
-			black: '#21222c', red: '#ff5555', green: '#50fa7b', yellow: '#f1fa8c',
-			blue: '#bd93f9', magenta: '#ff79c6', cyan: '#8be9fd', white: '#f8f8f2',
-			brightBlack: '#6272a4', brightRed: '#ff6e6e', brightGreen: '#69ff94', brightYellow: '#ffffa5',
-			brightBlue: '#d6acff', brightMagenta: '#ff92df', brightCyan: '#a4ffff', brightWhite: '#ffffff',
-		}
-	},
-	{
-		name: 'nord',
-		label: 'Nord',
-		colors: {
-			foreground: '#d8dee9', background: '#2e3440', cursor: '#d8dee9',
-			black: '#3b4252', red: '#bf616a', green: '#a3be8c', yellow: '#ebcb8b',
-			blue: '#81a1c1', magenta: '#b48ead', cyan: '#88c0d0', white: '#e5e9f0',
-			brightBlack: '#4c566a', brightRed: '#bf616a', brightGreen: '#a3be8c', brightYellow: '#ebcb8b',
-			brightBlue: '#81a1c1', brightMagenta: '#b48ead', brightCyan: '#8fbcbb', brightWhite: '#eceff4',
-		}
-	},
-	{
-		name: 'one-dark',
-		label: 'One Dark',
-		colors: {
-			foreground: '#abb2bf', background: '#282c34', cursor: '#528bff',
-			black: '#282c34', red: '#e06c75', green: '#98c379', yellow: '#d19a66',
-			blue: '#61afef', magenta: '#c678dd', cyan: '#56b6c2', white: '#abb2bf',
-			brightBlack: '#5c6370', brightRed: '#e06c75', brightGreen: '#98c379', brightYellow: '#d19a66',
-			brightBlue: '#61afef', brightMagenta: '#c678dd', brightCyan: '#56b6c2', brightWhite: '#ffffff',
-		}
-	},
-	{
-		name: 'github-dark',
-		label: 'GitHub Dark',
-		colors: {
-			foreground: '#c9d1d9', background: '#0d1117', cursor: '#58a6ff',
-			black: '#484f58', red: '#ff7b72', green: '#3fb950', yellow: '#d29922',
-			blue: '#58a6ff', magenta: '#bc8cff', cyan: '#39c5cf', white: '#b1bac4',
-			brightBlack: '#6e7681', brightRed: '#ffa198', brightGreen: '#56d364', brightYellow: '#e3b341',
-			brightBlue: '#79c0ff', brightMagenta: '#d2a8ff', brightCyan: '#56d4dd', brightWhite: '#ffffff',
-		}
-	},
-	{
-		name: 'github-light',
-		label: 'GitHub Light',
-		colors: {
-			foreground: '#24292f', background: '#ffffff', cursor: '#0969da',
-			black: '#24292f', red: '#cf222e', green: '#1a7f37', yellow: '#9a6700',
-			blue: '#0969da', magenta: '#8250df', cyan: '#1b7c83', white: '#6e7781',
-			brightBlack: '#57606a', brightRed: '#a40e26', brightGreen: '#116329', brightYellow: '#4d2d00',
-			brightBlue: '#0550ae', brightMagenta: '#6639ba', brightCyan: '#055d64', brightWhite: '#ffffff',
-		}
-	},
-	{
-		name: 'tokyo-night',
-		label: 'Tokyo Night',
-		colors: {
-			foreground: '#a9b1d6', background: '#1a1b26', cursor: '#c0caf5',
-			black: '#15161e', red: '#f7768e', green: '#9ece6a', yellow: '#e0af68',
-			blue: '#7aa2f7', magenta: '#bb9af7', cyan: '#7dcfff', white: '#a9b1d6',
-			brightBlack: '#414868', brightRed: '#f7768e', brightGreen: '#9ece6a', brightYellow: '#e0af68',
-			brightBlue: '#7aa2f7', brightMagenta: '#bb9af7', brightCyan: '#7dcfff', brightWhite: '#c0caf5',
-		}
-	},
-	{
-		name: 'catppuccin',
-		label: 'Catppuccin Mocha',
-		colors: {
-			foreground: '#cdd6f4', background: '#1e1e2e', cursor: '#f5e0dc',
-			black: '#45475a', red: '#f38ba8', green: '#a6e3a1', yellow: '#f9e2af',
-			blue: '#89b4fa', magenta: '#f5c2e7', cyan: '#94e2d5', white: '#bac2de',
-			brightBlack: '#585b70', brightRed: '#f38ba8', brightGreen: '#a6e3a1', brightYellow: '#f9e2af',
-			brightBlue: '#89b4fa', brightMagenta: '#f5c2e7', brightCyan: '#94e2d5', brightWhite: '#a6adc8',
-		}
-	},
-	{
-		name: 'gruvbox-dark',
-		label: 'Gruvbox Dark',
-		colors: {
-			foreground: '#ebdbb2', background: '#282828', cursor: '#ebdbb2',
-			black: '#282828', red: '#cc241d', green: '#98971a', yellow: '#d79921',
-			blue: '#458588', magenta: '#b16286', cyan: '#689d6a', white: '#a89984',
-			brightBlack: '#928374', brightRed: '#fb4934', brightGreen: '#b8bb26', brightYellow: '#fabd2f',
-			brightBlue: '#83a598', brightMagenta: '#d3869b', brightCyan: '#8ec07c', brightWhite: '#ebdbb2',
-		}
-	},
+	{ name: "default-dark", label: "Default Dark", colors: { background: "#0F172A", foreground: "#FFFFFF", card: "#1E293B", cardForeground: "#FFFFFF", primary: "#0E7490", primaryForeground: "#FFFFFF", secondary: "#1E293B", secondaryForeground: "#FFFFFF", muted: "#1E293B", mutedForeground: "#94A3B8", accent: "#155E75", accentForeground: "#FFFFFF", destructive: "#7F1D1D", destructiveForeground: "#FFFFFF", border: "#334155", input: "#334155", ring: "#0E7490" } },
+	{ name: "default-light", label: "Default Light", colors: { background: "#F8FAFC", foreground: "#0F172A", card: "#FFFFFF", cardForeground: "#0F172A", primary: "#0E7490", primaryForeground: "#FFFFFF", secondary: "#F1F5F9", secondaryForeground: "#0F172A", muted: "#F8FAFC", mutedForeground: "#64748B", accent: "#ECFEFF", accentForeground: "#0F172A", destructive: "#EF4444", destructiveForeground: "#FFFFFF", border: "#E2E8F0", input: "#E2E8F0", ring: "#0891B2" } },
+	{ name: "ocean-dark", label: "Ocean Dark", colors: { background: "#0C1929", foreground: "#FFFFFF", card: "#162940", cardForeground: "#FFFFFF", primary: "#2563EB", primaryForeground: "#FFFFFF", secondary: "#162940", secondaryForeground: "#FFFFFF", muted: "#162940", mutedForeground: "#94A3B8", accent: "#1E3A5F", accentForeground: "#FFFFFF", destructive: "#7F1D1D", destructiveForeground: "#FFFFFF", border: "#274768", input: "#274768", ring: "#2563EB" } },
+	{ name: "ocean-light", label: "Ocean Light", colors: { background: "#F0F9FF", foreground: "#0F172A", card: "#FFFFFF", cardForeground: "#0F172A", primary: "#2563EB", primaryForeground: "#FFFFFF", secondary: "#EFF6FF", secondaryForeground: "#0F172A", muted: "#F0F9FF", mutedForeground: "#64748B", accent: "#EFF6FF", accentForeground: "#0F172A", destructive: "#EF4444", destructiveForeground: "#FFFFFF", border: "#BFDBFE", input: "#BFDBFE", ring: "#3B82F6" } },
+	{ name: "forest-dark", label: "Forest Dark", colors: { background: "#0C1F17", foreground: "#FFFFFF", card: "#173025", cardForeground: "#FFFFFF", primary: "#059669", primaryForeground: "#FFFFFF", secondary: "#173025", secondaryForeground: "#FFFFFF", muted: "#173025", mutedForeground: "#94A3B8", accent: "#064E3B", accentForeground: "#FFFFFF", destructive: "#7F1D1D", destructiveForeground: "#FFFFFF", border: "#1F4A32", input: "#1F4A32", ring: "#059669" } },
+	{ name: "forest-light", label: "Forest Light", colors: { background: "#F0FDF4", foreground: "#0F172A", card: "#FFFFFF", cardForeground: "#0F172A", primary: "#059669", primaryForeground: "#FFFFFF", secondary: "#ECFDF5", secondaryForeground: "#0F172A", muted: "#F0FDF4", mutedForeground: "#64748B", accent: "#ECFDF5", accentForeground: "#0F172A", destructive: "#EF4444", destructiveForeground: "#FFFFFF", border: "#A7F3D0", input: "#A7F3D0", ring: "#10B981" } },
+	{ name: "lavender-dark", label: "Lavender Dark", colors: { background: "#131127", foreground: "#FFFFFF", card: "#1F1B3D", cardForeground: "#FFFFFF", primary: "#7C3AED", primaryForeground: "#FFFFFF", secondary: "#1F1B3D", secondaryForeground: "#FFFFFF", muted: "#1F1B3D", mutedForeground: "#94A3B8", accent: "#4C1D95", accentForeground: "#FFFFFF", destructive: "#7F1D1D", destructiveForeground: "#FFFFFF", border: "#362D5C", input: "#362D5C", ring: "#7C3AED" } },
+	{ name: "lavender-light", label: "Lavender Light", colors: { background: "#FAF5FF", foreground: "#0F172A", card: "#FFFFFF", cardForeground: "#0F172A", primary: "#7C3AED", primaryForeground: "#FFFFFF", secondary: "#F5F3FF", secondaryForeground: "#0F172A", muted: "#FAF5FF", mutedForeground: "#64748B", accent: "#F5F3FF", accentForeground: "#0F172A", destructive: "#EF4444", destructiveForeground: "#FFFFFF", border: "#C4B5FD", input: "#C4B5FD", ring: "#8B5CF6" } },
+	{ name: "cherry-dark", label: "Cherry Dark", colors: { background: "#1A0F14", foreground: "#FFFFFF", card: "#271A22", cardForeground: "#FFFFFF", primary: "#E11D48", primaryForeground: "#FFFFFF", secondary: "#271A22", secondaryForeground: "#FFFFFF", muted: "#271A22", mutedForeground: "#94A3B8", accent: "#4C0519", accentForeground: "#FFFFFF", destructive: "#7F1D1D", destructiveForeground: "#FFFFFF", border: "#442838", input: "#442838", ring: "#E11D48" } },
+	{ name: "cherry-light", label: "Cherry Light", colors: { background: "#FFF5F5", foreground: "#0F172A", card: "#FFFFFF", cardForeground: "#0F172A", primary: "#E11D48", primaryForeground: "#FFFFFF", secondary: "#FFF1F2", secondaryForeground: "#0F172A", muted: "#FFF5F5", mutedForeground: "#64748B", accent: "#FFF1F2", accentForeground: "#0F172A", destructive: "#EF4444", destructiveForeground: "#FFFFFF", border: "#FECDD3", input: "#FECDD3", ring: "#F43F5E" } },
+	{ name: "sunset-dark", label: "Sunset Dark", colors: { background: "#19140D", foreground: "#FFFFFF", card: "#262016", cardForeground: "#FFFFFF", primary: "#B45309", primaryForeground: "#FFFFFF", secondary: "#262016", secondaryForeground: "#FFFFFF", muted: "#262016", mutedForeground: "#94A3B8", accent: "#78350F", accentForeground: "#FFFFFF", destructive: "#7F1D1D", destructiveForeground: "#FFFFFF", border: "#403828", input: "#403828", ring: "#B45309" } },
+	{ name: "sunset-light", label: "Sunset Light", colors: { background: "#FFF7ED", foreground: "#0F172A", card: "#FFFFFF", cardForeground: "#0F172A", primary: "#D97706", primaryForeground: "#FFFFFF", secondary: "#FFFBEB", secondaryForeground: "#0F172A", muted: "#FFF7ED", mutedForeground: "#64748B", accent: "#FFFBEB", accentForeground: "#0F172A", destructive: "#EF4444", destructiveForeground: "#FFFFFF", border: "#FDE68A", input: "#FDE68A", ring: "#F59E0B" } },
+	{ name: "mono-dark", label: "Monochrome Dark", colors: { background: "#09090B", foreground: "#FAFAFA", card: "#18181B", cardForeground: "#FAFAFA", primary: "#A1A1AA", primaryForeground: "#18181B", secondary: "#27272A", secondaryForeground: "#FAFAFA", muted: "#18181B", mutedForeground: "#A1A1AA", accent: "#3F3F46", accentForeground: "#FAFAFA", destructive: "#7F1D1D", destructiveForeground: "#FAFAFA", border: "#27272A", input: "#27272A", ring: "#A1A1AA" } },
+	{ name: "mono-light", label: "Monochrome Light", colors: { background: "#FAFAFA", foreground: "#09090B", card: "#FFFFFF", cardForeground: "#09090B", primary: "#52525B", primaryForeground: "#FFFFFF", secondary: "#F4F4F5", secondaryForeground: "#09090B", muted: "#F4F4F5", mutedForeground: "#71717A", accent: "#F4F4F5", accentForeground: "#09090B", destructive: "#EF4444", destructiveForeground: "#FFFFFF", border: "#E4E4E7", input: "#E4E4E7", ring: "#52525B" } },
+	{ name: "mint-dark", label: "Mint Dark", colors: { background: "#022C22", foreground: "#FFFFFF", card: "#064E3B", cardForeground: "#FFFFFF", primary: "#34D399", primaryForeground: "#022C22", secondary: "#064E3B", secondaryForeground: "#FFFFFF", muted: "#064E3B", mutedForeground: "#6EE7B7", accent: "#047857", accentForeground: "#FFFFFF", destructive: "#7F1D1D", destructiveForeground: "#FFFFFF", border: "#065F46", input: "#065F46", ring: "#34D399" } },
+	{ name: "mint-light", label: "Mint Light", colors: { background: "#F0FDFA", foreground: "#0F172A", card: "#FFFFFF", cardForeground: "#0F172A", primary: "#0D9488", primaryForeground: "#FFFFFF", secondary: "#CCFBF1", secondaryForeground: "#0F172A", muted: "#F0FDFA", mutedForeground: "#5EEAD4", accent: "#CCFBF1", accentForeground: "#0F172A", destructive: "#EF4444", destructiveForeground: "#FFFFFF", border: "#99F6E4", input: "#99F6E4", ring: "#14B8A6" } },
+	{ name: "rose-dark", label: "Rose Dark", colors: { background: "#1C0D11", foreground: "#FFFFFF", card: "#2D1520", cardForeground: "#FFFFFF", primary: "#F43F5E", primaryForeground: "#FFFFFF", secondary: "#2D1520", secondaryForeground: "#FFFFFF", muted: "#2D1520", mutedForeground: "#FDA4AF", accent: "#881337", accentForeground: "#FFFFFF", destructive: "#7F1D1D", destructiveForeground: "#FFFFFF", border: "#4A1D30", input: "#4A1D30", ring: "#F43F5E" } },
+	{ name: "rose-light", label: "Rose Light", colors: { background: "#FFF1F2", foreground: "#0F172A", card: "#FFFFFF", cardForeground: "#0F172A", primary: "#E11D48", primaryForeground: "#FFFFFF", secondary: "#FFE4E6", secondaryForeground: "#0F172A", muted: "#FFF1F2", mutedForeground: "#FDA4AF", accent: "#FFE4E6", accentForeground: "#0F172A", destructive: "#EF4444", destructiveForeground: "#FFFFFF", border: "#FECDD3", input: "#FECDD3", ring: "#F43F5E" } },
+	{ name: "amber-dark", label: "Amber Dark", colors: { background: "#1C1408", foreground: "#FFFFFF", card: "#2B1F0E", cardForeground: "#FFFFFF", primary: "#F59E0B", primaryForeground: "#1C1408", secondary: "#2B1F0E", secondaryForeground: "#FFFFFF", muted: "#2B1F0E", mutedForeground: "#FCD34D", accent: "#92400E", accentForeground: "#FFFFFF", destructive: "#7F1D1D", destructiveForeground: "#FFFFFF", border: "#4A3510", input: "#4A3510", ring: "#F59E0B" } },
+	{ name: "amber-light", label: "Amber Light", colors: { background: "#FFFBEB", foreground: "#0F172A", card: "#FFFFFF", cardForeground: "#0F172A", primary: "#D97706", primaryForeground: "#FFFFFF", secondary: "#FEF3C7", secondaryForeground: "#0F172A", muted: "#FFFBEB", mutedForeground: "#B45309", accent: "#FEF3C7", accentForeground: "#0F172A", destructive: "#EF4444", destructiveForeground: "#FFFFFF", border: "#FDE68A", input: "#FDE68A", ring: "#F59E0B" } },
+	{ name: "nord-dark", label: "Nord Dark", colors: { background: "#2E3440", foreground: "#ECEFF4", card: "#3B4252", cardForeground: "#ECEFF4", primary: "#88C0D0", primaryForeground: "#2E3440", secondary: "#434C5E", secondaryForeground: "#ECEFF4", muted: "#3B4252", mutedForeground: "#D8DEE9", accent: "#5E81AC", accentForeground: "#ECEFF4", destructive: "#BF616A", destructiveForeground: "#ECEFF4", border: "#4C566A", input: "#4C566A", ring: "#88C0D0" } },
+	{ name: "nord-light", label: "Nord Light", colors: { background: "#ECEFF4", foreground: "#2E3440", card: "#FFFFFF", cardForeground: "#2E3440", primary: "#5E81AC", primaryForeground: "#FFFFFF", secondary: "#E5E9F0", secondaryForeground: "#2E3440", muted: "#E5E9F0", mutedForeground: "#4C566A", accent: "#D8DEE9", accentForeground: "#2E3440", destructive: "#BF616A", destructiveForeground: "#FFFFFF", border: "#D8DEE9", input: "#D8DEE9", ring: "#5E81AC" } },
+	{ name: "midnight-dark", label: "Midnight Indigo", colors: { background: "#090B1E", foreground: "#FFFFFF", card: "#131840", cardForeground: "#FFFFFF", primary: "#6366F1", primaryForeground: "#FFFFFF", secondary: "#131840", secondaryForeground: "#FFFFFF", muted: "#131840", mutedForeground: "#A5B4FC", accent: "#3730A3", accentForeground: "#FFFFFF", destructive: "#7F1D1D", destructiveForeground: "#FFFFFF", border: "#232B5E", input: "#232B5E", ring: "#6366F1" } },
+	{ name: "midnight-light", label: "Midnight Light", colors: { background: "#EEF2FF", foreground: "#0F172A", card: "#FFFFFF", cardForeground: "#0F172A", primary: "#4F46E5", primaryForeground: "#FFFFFF", secondary: "#E0E7FF", secondaryForeground: "#0F172A", muted: "#EEF2FF", mutedForeground: "#6366F1", accent: "#E0E7FF", accentForeground: "#0F172A", destructive: "#EF4444", destructiveForeground: "#FFFFFF", border: "#C7D2FE", input: "#C7D2FE", ring: "#6366F1" } },
+	{ name: "dracula-dark", label: "Dracula", colors: { background: "#282A36", foreground: "#F8F8F2", card: "#343746", cardForeground: "#F8F8F2", primary: "#BD93F9", primaryForeground: "#282A36", secondary: "#343746", secondaryForeground: "#F8F8F2", muted: "#343746", mutedForeground: "#6272A4", accent: "#FF79C6", accentForeground: "#282A36", destructive: "#FF5555", destructiveForeground: "#F8F8F2", border: "#44475A", input: "#44475A", ring: "#BD93F9" } },
+	{ name: "monokai-dark", label: "Monokai", colors: { background: "#272822", foreground: "#F8F8F2", card: "#3D3E34", cardForeground: "#F8F8F2", primary: "#A6E22E", primaryForeground: "#272822", secondary: "#3D3E34", secondaryForeground: "#F8F8F2", muted: "#3D3E34", mutedForeground: "#75715E", accent: "#F92672", accentForeground: "#F8F8F2", destructive: "#F92672", destructiveForeground: "#F8F8F2", border: "#49483E", input: "#49483E", ring: "#A6E22E" } },
+	{ name: "catppuccin-dark", label: "Catppuccin Mocha", colors: { background: "#1E1E2E", foreground: "#CDD6F4", card: "#313244", cardForeground: "#CDD6F4", primary: "#CBA6F7", primaryForeground: "#1E1E2E", secondary: "#313244", secondaryForeground: "#CDD6F4", muted: "#313244", mutedForeground: "#6C7086", accent: "#89B4FA", accentForeground: "#1E1E2E", destructive: "#F38BA8", destructiveForeground: "#1E1E2E", border: "#45475A", input: "#45475A", ring: "#CBA6F7" } },
+	{ name: "gruvbox-dark", label: "Gruvbox Dark", colors: { background: "#282828", foreground: "#EBDBB2", card: "#3C3836", cardForeground: "#EBDBB2", primary: "#FABD2F", primaryForeground: "#282828", secondary: "#3C3836", secondaryForeground: "#EBDBB2", muted: "#3C3836", mutedForeground: "#A89984", accent: "#83A598", accentForeground: "#282828", destructive: "#FB4934", destructiveForeground: "#EBDBB2", border: "#504945", input: "#504945", ring: "#FABD2F" } },
+	{ name: "gruvbox-light", label: "Gruvbox Light", colors: { background: "#FBF1C7", foreground: "#3C3836", card: "#EBDBB2", cardForeground: "#3C3836", primary: "#D79921", primaryForeground: "#FBF1C7", secondary: "#EBDBB2", secondaryForeground: "#3C3836", muted: "#EBDBB2", mutedForeground: "#7C6F64", accent: "#076678", accentForeground: "#FBF1C7", destructive: "#CC241D", destructiveForeground: "#FBF1C7", border: "#D5C4A1", input: "#D5C4A1", ring: "#D79921" } },
+	{ name: "tokyo-night-dark", label: "Tokyo Night", colors: { background: "#1A1B26", foreground: "#C0CAF5", card: "#24283B", cardForeground: "#C0CAF5", primary: "#7AA2F7", primaryForeground: "#1A1B26", secondary: "#24283B", secondaryForeground: "#C0CAF5", muted: "#24283B", mutedForeground: "#565F89", accent: "#BB9AF7", accentForeground: "#1A1B26", destructive: "#F7768E", destructiveForeground: "#1A1B26", border: "#292E42", input: "#292E42", ring: "#7AA2F7" } },
+	{ name: "everforest-dark", label: "Everforest Dark", colors: { background: "#2B3339", foreground: "#D3C6AA", card: "#343F44", cardForeground: "#D3C6AA", primary: "#A7C080", primaryForeground: "#2B3339", secondary: "#343F44", secondaryForeground: "#D3C6AA", muted: "#343F44", mutedForeground: "#859289", accent: "#84A598", accentForeground: "#2B3339", destructive: "#E67E80", destructiveForeground: "#D3C6AA", border: "#3D484D", input: "#3D484D", ring: "#A7C080" } },
+	{ name: "everforest-light", label: "Everforest Light", colors: { background: "#FDF6E3", foreground: "#5C6A72", card: "#F2EFDF", cardForeground: "#5C6A72", primary: "#8DA101", primaryForeground: "#FDF6E3", secondary: "#F2EFDF", secondaryForeground: "#5C6A72", muted: "#F2EFDF", mutedForeground: "#829184", accent: "#3A94C5", accentForeground: "#FDF6E3", destructive: "#EB5757", destructiveForeground: "#FDF6E3", border: "#E0DCC7", input: "#E0DCC7", ring: "#8DA101" } },
+	{ name: "rose-pine-dark", label: "Rosé Pine", colors: { background: "#191724", foreground: "#E0DEF4", card: "#26233A", cardForeground: "#E0DEF4", primary: "#EBBCBA", primaryForeground: "#191724", secondary: "#26233A", secondaryForeground: "#E0DEF4", muted: "#26233A", mutedForeground: "#908CAA", accent: "#31748F", accentForeground: "#191724", destructive: "#EB6F92", destructiveForeground: "#E0DEF4", border: "#312E42", input: "#312E42", ring: "#EBBCBA" } },
+	{ name: "solarized-dark", label: "Solarized Dark", colors: { background: "#002B36", foreground: "#839496", card: "#073642", cardForeground: "#839496", primary: "#268BD2", primaryForeground: "#FDF6E3", secondary: "#073642", secondaryForeground: "#839496", muted: "#073642", mutedForeground: "#586E75", accent: "#2AA198", accentForeground: "#FDF6E3", destructive: "#DC322F", destructiveForeground: "#FDF6E3", border: "#586E75", input: "#586E75", ring: "#268BD2" } },
+	{ name: "solarized-light", label: "Solarized Light", colors: { background: "#FDF6E3", foreground: "#657B83", card: "#EEE8D5", cardForeground: "#657B83", primary: "#268BD2", primaryForeground: "#FDF6E3", secondary: "#EEE8D5", secondaryForeground: "#657B83", muted: "#EEE8D5", mutedForeground: "#93A1A1", accent: "#2AA198", accentForeground: "#FDF6E3", destructive: "#DC322F", destructiveForeground: "#FDF6E3", border: "#D3CBB4", input: "#D3CBB4", ring: "#268BD2" } },
+	{ name: "one-dark", label: "One Dark", colors: { background: "#282C34", foreground: "#ABB2BF", card: "#353A44", cardForeground: "#ABB2BF", primary: "#61AFEF", primaryForeground: "#282C34", secondary: "#353A44", secondaryForeground: "#ABB2BF", muted: "#353A44", mutedForeground: "#5C6370", accent: "#E5C07B", accentForeground: "#282C34", destructive: "#E06C75", destructiveForeground: "#282C34", border: "#3E4451", input: "#3E4451", ring: "#61AFEF" } },
+	{ name: "one-light", label: "One Light", colors: { background: "#FAFAFA", foreground: "#383A42", card: "#FFFFFF", cardForeground: "#383A42", primary: "#4078F2", primaryForeground: "#FFFFFF", secondary: "#F0F0F0", secondaryForeground: "#383A42", muted: "#F0F0F0", mutedForeground: "#A0A1A7", accent: "#E45649", accentForeground: "#FFFFFF", destructive: "#CA1243", destructiveForeground: "#FFFFFF", border: "#DBDBDC", input: "#DBDBDC", ring: "#4078F2" } },
+	{ name: "github-dark", label: "GitHub Dark", colors: { background: "#0D1117", foreground: "#C9D1D9", card: "#161B22", cardForeground: "#C9D1D9", primary: "#58A6FF", primaryForeground: "#0D1117", secondary: "#161B22", secondaryForeground: "#C9D1D9", muted: "#161B22", mutedForeground: "#8B949E", accent: "#F78166", accentForeground: "#0D1117", destructive: "#F85149", destructiveForeground: "#0D1117", border: "#30363D", input: "#30363D", ring: "#58A6FF" } },
+	{ name: "github-light", label: "GitHub Light", colors: { background: "#FFFFFF", foreground: "#24292F", card: "#F6F8FA", cardForeground: "#24292F", primary: "#0969DA", primaryForeground: "#FFFFFF", secondary: "#F6F8FA", secondaryForeground: "#24292F", muted: "#F6F8FA", mutedForeground: "#656D76", accent: "#CF222E", accentForeground: "#FFFFFF", destructive: "#CF222E", destructiveForeground: "#FFFFFF", border: "#D0D7DE", input: "#D0D7DE", ring: "#0969DA" } },
+	{ name: "ayu-dark", label: "Ayu Dark", colors: { background: "#0A0E14", foreground: "#B3B1AD", card: "#131721", cardForeground: "#B3B1AD", primary: "#FFB454", primaryForeground: "#0A0E14", secondary: "#131721", secondaryForeground: "#B3B1AD", muted: "#131721", mutedForeground: "#5C6773", accent: "#59C2FF", accentForeground: "#0A0E14", destructive: "#FF8F40", destructiveForeground: "#0A0E14", border: "#1E2531", input: "#1E2531", ring: "#FFB454" } },
+	{ name: "ayu-light", label: "Ayu Light", colors: { background: "#FAFAFA", foreground: "#575F66", card: "#FFFFFF", cardForeground: "#575F66", primary: "#FF6A00", primaryForeground: "#FFFFFF", secondary: "#F0F0F0", secondaryForeground: "#575F66", muted: "#F0F0F0", mutedForeground: "#8A9199", accent: "#55B4D4", accentForeground: "#FFFFFF", destructive: "#F27983", destructiveForeground: "#FFFFFF", border: "#D9D8D7", input: "#D9D8D7", ring: "#FF6A00" } },
+	{ name: "kanagawa-dark", label: "Kanagawa", colors: { background: "#1F1F28", foreground: "#DCD7BA", card: "#2A2A37", cardForeground: "#DCD7BA", primary: "#7E9CD8", primaryForeground: "#1F1F28", secondary: "#2A2A37", secondaryForeground: "#DCD7BA", muted: "#2A2A37", mutedForeground: "#54546D", accent: "#C34043", accentForeground: "#1F1F28", destructive: "#E82424", destructiveForeground: "#DCD7BA", border: "#363646", input: "#363646", ring: "#7E9CD8" } },
+	{ name: "kanagawa-light", label: "Kanagawa Light", colors: { background: "#F2ECBC", foreground: "#69604D", card: "#E8E0B6", cardForeground: "#69604D", primary: "#5E81AC", primaryForeground: "#F2ECBC", secondary: "#E8E0B6", secondaryForeground: "#69604D", muted: "#E8E0B6", mutedForeground: "#A69460", accent: "#C34043", accentForeground: "#F2ECBC", destructive: "#E82424", destructiveForeground: "#F2ECBC", border: "#D5CDA4", input: "#D5CDA4", ring: "#5E81AC" } },
+	{ name: "zenburn-dark", label: "Zenburn", colors: { background: "#3F3F3F", foreground: "#DCDCCC", card: "#4A4A4A", cardForeground: "#DCDCCC", primary: "#8CD0D3", primaryForeground: "#3F3F3F", secondary: "#4A4A4A", secondaryForeground: "#DCDCCC", muted: "#4A4A4A", mutedForeground: "#7F9F7F", accent: "#FFCFAF", accentForeground: "#3F3F3F", destructive: "#CC9393", destructiveForeground: "#3F3F3F", border: "#505050", input: "#505050", ring: "#8CD0D3" } },
+	{ name: "material-dark", label: "Material Dark", colors: { background: "#263238", foreground: "#EEFFFF", card: "#37474F", cardForeground: "#EEFFFF", primary: "#82AAFF", primaryForeground: "#263238", secondary: "#37474F", secondaryForeground: "#EEFFFF", muted: "#37474F", mutedForeground: "#546E7A", accent: "#C792EA", accentForeground: "#263238", destructive: "#FF5370", destructiveForeground: "#EEFFFF", border: "#465A64", input: "#465A64", ring: "#82AAFF" } },
+	{ name: "material-light", label: "Material Light", colors: { background: "#FAFAFA", foreground: "#546E7A", card: "#FFFFFF", cardForeground: "#546E7A", primary: "#2E7D32", primaryForeground: "#FFFFFF", secondary: "#F5F5F5", secondaryForeground: "#546E7A", muted: "#F5F5F5", mutedForeground: "#90A4AE", accent: "#7C4DFF", accentForeground: "#FFFFFF", destructive: "#D32F2F", destructiveForeground: "#FFFFFF", border: "#E0E0E0", input: "#E0E0E0", ring: "#2E7D32" } },
+	{ name: "palenight-dark", label: "Palenight", colors: { background: "#292D3E", foreground: "#BFC7D5", card: "#303348", cardForeground: "#BFC7D5", primary: "#C792EA", primaryForeground: "#292D3E", secondary: "#303348", secondaryForeground: "#BFC7D5", muted: "#303348", mutedForeground: "#676E95", accent: "#82AAFF", accentForeground: "#292D3E", destructive: "#FF5370", destructiveForeground: "#292D3E", border: "#404560", input: "#404560", ring: "#C792EA" } },
+	{ name: "darcula-dark", label: "Darcula", colors: { background: "#2B2B2B", foreground: "#A9B7C6", card: "#3C3F41", cardForeground: "#A9B7C6", primary: "#CC7832", primaryForeground: "#2B2B2B", secondary: "#3C3F41", secondaryForeground: "#A9B7C6", muted: "#3C3F41", mutedForeground: "#6A7C8E", accent: "#6897BB", accentForeground: "#2B2B2B", destructive: "#E95353", destructiveForeground: "#2B2B2B", border: "#4B4E50", input: "#4B4E50", ring: "#CC7832" } },
+	{ name: "cobalt2-dark", label: "Cobalt2", colors: { background: "#193549", foreground: "#FFFFFF", card: "#1F4060", cardForeground: "#FFFFFF", primary: "#FFC600", primaryForeground: "#193549", secondary: "#1F4060", secondaryForeground: "#FFFFFF", muted: "#1F4060", mutedForeground: "#5A7D95", accent: "#FF628C", accentForeground: "#193549", destructive: "#FF628C", destructiveForeground: "#193549", border: "#2C5676", input: "#2C5676", ring: "#FFC600" } },
+	{ name: "night-owl-dark", label: "Night Owl", colors: { background: "#011627", foreground: "#D6DEEB", card: "#0B2942", cardForeground: "#D6DEEB", primary: "#82AAFF", primaryForeground: "#011627", secondary: "#0B2942", secondaryForeground: "#D6DEEB", muted: "#0B2942", mutedForeground: "#5F7E97", accent: "#C792EA", accentForeground: "#011627", destructive: "#EF5350", destructiveForeground: "#011627", border: "#1D3B53", input: "#1D3B53", ring: "#82AAFF" } },
+	{ name: "horizon-dark", label: "Horizon", colors: { background: "#1C1E26", foreground: "#DBD6D2", card: "#252834", cardForeground: "#DBD6D2", primary: "#E95678", primaryForeground: "#1C1E26", secondary: "#252834", secondaryForeground: "#DBD6D2", muted: "#252834", mutedForeground: "#6C6F93", accent: "#FAC29A", accentForeground: "#1C1E26", destructive: "#E95678", destructiveForeground: "#FDF0ED", border: "#2E303E", input: "#2E303E", ring: "#E95678" } },
+	{ name: "synthwave-dark", label: "Synthwave '84", colors: { background: "#262335", foreground: "#E0E0E0", card: "#34294F", cardForeground: "#E0E0E0", primary: "#F92AAD", primaryForeground: "#FFFFFF", secondary: "#34294F", secondaryForeground: "#E0E0E0", muted: "#34294F", mutedForeground: "#848BBD", accent: "#36F9F6", accentForeground: "#262335", destructive: "#FF8B39", destructiveForeground: "#FFFFFF", border: "#495495", input: "#495495", ring: "#F92AAD" } },
+	{ name: "shades-of-purple-dark", label: "Shades of Purple", colors: { background: "#2D2B55", foreground: "#FFFFFF", card: "#3A375D", cardForeground: "#FFFFFF", primary: "#FAD000", primaryForeground: "#2D2B55", secondary: "#3A375D", secondaryForeground: "#FFFFFF", muted: "#3A375D", mutedForeground: "#A599E9", accent: "#9E86FF", accentForeground: "#2D2B55", destructive: "#FF628C", destructiveForeground: "#FFFFFF", border: "#554D8C", input: "#554D8C", ring: "#FAD000" } },
+	{ name: "oceanic-next-dark", label: "Oceanic Next", colors: { background: "#1B2B34", foreground: "#CDD3DE", card: "#243D4A", cardForeground: "#CDD3DE", primary: "#EC5F67", primaryForeground: "#FFFFFF", secondary: "#243D4A", secondaryForeground: "#CDD3DE", muted: "#243D4A", mutedForeground: "#65737E", accent: "#6699CC", accentForeground: "#1B2B34", destructive: "#EC5F67", destructiveForeground: "#FFFFFF", border: "#304C5A", input: "#304C5A", ring: "#EC5F67" } },
+	{ name: "panda-dark", label: "Panda", colors: { background: "#292A2B", foreground: "#E6E6E6", card: "#313335", cardForeground: "#E6E6E6", primary: "#19F9D8", primaryForeground: "#292A2B", secondary: "#313335", secondaryForeground: "#E6E6E6", muted: "#313335", mutedForeground: "#6B6C6D", accent: "#FF6C6B", accentForeground: "#292A2B", destructive: "#FF6C6B", destructiveForeground: "#292A2B", border: "#444648", input: "#444648", ring: "#19F9D8" } },
+	{ name: "cyberpunk-dark", label: "Cyberpunk", colors: { background: "#0D0A1A", foreground: "#FFFFFF", card: "#1A1533", cardForeground: "#FFFFFF", primary: "#FF007F", primaryForeground: "#FFFFFF", secondary: "#1A1533", secondaryForeground: "#FFFFFF", muted: "#1A1533", mutedForeground: "#8880B8", accent: "#00F0FF", accentForeground: "#0D0A1A", destructive: "#FF3333", destructiveForeground: "#FFFFFF", border: "#332D66", input: "#332D66", ring: "#FF007F" } },
+	{ name: "obsidian-dark", label: "Obsidian", colors: { background: "#0C0C0F", foreground: "#EBEBEB", card: "#18181F", cardForeground: "#EBEBEB", primary: "#8B5CF6", primaryForeground: "#FFFFFF", secondary: "#18181F", secondaryForeground: "#EBEBEB", muted: "#18181F", mutedForeground: "#6B6B7B", accent: "#10B981", accentForeground: "#0C0C0F", destructive: "#EF4444", destructiveForeground: "#FFFFFF", border: "#2A2A33", input: "#2A2A33", ring: "#8B5CF6" } },
+	{ name: "arc-dark", label: "Arc Dark", colors: { background: "#2F343F", foreground: "#D3DAE3", card: "#383C4A", cardForeground: "#D3DAE3", primary: "#5294E2", primaryForeground: "#2F343F", secondary: "#383C4A", secondaryForeground: "#D3DAE3", muted: "#383C4A", mutedForeground: "#7C818C", accent: "#C678DD", accentForeground: "#2F343F", destructive: "#E06C75", destructiveForeground: "#2F343F", border: "#404552", input: "#404552", ring: "#5294E2" } },
+	{ name: "noctis-dark", label: "Noctis", colors: { background: "#1E2430", foreground: "#D3D8E0", card: "#293141", cardForeground: "#D3D8E0", primary: "#7CB7FF", primaryForeground: "#1E2430", secondary: "#293141", secondaryForeground: "#D3D8E0", muted: "#293141", mutedForeground: "#5C6678", accent: "#49ACCA", accentForeground: "#1E2430", destructive: "#FF8282", destructiveForeground: "#1E2430", border: "#323B4F", input: "#323B4F", ring: "#7CB7FF" } },
+	{ name: "blush-dark", label: "Blush Dark", colors: { background: "#1E151F", foreground: "#FFFFFF", card: "#2A1F2B", cardForeground: "#FFFFFF", primary: "#D18EA6", primaryForeground: "#1E151F", secondary: "#2A1F2B", secondaryForeground: "#FFFFFF", muted: "#2A1F2B", mutedForeground: "#A98A99", accent: "#8B6B82", accentForeground: "#FFFFFF", destructive: "#C7344B", destructiveForeground: "#FFFFFF", border: "#3B2B3C", input: "#3B2B3C", ring: "#D18EA6" } },
+	{ name: "blush-light", label: "Blush Light", colors: { background: "#FFF5F7", foreground: "#2C1A24", card: "#FFFFFF", cardForeground: "#2C1A24", primary: "#C5657C", primaryForeground: "#FFFFFF", secondary: "#FDE8EC", secondaryForeground: "#2C1A24", muted: "#FFF5F7", mutedForeground: "#9D7B87", accent: "#FDE8EC", accentForeground: "#2C1A24", destructive: "#E74C3C", destructiveForeground: "#FFFFFF", border: "#F0D4DC", input: "#F0D4DC", ring: "#C5657C" } },
+	{ name: "sand-dark", label: "Sand Dark", colors: { background: "#1D1A14", foreground: "#FFFFFF", card: "#29251B", cardForeground: "#FFFFFF", primary: "#D4A96A", primaryForeground: "#1D1A14", secondary: "#29251B", secondaryForeground: "#FFFFFF", muted: "#29251B", mutedForeground: "#8C8269", accent: "#7B6640", accentForeground: "#FFFFFF", destructive: "#B3463D", destructiveForeground: "#FFFFFF", border: "#3D3526", input: "#3D3526", ring: "#D4A96A" } },
+	{ name: "sand-light", label: "Sand Light", colors: { background: "#FDFBF7", foreground: "#3D3627", card: "#FFFFFF", cardForeground: "#3D3627", primary: "#B8914A", primaryForeground: "#FFFFFF", secondary: "#F5F0E5", secondaryForeground: "#3D3627", muted: "#FDFBF7", mutedForeground: "#8C8269", accent: "#F5F0E5", accentForeground: "#3D3627", destructive: "#D95040", destructiveForeground: "#FFFFFF", border: "#E5DCC8", input: "#E5DCC8", ring: "#B8914A" } },
+	{ name: "sky-dark", label: "Sky Dark", colors: { background: "#0A1628", foreground: "#FFFFFF", card: "#142440", cardForeground: "#FFFFFF", primary: "#38BDF8", primaryForeground: "#0A1628", secondary: "#142440", secondaryForeground: "#FFFFFF", muted: "#142440", mutedForeground: "#7AAED6", accent: "#0284C7", accentForeground: "#FFFFFF", destructive: "#C0392B", destructiveForeground: "#FFFFFF", border: "#1D3A5C", input: "#1D3A5C", ring: "#38BDF8" } },
+	{ name: "sky-light", label: "Sky Light", colors: { background: "#F0F9FF", foreground: "#0F172A", card: "#FFFFFF", cardForeground: "#0F172A", primary: "#0284C7", primaryForeground: "#FFFFFF", secondary: "#E0F2FE", secondaryForeground: "#0F172A", muted: "#F0F9FF", mutedForeground: "#38BDF8", accent: "#E0F2FE", accentForeground: "#0F172A", destructive: "#E74C3C", destructiveForeground: "#FFFFFF", border: "#BAE6FD", input: "#BAE6FD", ring: "#0EA5E9" } },
+	{ name: "plum-dark", label: "Plum Dark", colors: { background: "#1A1423", foreground: "#FFFFFF", card: "#261F33", cardForeground: "#FFFFFF", primary: "#C084FC", primaryForeground: "#1A1423", secondary: "#261F33", secondaryForeground: "#FFFFFF", muted: "#261F33", mutedForeground: "#A491C1", accent: "#6B21A8", accentForeground: "#FFFFFF", destructive: "#B91C1C", destructiveForeground: "#FFFFFF", border: "#3B2E4F", input: "#3B2E4F", ring: "#C084FC" } },
+	{ name: "plum-light", label: "Plum Light", colors: { background: "#FDF4FF", foreground: "#1A1423", card: "#FFFFFF", cardForeground: "#1A1423", primary: "#9333EA", primaryForeground: "#FFFFFF", secondary: "#FAE8FF", secondaryForeground: "#1A1423", muted: "#FDF4FF", mutedForeground: "#C084FC", accent: "#FAE8FF", accentForeground: "#1A1423", destructive: "#E11D48", destructiveForeground: "#FFFFFF", border: "#E9D5FF", input: "#E9D5FF", ring: "#A855F7" } },
+	{ name: "crimson-dark", label: "Crimson Dark", colors: { background: "#1B0D0F", foreground: "#FFFFFF", card: "#2A1518", cardForeground: "#FFFFFF", primary: "#EF4444", primaryForeground: "#FFFFFF", secondary: "#2A1518", secondaryForeground: "#FFFFFF", muted: "#2A1518", mutedForeground: "#C9818A", accent: "#991B1B", accentForeground: "#FFFFFF", destructive: "#DC2626", destructiveForeground: "#FFFFFF", border: "#441F22", input: "#441F22", ring: "#EF4444" } },
+	{ name: "crimson-light", label: "Crimson Light", colors: { background: "#FEF2F2", foreground: "#1B0D0F", card: "#FFFFFF", cardForeground: "#1B0D0F", primary: "#DC2626", primaryForeground: "#FFFFFF", secondary: "#FEE2E2", secondaryForeground: "#1B0D0F", muted: "#FEF2F2", mutedForeground: "#F87171", accent: "#FEE2E2", accentForeground: "#1B0D0F", destructive: "#B91C1C", destructiveForeground: "#FFFFFF", border: "#FECACA", input: "#FECACA", ring: "#EF4444" } },
+	{ name: "lime-dark", label: "Lime Dark", colors: { background: "#0F1A0B", foreground: "#FFFFFF", card: "#1A2C15", cardForeground: "#FFFFFF", primary: "#84CC16", primaryForeground: "#0F1A0B", secondary: "#1A2C15", secondaryForeground: "#FFFFFF", muted: "#1A2C15", mutedForeground: "#8AB860", accent: "#4D7C0F", accentForeground: "#FFFFFF", destructive: "#B91C1C", destructiveForeground: "#FFFFFF", border: "#253B1E", input: "#253B1E", ring: "#84CC16" } },
+	{ name: "lime-light", label: "Lime Light", colors: { background: "#F7FEE7", foreground: "#0F1A0B", card: "#FFFFFF", cardForeground: "#0F1A0B", primary: "#65A30D", primaryForeground: "#FFFFFF", secondary: "#ECFCCB", secondaryForeground: "#0F1A0B", muted: "#F7FEE7", mutedForeground: "#84CC16", accent: "#ECFCCB", accentForeground: "#0F1A0B", destructive: "#DC2626", destructiveForeground: "#FFFFFF", border: "#D9F99D", input: "#D9F99D", ring: "#84CC16" } },
+	{ name: "orchid-dark", label: "Orchid Dark", colors: { background: "#15111B", foreground: "#FFFFFF", card: "#211C2C", cardForeground: "#FFFFFF", primary: "#D946EF", primaryForeground: "#FFFFFF", secondary: "#211C2C", secondaryForeground: "#FFFFFF", muted: "#211C2C", mutedForeground: "#B89ECF", accent: "#86198F", accentForeground: "#FFFFFF", destructive: "#BE123C", destructiveForeground: "#FFFFFF", border: "#342B44", input: "#342B44", ring: "#D946EF" } },
+	{ name: "orchid-light", label: "Orchid Light", colors: { background: "#FDF4FF", foreground: "#15111B", card: "#FFFFFF", cardForeground: "#15111B", primary: "#A21CAF", primaryForeground: "#FFFFFF", secondary: "#FAE8FF", secondaryForeground: "#15111B", muted: "#FDF4FF", mutedForeground: "#D946EF", accent: "#FAE8FF", accentForeground: "#15111B", destructive: "#E11D48", destructiveForeground: "#FFFFFF", border: "#F0ABFC", input: "#F0ABFC", ring: "#D946EF" } },
+	{ name: "teal-dark", label: "Teal Dark", colors: { background: "#081A17", foreground: "#FFFFFF", card: "#0F2D26", cardForeground: "#FFFFFF", primary: "#14B8A6", primaryForeground: "#081A17", secondary: "#0F2D26", secondaryForeground: "#FFFFFF", muted: "#0F2D26", mutedForeground: "#5EEAD4", accent: "#0F766E", accentForeground: "#FFFFFF", destructive: "#B91C1C", destructiveForeground: "#FFFFFF", border: "#1C4037", input: "#1C4037", ring: "#14B8A6" } },
+	{ name: "teal-light", label: "Teal Light", colors: { background: "#F0FDFA", foreground: "#081A17", card: "#FFFFFF", cardForeground: "#081A17", primary: "#0D9488", primaryForeground: "#FFFFFF", secondary: "#CCFBF1", secondaryForeground: "#081A17", muted: "#F0FDFA", mutedForeground: "#14B8A6", accent: "#CCFBF1", accentForeground: "#081A17", destructive: "#DC2626", destructiveForeground: "#FFFFFF", border: "#99F6E4", input: "#99F6E4", ring: "#14B8A6" } },
+	{ name: "charcoal-dark", label: "Charcoal", colors: { background: "#121214", foreground: "#CCCCCC", card: "#1E1E20", cardForeground: "#CCCCCC", primary: "#4B9CD3", primaryForeground: "#FFFFFF", secondary: "#1E1E20", secondaryForeground: "#CCCCCC", muted: "#1E1E20", mutedForeground: "#6A6A6E", accent: "#3A6D8C", accentForeground: "#FFFFFF", destructive: "#CC3333", destructiveForeground: "#FFFFFF", border: "#2E2E32", input: "#2E2E32", ring: "#4B9CD3" } },
+	{ name: "coffee-dark", label: "Coffee Dark", colors: { background: "#1E1710", foreground: "#EDE0D4", card: "#2B2018", cardForeground: "#EDE0D4", primary: "#C49A6C", primaryForeground: "#1E1710", secondary: "#2B2018", secondaryForeground: "#EDE0D4", muted: "#2B2018", mutedForeground: "#8C7A69", accent: "#7B5B3A", accentForeground: "#FFFFFF", destructive: "#B95646", destructiveForeground: "#FFFFFF", border: "#3D2E22", input: "#3D2E22", ring: "#C49A6C" } },
+	{ name: "coffee-light", label: "Coffee Light", colors: { background: "#FBF7F2", foreground: "#4A3728", card: "#FFFFFF", cardForeground: "#4A3728", primary: "#A67B5B", primaryForeground: "#FFFFFF", secondary: "#F3EBE1", secondaryForeground: "#4A3728", muted: "#FBF7F2", mutedForeground: "#8C7A69", accent: "#F3EBE1", accentForeground: "#4A3728", destructive: "#D64B3B", destructiveForeground: "#FFFFFF", border: "#E4D5C3", input: "#E4D5C3", ring: "#A67B5B" } },
+	{ name: "frost-dark", label: "Frost Dark", colors: { background: "#0F1923", foreground: "#FFFFFF", card: "#1A2B3F", cardForeground: "#FFFFFF", primary: "#7DD3FC", primaryForeground: "#0F1923", secondary: "#1A2B3F", secondaryForeground: "#FFFFFF", muted: "#1A2B3F", mutedForeground: "#8BB8D6", accent: "#0C4A6E", accentForeground: "#FFFFFF", destructive: "#B91C1C", destructiveForeground: "#FFFFFF", border: "#253E57", input: "#253E57", ring: "#7DD3FC" } },
+	{ name: "frost-light", label: "Frost Light", colors: { background: "#F0F9FF", foreground: "#0F1923", card: "#FFFFFF", cardForeground: "#0F1923", primary: "#0369A1", primaryForeground: "#FFFFFF", secondary: "#E0F2FE", secondaryForeground: "#0F1923", muted: "#F0F9FF", mutedForeground: "#7DD3FC", accent: "#E0F2FE", accentForeground: "#0F1923", destructive: "#DC2626", destructiveForeground: "#FFFFFF", border: "#BAE6FD", input: "#BAE6FD", ring: "#0EA5E9" } },
+	{ name: "everglow-dark", label: "Everglow Dark", colors: { background: "#121212", foreground: "#E8E6E3", card: "#202020", cardForeground: "#E8E6E3", primary: "#BB86FC", primaryForeground: "#121212", secondary: "#202020", secondaryForeground: "#E8E6E3", muted: "#202020", mutedForeground: "#908E8B", accent: "#03DAC5", accentForeground: "#121212", destructive: "#CF6679", destructiveForeground: "#121212", border: "#333333", input: "#333333", ring: "#BB86FC" } },
 ]
