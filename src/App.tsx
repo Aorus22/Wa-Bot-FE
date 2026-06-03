@@ -33,6 +33,7 @@ function AppRoutes() {
 		<Routes>
 			<Route element={<AppLayout />}>
 				<Route path="/chat" element={<ChatPage />} />
+				<Route path="/chat/:id" element={<ChatPage />} />
 				<Route path="/cron" element={<CronManagementPage />} />
 				<Route path="/cron/new" element={<CronEditorPage />} />
 				<Route path="/cron/:id" element={<CronEditorPage />} />

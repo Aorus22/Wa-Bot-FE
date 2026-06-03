@@ -4,14 +4,15 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { NavigationSidebar } from "./NavigationSidebar"
 import { cn } from "@/lib/utils"
 import { MessageSquare, Bot, Clock, Globe, FileText, Settings } from "lucide-react"
-import { ChatDetailContext } from "@/contexts/ChatDetailContext"
 
 export function AppLayout() {
 	const isMobileView = useIsMobile()
 	const location = useLocation()
 	const navigate = useNavigate()
 	const [autoOpen, setAutoOpen] = useState(false)
-	const [chatDetailOpen, setChatDetailOpen] = useState(false)
+
+	// Hide mobile nav on detail pages (paths with 3+ segments except /new)
+	const isDetailPage = location.pathname.split("/").filter(Boolean).length > 1 && !location.pathname.endsWith("/new") && !location.pathname.endsWith("/logs")
 
 	const isActive = (path: string) => location.pathname.startsWith(path)
 	const isAutoActive = isActive("/triggers") || isActive("/cron") || isActive("/webhooks") || isActive("/documentation")
@@ -32,13 +33,11 @@ export function AppLayout() {
 					)}
 
 					<div className="flex-1 flex flex-col min-h-0 w-full overflow-hidden">
-						<ChatDetailContext.Provider value={{ setChatDetailOpen }}>
-							<Outlet />
-						</ChatDetailContext.Provider>
+						<Outlet />
 					</div>
 				</div>
 
-				{isMobileView && !chatDetailOpen && (
+				{isMobileView && !isDetailPage && (
 					<>
 						{/* Bottom Sheet Overlay */}
 						{autoOpen && (

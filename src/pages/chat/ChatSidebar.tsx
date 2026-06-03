@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils"
 interface ChatSidebarProps {
     selectedChatId: string | null
     onChatSelect: (chat: Chat) => void
+    onChatsLoaded?: (chats: Chat[]) => void
     chatUpdate?: { 
         chatId: string; 
         lastMsg: string; 
@@ -37,6 +38,7 @@ const getAvatarUrl = (chat: Chat): string | undefined => {
 export const ChatSidebar = memo(({
     selectedChatId,
     onChatSelect,
+    onChatsLoaded,
     chatUpdate,
     className,
 }: ChatSidebarProps) => {
@@ -127,7 +129,9 @@ export const ChatSidebar = memo(({
             // Deduplicate to avoid rendering issues
             const chatMap = new Map();
             (data || []).forEach(chat => chatMap.set(chat.id, chat));
-            setChats(Array.from(chatMap.values()))
+            const deduped = Array.from(chatMap.values())
+            setChats(deduped)
+            onChatsLoaded?.(deduped)
         } catch (error) {
             console.error("Failed to load chats:", error)
             setChats([])

@@ -1,101 +1,90 @@
 import { useState, useCallback, useEffect, useRef } from "react"
 import { MessageSquare } from "lucide-react"
+import { useParams, useNavigate } from "react-router-dom"
 import { ChatSidebar } from "./ChatSidebar"
 import { ChatArea } from "./ChatArea"
 import { cn } from "@/lib/utils"
-import type { Chat, Message } from "@/lib/api"
+import { type Chat, type Message } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { useChatDetail } from "@/contexts/ChatDetailContext"
 
 export function ChatPage() {
 	const isMobileView = useIsMobile()
-	const { incomingMessage, chatUpdate, statusUpdate, isLoggedIn, isConnected } = useAuth()
-	const { setChatDetailOpen } = useChatDetail()
+	const navigate = useNavigate()
+	const { id: chatId } = useParams<{ id: string }>()
+	const { incomingMessage, chatUpdate, statusUpdate, isLoggedIn } = useAuth()
 	const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
+	const [chats, setChats] = useState<Chat[]>([])
 	const [showSidebar, setShowSidebar] = useState(true)
 	const containerRef = useRef<HTMLDivElement>(null)
 
-	// Global message cache for the session
 	const messageCache = useRef<Record<string, { messages: Message[], hasMore: boolean }>>({})
 
-	const updateMessageCache = useCallback((chatId: string, messages: Message[], hasMore: boolean) => {
-		messageCache.current[chatId] = { messages, hasMore }
-	}, [])
+	// Auto-select chat from URL param when chats are loaded
+	useEffect(() => {
+		if (chatId && chats.length > 0) {
+			const found = chats.find(c => c.id === chatId)
+			if (found) {
+				setSelectedChat(found)
+				setShowSidebar(false)
+			}
+		} else if (!chatId) {
+			setSelectedChat(null)
+			setShowSidebar(true)
+		}
+	}, [chatId, chats])
 
-	// Manual resizing state
-	const [sidebarWidth, setSidebarWidth] = useState(400) // Default width in px
+	// Sidebar resize (desktop only)
+	const [sidebarWidth, setSidebarWidth] = useState(400)
 	const isResizing = useRef(false)
 	const [activeResizing, setActiveResizing] = useState(false)
-	const containerLeft = useRef(0)
 	const rafId = useRef<number | null>(null)
 
 	const startResizing = useCallback(() => {
 		isResizing.current = true
 		setActiveResizing(true)
-		if (containerRef.current) {
-			containerLeft.current = containerRef.current.getBoundingClientRect().left
-		}
-		document.body.style.cursor = "col-resize"
-		document.body.style.userSelect = "none"
 		document.body.classList.add("is-resizing")
 	}, [])
 
 	const stopResizing = useCallback(() => {
-		if (isResizing.current && containerRef.current) {
-			const currentWidth = parseInt(containerRef.current.style.getPropertyValue("--sidebar-width")) || sidebarWidth
-			setSidebarWidth(currentWidth)
-		}
 		isResizing.current = false
 		setActiveResizing(false)
-		document.body.style.cursor = ""
-		document.body.style.userSelect = ""
 		document.body.classList.remove("is-resizing")
-		if (rafId.current) {
-			cancelAnimationFrame(rafId.current)
-			rafId.current = null
-		}
-	}, [sidebarWidth])
+		if (rafId.current) { cancelAnimationFrame(rafId.current); rafId.current = null }
+	}, [])
 
 	const resize = useCallback((e: MouseEvent) => {
-		if (isResizing.current && containerRef.current) {
-			const newWidth = e.clientX - containerLeft.current
-			
-			// Limit between 250px and 80% of window width
-			if (newWidth > 250 && newWidth < window.innerWidth * 0.85) {
-				if (rafId.current) cancelAnimationFrame(rafId.current)
-				
-				rafId.current = requestAnimationFrame(() => {
-					if (containerRef.current) {
-						containerRef.current.style.setProperty("--sidebar-width", `${newWidth}px`)
-					}
-				})
-			}
-		}
+		if (!isResizing.current) return
+		if (rafId.current) return
+		rafId.current = requestAnimationFrame(() => {
+			const containerLeft = containerRef.current?.getBoundingClientRect().left ?? 0
+			const newWidth = Math.max(280, Math.min(600, e.clientX - containerLeft))
+			setSidebarWidth(newWidth)
+			rafId.current = null
+		})
 	}, [])
 
 	useEffect(() => {
+		if (!activeResizing) return
 		window.addEventListener("mousemove", resize)
 		window.addEventListener("mouseup", stopResizing)
 		return () => {
 			window.removeEventListener("mousemove", resize)
 			window.removeEventListener("mouseup", stopResizing)
 		}
-	}, [resize, stopResizing])
+	}, [resize, stopResizing, activeResizing])
 
 	const handleChatSelect = useCallback((chat: Chat) => {
-		setSelectedChat(chat)
-		setChatDetailOpen(true)
-		if (isMobileView) {
-			setShowSidebar(false)
-		}
-	}, [isMobileView, setChatDetailOpen])
+		navigate(`/chat/${chat.id}`)
+	}, [navigate])
 
 	const handleBack = useCallback(() => {
-		setShowSidebar(true)
-		setSelectedChat(null)
-		setChatDetailOpen(false)
-	}, [setChatDetailOpen])
+		navigate("/chat")
+	}, [navigate])
+
+	const updateMessageCache = useCallback((chatId: string, messages: Message[], hasMore: boolean) => {
+		messageCache.current[chatId] = { messages, hasMore }
+	}, [])
 
 	if (!isLoggedIn) {
 		return (
@@ -120,38 +109,21 @@ export function ChatPage() {
 						showSidebar ? "w-full absolute inset-0 z-40 bg-background" : "w-0 overflow-hidden"
 					)}
 				>
-					<ChatSidebar selectedChatId={selectedChat?.id || null} onChatSelect={handleChatSelect} chatUpdate={chatUpdate} />
+					<ChatSidebar selectedChatId={selectedChat?.id || null} onChatSelect={handleChatSelect} chatUpdate={chatUpdate} onChatsLoaded={setChats} />
 				</div>
 
 				<main className={cn("flex-1 h-full relative overflow-hidden bg-muted/30", showSidebar ? "hidden" : "flex")}>
-					{selectedChat ? (
+					{selectedChat && (
 						<ChatArea
 							chat={selectedChat}
+							onBack={handleBack}
 							incomingMessage={incomingMessage}
 							statusUpdate={statusUpdate}
-							onBack={handleBack}
-							className="w-full h-full"
 							cachedMessages={messageCache.current[selectedChat.id]?.messages}
 							cachedHasMore={messageCache.current[selectedChat.id]?.hasMore}
 							onCacheUpdate={(msgs, hasMore) => updateMessageCache(selectedChat.id, msgs, hasMore)}
+							className="w-full"
 						/>
-					) : (
-						<div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
-							<div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-								<svg className="w-10 h-10 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth={1.5}
-										d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-									/>
-								</svg>
-							</div>
-							<div className="space-y-2">
-								<h3 className="text-xl font-semibold tracking-tight">WhatsApp Web Bot</h3>
-								<p className="text-muted-foreground max-w-[280px]">Select a chat from the sidebar to start messaging. Your messages are synced in real-time.</p>
-							</div>
-						</div>
 					)}
 				</main>
 			</div>
@@ -159,15 +131,24 @@ export function ChatPage() {
 	}
 
 	return (
-		<div 
-			ref={containerRef} 
+		<div
+			ref={containerRef}
 			className="flex w-full h-full overflow-hidden bg-background relative"
 			style={{ "--sidebar-width": `${sidebarWidth}px` } as React.CSSProperties}
 		>
-			{/* Resize Overlay - Prevents iframe/component interference */}
 			{activeResizing && (
 				<div className="fixed inset-0 z-[100] cursor-col-resize" />
 			)}
+
+			{/* Resize handle */}
+			<div
+				className="absolute top-0 bottom-0 z-50 cursor-col-resize hover:bg-primary/10 transition-colors duration-200"
+				style={{
+					left: `calc(var(--sidebar-width) - 2px)`,
+					width: "6px",
+				}}
+				onMouseDown={startResizing}
+			/>
 
 			{/* Sidebar */}
 			<div
@@ -179,46 +160,30 @@ export function ChatPage() {
 					selectedChatId={selectedChat?.id || null}
 					onChatSelect={handleChatSelect}
 					chatUpdate={chatUpdate}
-					className="border-r-0"
+					onChatsLoaded={setChats}
 				/>
 			</div>
 
-			{/* Resize Handle */}
-			<div
-				onMouseDown={startResizing}
-				className="w-1 hover:w-1.5 bg-border/20 hover:bg-primary/40 active:bg-primary cursor-col-resize transition-all z-50 flex items-center justify-center group"
-			>
-				<div className="w-[2px] h-8 bg-border group-hover:bg-primary/50 rounded-full" />
-			</div>
-
-
-			{/* Main Chat Area */}
-			<main data-main-chat className="flex-1 h-full relative overflow-hidden bg-muted/30 flex">
+			{/* Main */}
+			<main data-main-chat className="flex-1 min-w-0 h-full">
 				{selectedChat ? (
 					<ChatArea
 						chat={selectedChat}
 						incomingMessage={incomingMessage}
 						statusUpdate={statusUpdate}
-						className="w-full h-full"
 						cachedMessages={messageCache.current[selectedChat.id]?.messages}
 						cachedHasMore={messageCache.current[selectedChat.id]?.hasMore}
 						onCacheUpdate={(msgs, hasMore) => updateMessageCache(selectedChat.id, msgs, hasMore)}
+						className="h-full"
 					/>
 				) : (
-					<div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
-						<div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-							<svg className="w-10 h-10 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth={1.5}
-									d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-								/>
-							</svg>
+					<div className="flex flex-col items-center justify-center h-full gap-4 text-muted-foreground bg-muted/10">
+						<div className="w-20 h-20 rounded-3xl bg-primary/5 flex items-center justify-center mb-2">
+							<MessageSquare className="h-10 w-10" />
 						</div>
-						<div className="space-y-2">
-							<h3 className="text-xl font-semibold tracking-tight">WhatsApp Web Bot</h3>
-							<p className="text-muted-foreground max-w-[280px]">Select a chat from the sidebar to start messaging. Your messages are synced in real-time.</p>
+						<div className="text-center space-y-1">
+							<h2 className="text-xl font-semibold text-foreground">WhatsApp Bot</h2>
+							<p className="text-sm">Select a chat to start messaging</p>
 						</div>
 					</div>
 				)}
