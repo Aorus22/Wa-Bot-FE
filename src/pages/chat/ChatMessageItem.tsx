@@ -156,10 +156,10 @@ export const ChatMessageItem = memo(({
 							)}
 						>
 							{isImage && isMedia && (
-							        <div className={cn("mb-2 -mx-[14px] -mt-2 overflow-hidden relative z-10 min-w-[150px] min-h-[100px] rounded-t-2xl", isMe ? "rounded-tr-none" : "rounded-tl-none")}>
+							        <div className={cn("mb-2 -mx-[14px] -mt-2 overflow-hidden relative z-10 w-full max-w-[320px] h-[240px] rounded-t-2xl", isMe ? "rounded-tr-none" : "rounded-tl-none")}>
 							                <LazyMedia										src={getMediaUrl(message.mediaUrl)}
 										alt="Image"
-										className="w-full max-w-[320px] max-h-[300px] h-auto object-cover object-center hover:scale-[1.02] transition-transform duration-500 cursor-zoom-in"
+										className="w-full h-full object-cover object-center hover:scale-[1.02] transition-transform duration-500 cursor-zoom-in"
 										containerClassName="w-full h-full"
 										loading="lazy"
 										onClick={(e) => {
@@ -170,11 +170,11 @@ export const ChatMessageItem = memo(({
 								</div>
 							)}
 							{isVideo && isMedia && (
-							        <div className={cn("mb-2 -mx-[14px] -mt-2 overflow-hidden relative z-10 min-w-[200px] min-h-[150px] rounded-t-2xl bg-black/10 flex items-center justify-center aspect-video", isMe ? "rounded-tr-none" : "rounded-tl-none")}>
+							        <div className={cn("mb-2 -mx-[14px] -mt-2 overflow-hidden relative z-10 w-full max-w-[320px] h-[240px] rounded-t-2xl bg-black/10 flex items-center justify-center", isMe ? "rounded-tr-none" : "rounded-tl-none")}>
 							                <LazyMedia 
 							                        type="video"
 							                        src={getMediaUrl(message.mediaUrl)} 
-							                        className="w-full h-auto max-h-[300px]" 
+							                        className="w-full h-full object-contain" 
 							                        controls 
 							                />
 							        </div>
