@@ -119,7 +119,7 @@ export const ChatMessageItem = memo(({
 					)}
 
 					{isSticker ? (
-					        <div className="relative group/sticker cursor-pointer z-10" onClick={() => setShowFavoriteBtn(showFavoriteBtn === message.id ? null : message.id)}>							<div className="w-[160px] h-[160px] flex items-center justify-center">
+					        <div className="relative group/sticker cursor-pointer z-10" onClick={(e) => { e.stopPropagation(); setShowFavoriteBtn(showFavoriteBtn === message.id ? null : message.id) }}>							<div className="w-[160px] h-[160px] flex items-center justify-center">
 								{isMedia ? (
 									<LazyMedia 
 										src={getMediaUrl(message.mediaUrl)} 
