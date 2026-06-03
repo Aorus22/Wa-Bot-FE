@@ -249,7 +249,5 @@ div[class*="language-"] {
 }
 
 [data-message-item], [data-chat-item] {
-  content-visibility: auto;
-  contain-intrinsic-size: 0 80px;
-  contain: layout paint; /* Aggressive isolation for items */
+  contain: layout paint;
 }

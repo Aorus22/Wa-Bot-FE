@@ -569,7 +569,7 @@ const formatDate = (timestamp: number) => {
                 </div>
             </header>
 
-            <div data-messages-list className="flex-1 overflow-y-auto px-2 md:px-6 pt-3 pb-6 space-y-8 z-10" ref={scrollRef} onScroll={handleScroll}>
+            <div data-messages-list className="flex-1 overflow-y-auto px-2 md:px-6 pt-3 pb-6 z-10" ref={scrollRef} onScroll={handleScroll}>
                 {loadingMore && (
                     <div className="flex justify-center py-4">
                         <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
@@ -583,7 +583,7 @@ const formatDate = (timestamp: number) => {
                 ) : (
                     <div className="space-y-10">
                         {Object.entries(groupedMessages).map(([dateKey, msgs]) => (
-                            <div key={dateKey} className="space-y-4">
+                            <div key={dateKey}>
                                 <div className="flex justify-center sticky top-0 z-20 pointer-events-none py-2">
                                     <span className="text-[10px] font-bold text-muted-foreground/80 bg-background/60 backdrop-blur-md px-3 py-1 rounded-full border border-border/40 uppercase tracking-widest shadow-sm">
                                         {dateKey}
