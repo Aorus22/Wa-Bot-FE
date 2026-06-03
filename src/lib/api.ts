@@ -50,6 +50,7 @@ export type Trigger = {
         script: string
         priority: number
         is_active: boolean
+        description?: string
         created_at?: string
         updated_at?: string
 }
@@ -60,6 +61,7 @@ export type CronJob = {
         schedule: string
         script: string
         is_active: boolean
+        description?: string
         created_at?: string
         updated_at?: string
 }
@@ -71,6 +73,7 @@ export type Webhook = {
         script: string
         secret?: string
         is_active: boolean
+        description?: string
         created_at?: string
         updated_at?: string
 }
