@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react"
+import { MessageSquare } from "lucide-react"
 import { ChatSidebar } from "./ChatSidebar"
 import { ChatArea } from "./ChatArea"
 import { cn } from "@/lib/utils"
@@ -9,7 +10,7 @@ import { useChatDetail } from "@/contexts/ChatDetailContext"
 
 export function ChatPage() {
 	const isMobileView = useIsMobile()
-	const { incomingMessage, chatUpdate, statusUpdate } = useAuth()
+	const { incomingMessage, chatUpdate, statusUpdate, isLoggedIn, isConnected } = useAuth()
 	const { setChatDetailOpen } = useChatDetail()
 	const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
 	const [showSidebar, setShowSidebar] = useState(true)
@@ -95,6 +96,20 @@ export function ChatPage() {
 		setSelectedChat(null)
 		setChatDetailOpen(false)
 	}, [setChatDetailOpen])
+
+	if (!isLoggedIn) {
+		return (
+			<div className="flex flex-col items-center justify-center h-full gap-4 text-muted-foreground">
+				<div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center">
+					<MessageSquare className="h-8 w-8" />
+				</div>
+				<div className="text-center space-y-1">
+					<h2 className="text-lg font-semibold text-foreground">No account connected</h2>
+					<p className="text-sm">Link your WhatsApp account to start chatting.</p>
+				</div>
+			</div>
+		)
+	}
 
 	if (isMobileView) {
 		return (

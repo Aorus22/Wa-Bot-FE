@@ -1,17 +1,10 @@
 import { useState } from "react"
 import { Outlet, useLocation, useNavigate } from "react-router-dom"
-import { useAuth } from "@/contexts/AuthContext"
-import { ChatDetailContext } from "@/contexts/ChatDetailContext"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { NavigationSidebar } from "./NavigationSidebar"
 import { cn } from "@/lib/utils"
 import { MessageSquare, Bot, Clock, Globe, FileText, Settings } from "lucide-react"
-import {
-	AlertDialog, AlertDialogAction, AlertDialogCancel,
-	AlertDialogContent, AlertDialogDescription,
-	AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { AlertCircle } from "lucide-react"
+import { ChatDetailContext } from "@/contexts/ChatDetailContext"
 
 export function AppLayout() {
 	const isMobileView = useIsMobile()
@@ -19,7 +12,6 @@ export function AppLayout() {
 	const navigate = useNavigate()
 	const [autoOpen, setAutoOpen] = useState(false)
 	const [chatDetailOpen, setChatDetailOpen] = useState(false)
-	const { isLogoutDialogOpen, setIsLogoutDialogOpen, logout } = useAuth()
 
 	const isActive = (path: string) => location.pathname.startsWith(path)
 	const isAutoActive = isActive("/triggers") || isActive("/cron") || isActive("/webhooks") || isActive("/documentation")
@@ -33,26 +25,6 @@ export function AppLayout() {
 
 	return (
 		<>
-			<AlertDialog open={isLogoutDialogOpen} onOpenChange={setIsLogoutDialogOpen}>
-				<AlertDialogContent>
-					<AlertDialogHeader>
-						<div className="flex items-center gap-2 text-destructive mb-2">
-							<AlertCircle className="h-5 w-5" />
-							<AlertDialogTitle>Confirm Log Out</AlertDialogTitle>
-						</div>
-						<AlertDialogDescription>
-							Are you sure you want to log out? You will need to scan the QR code again.
-						</AlertDialogDescription>
-					</AlertDialogHeader>
-					<AlertDialogFooter>
-						<AlertDialogCancel className="rounded-full">Cancel</AlertDialogCancel>
-						<AlertDialogAction onClick={logout} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 rounded-full">
-							Log Out
-						</AlertDialogAction>
-					</AlertDialogFooter>
-				</AlertDialogContent>
-			</AlertDialog>
-
 			<div className={cn("flex h-[100dvh] bg-background text-foreground overflow-hidden", isMobileView && "flex-col")}>
 				<div className="flex-1 flex w-full relative overflow-hidden min-h-0">
 					{!isMobileView && (

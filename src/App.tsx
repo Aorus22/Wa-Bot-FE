@@ -19,7 +19,7 @@ import { DocumentationPage } from "@/pages/documentation/DocumentationPage"
 import { SettingsPage } from "@/pages/settings/SettingsPage"
 
 function AppRoutes() {
-	const { isLoggedIn, qrCode, isConnected } = useAuth()
+	const { isLoggedIn } = useAuth()
 
 	if (isLoggedIn === null) {
 		return (
@@ -27,10 +27,6 @@ function AppRoutes() {
 				<Loader2 className="h-10 w-10 text-primary animate-spin" />
 			</div>
 		)
-	}
-
-	if (isLoggedIn === false) {
-		return <LoginPage qrCode={qrCode} isConnected={isConnected} />
 	}
 
 	return (
@@ -51,6 +47,9 @@ function AppRoutes() {
 				<Route path="/documentation" element={<DocumentationPage />} />
 				<Route path="*" element={<Navigate to="/chat" replace />} />
 			</Route>
+			<Route path="/login" element={
+				isLoggedIn ? <Navigate to="/chat" replace /> : <LoginPage />
+			} />
 		</Routes>
 	)
 }

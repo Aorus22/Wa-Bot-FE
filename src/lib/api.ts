@@ -210,6 +210,10 @@ class ApiClient {	private baseUrl: string
 		return this.request<{ isLoggedIn: boolean }>("/status")
 	}
 
+	async getQrCode(): Promise<{ code: string }> {
+		return this.request<{ code: string }>("/qr-code")
+	}
+
 	async logout(): Promise<{ status: string }> {
 		return this.request<{ status: string }>("/logout", {
 			method: "POST",

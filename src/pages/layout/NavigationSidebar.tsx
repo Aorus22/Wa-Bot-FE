@@ -1,13 +1,11 @@
 import { useLocation, useNavigate } from "react-router-dom"
-import { MessageSquare, Bot, LogOut, FileText, Clock, Globe, Settings } from "lucide-react"
+import { MessageSquare, Bot, FileText, Clock, Globe, Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { useAuth } from "@/contexts/AuthContext"
 
 export function NavigationSidebar() {
 	const location = useLocation()
 	const navigate = useNavigate()
-	const { isConnected, setIsLogoutDialogOpen } = useAuth()
 
 	const isActive = (path: string) => location.pathname.startsWith(path)
 
@@ -46,45 +44,13 @@ export function NavigationSidebar() {
 				/>
 			</div>
 
-			<div className="flex flex-col items-center gap-4 mt-auto mb-2">
-				<Tooltip delayDuration={0}>
-					<TooltipTrigger asChild>
-						<button
-							onClick={() => navigate("/settings")}
-							className={cn(
-								"p-3.5 rounded-2xl transition-all duration-200",
-								isActive("/settings")
-									? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-105"
-									: "text-muted-foreground hover:bg-muted hover:text-foreground"
-							)}
-						>
-							<Settings className="h-5 w-5" />
-						</button>
-					</TooltipTrigger>
-					<TooltipContent side="right" sideOffset={10} className="font-medium">
-						<p>Settings</p>
-					</TooltipContent>
-				</Tooltip>
-
-				<Tooltip delayDuration={0}>
-					<TooltipTrigger asChild>
-						<div className="relative group/logout">
-							<button
-								onClick={() => setIsLogoutDialogOpen(true)}
-								className="p-3.5 rounded-2xl transition-all duration-200 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-							>
-								<LogOut className="h-5 w-5" />
-							</button>
-							<div className={cn(
-								"absolute bottom-2 right-2 w-2.5 h-2.5 rounded-full border-2 border-background transition-colors duration-500",
-								isConnected ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" : "bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.4)]"
-							)} />
-						</div>
-					</TooltipTrigger>
-					<TooltipContent side="right" sideOffset={10} className="font-medium">
-						<p>Log out ({isConnected ? "Connected" : "Reconnecting..."})</p>
-					</TooltipContent>
-				</Tooltip>
+			<div className="mt-auto pb-4">
+				<NavButton
+					icon={<Settings className="h-5 w-5" />}
+					label="Settings"
+					isActive={isActive("/settings")}
+					onClick={() => navigate("/settings")}
+				/>
 			</div>
 		</div>
 	)
