@@ -104,11 +104,17 @@ StickerPicker.displayName = "StickerPicker"
 
 interface ChatStickerPickerPopoverProps {
 	onStickerSelect: (sticker: any) => void
+	open?: boolean
+	onOpenChange?: (open: boolean) => void
 }
 
-export function ChatStickerPickerPopover({ onStickerSelect }: ChatStickerPickerPopoverProps) {
+export function ChatStickerPickerPopover({ onStickerSelect, open: controlledOpen, onOpenChange: controlledOnOpenChange }: ChatStickerPickerPopoverProps) {
+	const [internalOpen, setInternalOpen] = useState(false)
+	const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen
+	const setOpen = controlledOnOpenChange || setInternalOpen
+
 	return (
-		<Popover>
+		<Popover open={isOpen} onOpenChange={setOpen}>
 			<PopoverTrigger asChild>
 				<Button variant="ghost" size="icon" className="rounded-full text-muted-foreground hover:bg-muted">
 					<Sticker className="h-5 w-5" />

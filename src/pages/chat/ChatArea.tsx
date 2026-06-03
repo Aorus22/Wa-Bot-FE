@@ -2,8 +2,9 @@ import { useState, useEffect, useRef, useCallback, memo, useMemo } from "react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Send, ArrowLeft, MessageSquare, X, MoreVertical, Search, FileText } from "lucide-react"
+import { Send, ArrowLeft, MessageSquare, X, MoreVertical, Search, FileText, Plus, Smile, Paperclip, Sticker } from "lucide-react"
 import { api, type Chat, type Message } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { renderFormattedContent, encodeMarkdown } from "./renderMd"
@@ -12,7 +13,6 @@ import { ChatInfoSheetModal } from "./ChatInfoSheetModal"
 import { ChatImageViewerModal } from "./ChatImageViewerModal"
 import { ChatEmojiPickerPopover } from "./ChatEmojiPickerPopover"
 import { ChatStickerPickerPopover } from "./ChatStickerPickerPopover"
-import { ChatAttachmentPopover } from "./ChatAttachmentPopover"
 import { ChatSearchSheet } from "./ChatSearchSheet"
 import { ChatMessageItem } from "./ChatMessageItem"
 
@@ -120,7 +120,10 @@ const formatDate = (timestamp: number) => {
     const [showFavoriteBtn, setShowFavoriteBtn] = useState<string | null>(null)
     const [replyTo, setReplyTo] = useState<Message | null>(null)
     const [editingMessage, setEditingMessage] = useState<Message | null>(null)
-    const [isMdMode, setIsMdMode] = useState(false)
+	const [isMdMode, setIsMdMode] = useState(false)
+	const [plusOpen, setPlusOpen] = useState(false)
+	const [emojiOpen, setEmojiOpen] = useState(false)
+	const [stickerOpen, setStickerOpen] = useState(false)
     const [isMediaSheetOpen, setIsMediaSheetOpen] = useState(false)
     const [isSearchOpen, setIsSearchOpen] = useState(false)
     const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null)
@@ -655,24 +658,49 @@ const formatDate = (timestamp: number) => {
                     </div>
                 )}
                 <div className="max-w-4xl mx-auto flex items-end gap-3 px-2">
-                    <div className="flex items-center mb-1">
-                        <ChatEmojiPickerPopover onEmojiSelect={addEmoji} />
-                        <ChatStickerPickerPopover onStickerSelect={handleStickerSelect} />
-                        <ChatAttachmentPopover onPickMedia={() => mediaInputRef.current?.click()} onPickDocument={() => documentInputRef.current?.click()} />
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setIsMdMode(v => !v)}
-                            className={cn(
-                                "rounded-full transition-all duration-200",
-                                isMdMode
-                                    ? "text-primary bg-primary/10 hover:bg-primary/15"
-                                    : "text-muted-foreground hover:bg-muted"
-                            )}
-                            title={isMdMode ? "Markdown mode ON" : "Markdown mode OFF"}
-                        >
-                            <FileText className="h-5 w-5" />
-                        </Button>
+                    <div className="flex items-center mb-1 relative">
+                        <div className="absolute invisible">
+                            <ChatEmojiPickerPopover onEmojiSelect={addEmoji} open={emojiOpen} onOpenChange={setEmojiOpen} />
+                            <ChatStickerPickerPopover onStickerSelect={handleStickerSelect} open={stickerOpen} onOpenChange={setStickerOpen} />
+                        </div>
+                        <Popover open={plusOpen} onOpenChange={setPlusOpen}>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className={cn(
+                                        "rounded-full transition-all",
+                                        plusOpen ? "text-primary bg-primary/10" : "text-muted-foreground hover:bg-muted"
+                                    )}
+                                >
+                                    <Plus className="h-5 w-5" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent side="top" align="start" className="w-44 p-1.5 rounded-xl">
+                                <div className="flex flex-col gap-0.5">
+                                    <button onClick={() => { setPlusOpen(false); setTimeout(() => setEmojiOpen(true), 0) }} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-muted transition-colors text-left w-full">
+                                        <Smile className="h-4 w-4 text-yellow-500" />
+                                        <span>Emoji</span>
+                                    </button>
+                                    <button onClick={() => { setPlusOpen(false); setTimeout(() => setStickerOpen(true), 0) }} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-muted transition-colors text-left w-full">
+                                        <Sticker className="h-4 w-4 text-purple-500" />
+                                        <span>Sticker</span>
+                                    </button>
+                                    <button onClick={() => { mediaInputRef.current?.click(); setPlusOpen(false) }} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-muted transition-colors text-left w-full">
+                                        <Paperclip className="h-4 w-4 text-blue-500" />
+                                        <span>Media</span>
+                                    </button>
+                                    <button onClick={() => { documentInputRef.current?.click(); setPlusOpen(false) }} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-muted transition-colors text-left w-full">
+                                        <FileText className="h-4 w-4 text-orange-500" />
+                                        <span>Document</span>
+                                    </button>
+                                    <button onClick={() => { setIsMdMode(v => !v); setPlusOpen(false) }} className={cn("flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-muted transition-colors text-left w-full", isMdMode && "text-primary")}>
+                                        <FileText className="h-4 w-4" />
+                                        <span>Markdown {isMdMode ? '(on)' : '(off)'}</span>
+                                    </button>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
                     </div>
                     <div className="flex-1 relative">
                         {isMdMode ? (

@@ -45,7 +45,7 @@ export function SettingsPage() {
 	}, [mode])
 
 	return (
-		<div className="flex flex-col items-center justify-start min-h-full p-8 overflow-y-auto pt-12">
+		<div className="flex flex-col items-center justify-start min-h-full p-4 md:p-8 overflow-y-auto pt-12">
 			<div className="w-full max-w-2xl space-y-8 pb-12">
 				<h1 className="text-2xl font-bold tracking-tight">Settings</h1>
 

@@ -5,10 +5,12 @@ import { cn } from "@/lib/utils"
 import type { Chat, Message } from "@/lib/api"
 import { useAuth } from "@/contexts/AuthContext"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useChatDetail } from "@/contexts/ChatDetailContext"
 
 export function ChatPage() {
 	const isMobileView = useIsMobile()
 	const { incomingMessage, chatUpdate, statusUpdate } = useAuth()
+	const { setChatDetailOpen } = useChatDetail()
 	const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
 	const [showSidebar, setShowSidebar] = useState(true)
 	const containerRef = useRef<HTMLDivElement>(null)
@@ -82,15 +84,17 @@ export function ChatPage() {
 
 	const handleChatSelect = useCallback((chat: Chat) => {
 		setSelectedChat(chat)
+		setChatDetailOpen(true)
 		if (isMobileView) {
 			setShowSidebar(false)
 		}
-	}, [isMobileView])
+	}, [isMobileView, setChatDetailOpen])
 
 	const handleBack = useCallback(() => {
 		setShowSidebar(true)
 		setSelectedChat(null)
-	}, [])
+		setChatDetailOpen(false)
+	}, [setChatDetailOpen])
 
 	if (isMobileView) {
 		return (

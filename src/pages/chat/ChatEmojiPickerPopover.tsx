@@ -30,6 +30,7 @@ const EmojiPickerComponent = memo(({ onEmojiSelect }: { onEmojiSelect: (emoji: s
 					searchPlaceholder="Search emojis..."
 					previewConfig={{ showPreview: false }}
 					skinTonesDisabled
+					autoFocusSearch={false}
 				/>
 			)}
 		</div>
@@ -40,15 +41,19 @@ EmojiPickerComponent.displayName = "EmojiPickerComponent"
 
 interface ChatEmojiPickerPopoverProps {
 	onEmojiSelect: (emoji: string) => void
+	open?: boolean
+	onOpenChange?: (open: boolean) => void
 }
 
-export function ChatEmojiPickerPopover({ onEmojiSelect }: ChatEmojiPickerPopoverProps) {
-	const [isOpen, setIsOpen] = useState(false)
+export function ChatEmojiPickerPopover({ onEmojiSelect, open: controlledOpen, onOpenChange: controlledOnOpenChange }: ChatEmojiPickerPopoverProps) {
+	const [internalOpen, setInternalOpen] = useState(false)
+	const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen
+	const setOpen = controlledOnOpenChange || setInternalOpen
 
 	return (
-		<Popover onOpenChange={setIsOpen}>
+		<Popover open={isOpen} onOpenChange={setOpen}>
 			<PopoverTrigger asChild>
-				<Button variant="ghost" size="icon" className="rounded-full text-muted-foreground hover:bg-muted">
+				<Button variant="ghost" size="icon" className="rounded-full text-muted-foreground hover:bg-muted" aria-hidden={controlledOpen !== undefined}>
 					<Smile className="h-5 w-5" />
 				</Button>
 			</PopoverTrigger>

@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { FileText, Paperclip, Video } from "lucide-react"
@@ -5,11 +6,17 @@ import { FileText, Paperclip, Video } from "lucide-react"
 interface ChatAttachmentPopoverProps {
 	onPickMedia: () => void
 	onPickDocument: () => void
+	open?: boolean
+	onOpenChange?: (open: boolean) => void
 }
 
-export function ChatAttachmentPopover({ onPickMedia, onPickDocument }: ChatAttachmentPopoverProps) {
+export function ChatAttachmentPopover({ onPickMedia, onPickDocument, open: controlledOpen, onOpenChange: controlledOnOpenChange }: ChatAttachmentPopoverProps) {
+	const [internalOpen, setInternalOpen] = useState(false)
+	const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen
+	const setOpen = controlledOnOpenChange || setInternalOpen
+
 	return (
-		<Popover>
+		<Popover open={isOpen} onOpenChange={setOpen}>
 			<PopoverTrigger asChild>
 				<Button variant="ghost" size="icon" className="rounded-full text-muted-foreground hover:bg-muted">
 					<Paperclip className="h-5 w-5" />
