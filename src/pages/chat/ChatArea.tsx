@@ -569,7 +569,7 @@ const formatDate = (timestamp: number) => {
                 </div>
             </header>
 
-            <div data-messages-list className="flex-1 overflow-y-auto px-6 pt-3 pb-6 space-y-8 z-10" ref={scrollRef} onScroll={handleScroll}>
+            <div data-messages-list className="flex-1 overflow-y-auto px-2 md:px-6 pt-3 pb-6 space-y-8 z-10" ref={scrollRef} onScroll={handleScroll}>
                 {loadingMore && (
                     <div className="flex justify-center py-4">
                         <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />

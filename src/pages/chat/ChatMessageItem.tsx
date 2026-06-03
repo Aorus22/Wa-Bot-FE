@@ -171,10 +171,10 @@ export const ChatMessageItem = memo(({
 							)}
 						>
 							{isImage && isMedia && (
-							        <div className="mb-2 -mx-1 -mt-1 rounded-lg overflow-hidden border border-black/5 dark:border-white/5 relative z-10 min-w-[150px] min-h-[100px]">
+							        <div className="mb-2 -mx-[14px] -mt-2 overflow-hidden relative z-10 min-w-[150px] min-h-[100px] rounded-t-2xl">
 							                <LazyMedia										src={getMediaUrl(message.mediaUrl)}
 										alt="Image"
-										className="w-full max-w-[320px] h-auto object-cover hover:scale-[1.02] transition-transform duration-500 cursor-zoom-in"
+										className="w-full max-w-[320px] max-h-[300px] h-auto object-cover object-center hover:scale-[1.02] transition-transform duration-500 cursor-zoom-in"
 										containerClassName="w-full h-full"
 										loading="lazy"
 										onClick={(e) => {
@@ -185,7 +185,7 @@ export const ChatMessageItem = memo(({
 								</div>
 							)}
 							{isVideo && isMedia && (
-							        <div className="mb-2 -mx-1 -mt-1 rounded-lg overflow-hidden border border-black/5 dark:border-white/5 bg-black/10 flex items-center justify-center aspect-video relative z-10 min-w-[200px] min-h-[150px]">
+							        <div className="mb-2 -mx-[14px] -mt-2 overflow-hidden relative z-10 min-w-[200px] min-h-[150px] rounded-t-2xl bg-black/10 flex items-center justify-center aspect-video">
 							                <LazyMedia 
 							                        type="video"
 							                        src={getMediaUrl(message.mediaUrl)} 
