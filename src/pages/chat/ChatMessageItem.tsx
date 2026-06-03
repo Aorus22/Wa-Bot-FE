@@ -30,17 +30,20 @@ export const ChatMessageItem = memo(({
 }: any) => {
 	const [swipeX, setSwipeX] = useState(0)
 	const startX = useRef(0)
+	const startY = useRef(0)
 	const threshold = 60
 
 	const handleTouchStart = (e: React.TouchEvent) => {
 		startX.current = e.touches[0].clientX
+		startY.current = e.touches[0].clientY
 	}
 
 	const handleTouchMove = (e: React.TouchEvent) => {
-		const currentX = e.touches[0].clientX
-		const diff = currentX - startX.current
-		if (diff > 0) {
-			setSwipeX(Math.min(diff, threshold + 20))
+		const diffX = e.touches[0].clientX - startX.current
+		const diffY = e.touches[0].clientY - startY.current
+		// Only activate swipe if horizontal movement dominates vertical
+		if (diffX > 0 && Math.abs(diffX) > Math.abs(diffY) * 1.3) {
+			setSwipeX(Math.min(diffX, threshold + 20))
 		}
 	}
 
