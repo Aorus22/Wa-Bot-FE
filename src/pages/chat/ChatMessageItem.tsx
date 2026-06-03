@@ -119,7 +119,7 @@ export const ChatMessageItem = memo(({
 					)}
 
 					{isSticker ? (
-					        <div className="relative group/sticker cursor-pointer z-10" onClick={(e) => { e.stopPropagation(); setShowFavoriteBtn(showFavoriteBtn === message.id ? null : message.id) }}>							<div className="w-[160px] h-[160px] flex items-center justify-center">
+					        <div className="relative group/sticker cursor-pointer z-10" onClick={(e) => { e.stopPropagation(); onImageClick(getMediaUrl(message.mediaUrl), e.currentTarget, message.id, true) }}>							<div className="w-[160px] h-[160px] flex items-center justify-center">
 								{isMedia ? (
 									<LazyMedia 
 										src={getMediaUrl(message.mediaUrl)} 
@@ -134,19 +134,6 @@ export const ChatMessageItem = memo(({
 									</div>
 								)}
 							</div>
-							{showFavoriteBtn === message.id && (
-								<button
-									onClick={(e) => {
-										e.stopPropagation()
-										onStickerFavorite(message.mediaUrl)
-									}}
-									className={cn(
-									        "absolute top-0 p-1.5 bg-background/90 backdrop-blur-md rounded-full shadow-lg transition-all animate-in zoom-in-50 z-20",										isMe ? "left-0" : "right-0"
-									)}
-								>
-									<Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-								</button>
-							)}
 							<div className={cn("absolute bottom-1 right-1 px-1.5 py-0.5 rounded-full bg-black/30 backdrop-blur-sm text-[10px] text-white opacity-0 group-hover/sticker:opacity-100 transition-opacity", isMe ? "right-1" : "left-1")}>
 								{formatTime(message.timestamp)}
 							</div>

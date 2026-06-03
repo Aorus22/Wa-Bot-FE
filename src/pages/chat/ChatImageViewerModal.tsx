@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react"
-import { X, Download, ExternalLink } from "lucide-react"
+import { X, Download, ExternalLink, Star } from "lucide-react"
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
 
 interface ChatImageViewerModalProps {
@@ -8,9 +8,10 @@ interface ChatImageViewerModalProps {
 	imageUrl: string | null
 	sourceRect: DOMRect | null
 	onClose: () => void
+	onFavorite?: (url: string) => void
 }
 
-export function ChatImageViewerModal({ open, onOpenChange, imageUrl, sourceRect, onClose }: ChatImageViewerModalProps) {
+export function ChatImageViewerModal({ open, onOpenChange, imageUrl, sourceRect, onClose, onFavorite }: ChatImageViewerModalProps) {
 	const [ready, setReady] = useState(false)
 	const [closing, setClosing] = useState(false)
 	const containerRef = useRef<HTMLDivElement>(null)
@@ -105,6 +106,15 @@ export function ChatImageViewerModal({ open, onOpenChange, imageUrl, sourceRect,
 					transition: "opacity 200ms",
 				}}
 			>
+				{onFavorite && (
+					<button
+						onClick={() => onFavorite(imageUrl)}
+						className="p-2 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-md transition-colors"
+						title="Add to favorites"
+					>
+						<Star className="h-4 w-4" />
+					</button>
+				)}
 				<button
 					onClick={() => window.open(imageUrl, '_blank')}
 					className="p-2 rounded-full bg-black/30 hover:bg-black/50 text-white backdrop-blur-md transition-colors"

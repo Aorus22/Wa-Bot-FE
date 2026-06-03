@@ -129,6 +129,7 @@ const formatDate = (timestamp: number) => {
     const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null)
     const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null)
     const [imageSourceRect, setImageSourceRect] = useState<DOMRect | null>(null)
+    const lastStickerMsgRef = useRef<{ id: string; mediaUrl: string }>({ id: "", mediaUrl: "" })
 
     const scrollRef = useRef<HTMLDivElement>(null)
     const mediaInputRef = useRef<HTMLInputElement>(null)
@@ -611,7 +612,7 @@ const formatDate = (timestamp: number) => {
                                                 onEdit={() => handleEditMessage(message)}
                                                 onDelete={() => handleDeleteMessage(message.id)}
                                                 onStickerFavorite={(mediaUrl: string) => handleFavoriteSticker(message.id, mediaUrl || "", false)}
-                                                onImageClick={(url: string, el?: HTMLElement) => { setSelectedImageUrl(url || null); setImageSourceRect(el?.getBoundingClientRect() || null) }}
+                                                onImageClick={(url: string, el?: HTMLElement, msgId?: string, isSticker?: boolean) => { setSelectedImageUrl(url || null); setImageSourceRect(el?.getBoundingClientRect() || null); if (isSticker && msgId) lastStickerMsgRef.current = { id: msgId, mediaUrl: url } }}
                                                 onDownload={handleDownload}
                                                 formatTime={formatTime}
                                                 renderFormattedContent={renderFormattedContent}
@@ -784,6 +785,7 @@ const formatDate = (timestamp: number) => {
                 imageUrl={selectedImageUrl}
                 sourceRect={imageSourceRect}
                 onClose={() => { setSelectedImageUrl(null); setImageSourceRect(null) }}
+                onFavorite={(url) => handleFavoriteSticker(lastStickerMsgRef.current.id, url, false)}
             />
 
             <ChatSearchSheet
