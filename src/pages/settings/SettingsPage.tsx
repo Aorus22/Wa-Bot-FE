@@ -35,7 +35,10 @@ function getLuminance(hex: string) {
 
 export function SettingsPage() {
 	const [current, setCurrent] = useState(() => useAppTheme())
-	const [mode, setMode] = useState<ThemeMode>('dark')
+	const [mode, setMode] = useState<ThemeMode>(() => {
+		const stored = typeof window !== 'undefined' ? localStorage.getItem('wa-bot-theme-mode') : null
+		return (stored === 'all' || stored === 'dark' || stored === 'light') ? stored : 'dark'
+	})
 	const [logoutOpen, setLogoutOpen] = useState(false)
 	const navigate = useNavigate()
 	const { isLoggedIn, isConnected, logout } = useAuth()
@@ -58,6 +61,29 @@ export function SettingsPage() {
 			return mode === 'dark' ? lum < 0.5 : lum >= 0.5
 		})
 	}, [mode])
+
+	// Persist mode filter to localStorage
+	useEffect(() => {
+		localStorage.setItem('wa-bot-theme-mode', mode)
+	}, [mode])
+
+	// Auto-match theme when switching filter mode
+	useEffect(() => {
+		if (mode === 'all') return
+		const currentTheme = themes.find(t => t.name === current)
+		if (!currentTheme) return
+		const currentLum = getLuminance(currentTheme.colors.background)
+		const matches = mode === 'dark' ? currentLum < 0.5 : currentLum >= 0.5
+		if (!matches) {
+			const base = currentTheme.name.replace(/-(dark|light)$/, '')
+			const counterpart = mode === 'dark' ? `${base}-dark` : `${base}-light`
+			const found = themes.find(t => t.name === counterpart)
+			if (found) {
+				setAppTheme(found.name)
+				setCurrent(found.name)
+			}
+		}
+	}, [mode, current])
 
 	return (
 		<>
