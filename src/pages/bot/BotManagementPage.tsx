@@ -11,14 +11,12 @@ import { TriggerDeleteAllModal } from './TriggerDeleteAllModal'
 import { api, type Trigger } from '@/lib/api'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { useNavigate } from "react-router-dom"
+import { useIsMobile } from "@/hooks/use-mobile"
 
-interface BotManagementPageProps {
-        onEditTrigger: (trigger: Trigger | null) => void
-        onViewDocs: () => void
-        isMobileView?: boolean
-}
-
-export function BotManagementPage({ onEditTrigger, onViewDocs, isMobileView }: BotManagementPageProps) {
+export function BotManagementPage() {
+	const navigate = useNavigate()
+	const isMobileView = useIsMobile()
         const [triggers, setTriggers] = useState<Trigger[]>([])
         const [loading, setLoading] = useState(true)
         const [searchQuery, setSearchQuery] = useState('')
@@ -215,7 +213,7 @@ export function BotManagementPage({ onEditTrigger, onViewDocs, isMobileView }: B
 
                                                 <Button
                                                         variant='outline'
-                                                        onClick={onViewDocs}
+                                                        onClick={() => navigate("/documentation")}
                                                         className='rounded-xl h-10 px-4 border-border/40 hidden sm:flex'
                                                 >
                                                         <FileText className='mr-2 h-4 w-4' /> Docs
@@ -223,7 +221,7 @@ export function BotManagementPage({ onEditTrigger, onViewDocs, isMobileView }: B
                                                 
                                                 {!isMobileView && (
                                                         <Button
-                                                                onClick={() => onEditTrigger(null)}
+                                                                onClick={() => navigate("/triggers/new")}
                                                                 className='rounded-xl px-6 h-10 font-bold shadow-lg shadow-primary/20'
                                                         >
                                                                 <Plus className='mr-2 h-4 w-4' /> New
@@ -249,7 +247,7 @@ export function BotManagementPage({ onEditTrigger, onViewDocs, isMobileView }: B
                                                                 <p className='text-muted-foreground max-w-xs mx-auto'>Create your first dynamic trigger to start automating your bot.</p>
                                                         </div>
                                                         <Button
-                                                                onClick={() => onEditTrigger(null)}
+                                                                onClick={() => navigate("/triggers/new")}
                                                                 className='rounded-xl px-8 h-11 font-bold'
                                                         >
                                                                 <Plus className='mr-2 h-5 w-5' /> New
@@ -260,7 +258,7 @@ export function BotManagementPage({ onEditTrigger, onViewDocs, isMobileView }: B
                                                         {filteredTriggers.map((trigger) => (
                                                                 <Card 
                                                                         key={trigger.id} 
-                                                                        onClick={() => onEditTrigger(trigger)}
+                                                                        onClick={() => navigate("/triggers/" + trigger.id, { state: { trigger } })}
                                                                         className='rounded-[1.5rem] md:rounded-[2rem] border-border/40 hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 flex flex-col bg-card/50 backdrop-blur-sm overflow-hidden cursor-pointer hover:bg-card group !gap-0 !py-0 hover:-translate-y-1'
                                                                 >
                                                                         <div className='px-3 md:px-4 py-2.5 md:py-3'>
@@ -320,7 +318,7 @@ export function BotManagementPage({ onEditTrigger, onViewDocs, isMobileView }: B
                         {/* Floating Action Button for Mobile */}
                         {isMobileView && (
                                 <Button
-                                        onClick={() => onEditTrigger(null)}
+                                        onClick={() => navigate("/triggers/new")}
                                         className='fixed bottom-20 right-6 h-14 w-14 rounded-2xl shadow-2xl shadow-primary/40 z-40 p-0'
                                 >
                                         <Plus className='h-6 w-6' />

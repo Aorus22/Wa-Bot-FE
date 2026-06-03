@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Plus, Trash2, Search, Code, Globe, Download, Upload, Copy, Activity, FileText, Lock } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -11,15 +11,12 @@ import { WebhookDeleteAllModal } from './WebhookDeleteAllModal'
 import { api, type Webhook } from '@/lib/api'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { useNavigate } from "react-router-dom"
+import { useIsMobile } from "@/hooks/use-mobile"
 
-interface WebhookManagementPageProps {
-	onEditWebhook: (webhook: Webhook | null) => void
-	onViewDocs: () => void
-	onViewLogs: () => void
-	isMobileView?: boolean
-}
-
-export function WebhookManagementPage({ onEditWebhook, onViewDocs, onViewLogs, isMobileView }: WebhookManagementPageProps) {
+export function WebhookManagementPage() {
+	const navigate = useNavigate()
+	const isMobileView = useIsMobile()
 	const [webhooks, setWebhooks] = useState<Webhook[]>([])
 	const [loading, setLoading] = useState(true)
 	const [searchQuery, setSearchQuery] = useState('')
@@ -184,7 +181,7 @@ export function WebhookManagementPage({ onEditWebhook, onViewDocs, onViewLogs, i
 								<Button
 									variant='ghost'
 									size='icon'
-									onClick={onViewLogs}
+									onClick={() => navigate("/webhooks/logs")}
 									className='h-8 w-8 rounded-lg sm:hidden'
 									title='View Request Logs'
 								>
@@ -222,7 +219,7 @@ export function WebhookManagementPage({ onEditWebhook, onViewDocs, onViewLogs, i
 
 							<Button
 								variant='outline'
-								onClick={onViewLogs}
+								onClick={() => navigate("/webhooks/logs")}
 								className='rounded-xl h-10 px-4 border-border/40 hidden sm:flex'
 							>
 								<Activity className='mr-2 h-4 w-4' /> Logs
@@ -230,7 +227,7 @@ export function WebhookManagementPage({ onEditWebhook, onViewDocs, onViewLogs, i
 
 							<Button
 								variant='outline'
-								onClick={onViewDocs}
+								onClick={() => navigate("/documentation")}
 								className='rounded-xl h-10 px-4 border-border/40 hidden sm:flex'
 							>
 								<FileText className='mr-2 h-4 w-4' /> Docs
@@ -238,7 +235,7 @@ export function WebhookManagementPage({ onEditWebhook, onViewDocs, onViewLogs, i
 
 							{!isMobileView && (
 								<Button
-									onClick={() => onEditWebhook(null)}
+									onClick={() => navigate("/webhooks/new")}
 									className='rounded-xl px-6 h-10 font-bold shadow-lg shadow-primary/20'
 								>
 									<Plus className='mr-2 h-4 w-4' /> New
@@ -263,7 +260,7 @@ export function WebhookManagementPage({ onEditWebhook, onViewDocs, onViewLogs, i
 								<h3 className='text-xl font-bold'>No webhooks yet</h3>
 								<p className='text-muted-foreground max-w-xs mx-auto'>Create your first webhook endpoint to receive HTTP triggers and run Lua scripts.</p>
 							</div>
-							<Button onClick={() => onEditWebhook(null)} className='rounded-xl px-8 h-11 font-bold'>
+							<Button onClick={() => navigate("/webhooks/new")} className='rounded-xl px-8 h-11 font-bold'>
 								<Plus className='mr-2 h-5 w-5' /> New
 							</Button>
 						</div>
@@ -275,7 +272,7 @@ export function WebhookManagementPage({ onEditWebhook, onViewDocs, onViewLogs, i
 							{filteredWebhooks.map((webhook) => (
 								<Card 
 									key={webhook.id} 
-									onClick={() => onEditWebhook(webhook)}
+									onClick={() => navigate("/webhooks/" + webhook.id, { state: { webhook } })}
 									className="!py-0 !gap-0 group relative overflow-hidden border-border/40 bg-muted/5 hover:bg-card hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 rounded-[1.5rem] md:rounded-[2rem] cursor-pointer hover:shadow-2xl hover:shadow-primary/10 flex flex-col"
 								>
 									<div className="px-3 md:px-4 py-3">

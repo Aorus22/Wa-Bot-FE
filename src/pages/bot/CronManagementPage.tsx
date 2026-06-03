@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Plus, Trash2, Search, Code, Clock, Play, Download, Upload, Calendar, Activity, FileText } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -11,14 +11,12 @@ import { CronDeleteAllModal } from './CronDeleteAllModal'
 import { api, type CronJob } from '@/lib/api'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { useNavigate } from "react-router-dom"
+import { useIsMobile } from "@/hooks/use-mobile"
 
-interface CronManagementPageProps {
-	onEditCron: (cron: CronJob | null) => void
-    onViewDocs: () => void
-	isMobileView?: boolean
-}
-
-export function CronManagementPage({ onEditCron, onViewDocs, isMobileView }: CronManagementPageProps) {
+export function CronManagementPage() {
+	const navigate = useNavigate()
+	const isMobileView = useIsMobile()
 	const [jobs, setJobs] = useState<CronJob[]>([])
 	const [loading, setLoading] = useState(true)
 	const [searchQuery, setSearchQuery] = useState('')
@@ -214,7 +212,7 @@ export function CronManagementPage({ onEditCron, onViewDocs, isMobileView }: Cro
 
                             <Button
                                 variant='outline'
-                                onClick={onViewDocs}
+                                onClick={() => navigate("/documentation")}
                                 className='rounded-xl h-10 px-4 border-border/40 hidden sm:flex'
                             >
                                 <FileText className='mr-2 h-4 w-4' /> Docs
@@ -222,7 +220,7 @@ export function CronManagementPage({ onEditCron, onViewDocs, isMobileView }: Cro
 
                             {!isMobileView && (
                                 <Button
-                                    onClick={() => onEditCron(null)}
+                                    onClick={() => navigate("/cron/new")}
                                     className='rounded-xl px-6 h-10 font-bold shadow-lg shadow-primary/20'
                                 >
                                     <Plus className='mr-2 h-4 w-4' /> New
@@ -247,7 +245,7 @@ export function CronManagementPage({ onEditCron, onViewDocs, isMobileView }: Cro
                                 <h3 className='text-xl font-bold'>No active schedules</h3>
                                 <p className='text-muted-foreground max-w-xs mx-auto'>Create your first automated task to begin autonomous operations.</p>
                             </div>
-                            <Button onClick={() => onEditCron(null)} className='rounded-xl px-8 h-11 font-bold'>
+                            <Button onClick={() => navigate("/cron/new")} className='rounded-xl px-8 h-11 font-bold'>
                                 <Plus className='mr-2 h-5 w-5' /> New
                             </Button>
                         </div>
@@ -259,7 +257,7 @@ export function CronManagementPage({ onEditCron, onViewDocs, isMobileView }: Cro
                             {filteredJobs.map((job) => (
                                 <Card 
                                     key={job.id} 
-                                    onClick={() => onEditCron(job)}
+                                    onClick={() => navigate("/cron/" + job.id, { state: { job } })}
                                     className="!py-0 !gap-0 group relative overflow-hidden border-border/40 bg-muted/5 hover:bg-card hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 rounded-[1.5rem] md:rounded-[2rem] cursor-pointer hover:shadow-2xl hover:shadow-primary/10 flex flex-col"
                                 >
                                     <div className="px-3 md:px-4 py-3">

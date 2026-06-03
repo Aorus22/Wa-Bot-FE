@@ -12,14 +12,22 @@ import { toast } from 'sonner'
 import Editor, { DiffEditor } from '@monaco-editor/react'
 import { cn } from '@/lib/utils'
 import { AIAssistant } from '@/components/AIAssistant'
+import { useNavigate, useLocation } from "react-router-dom"
+import { useIsMobile } from "@/hooks/use-mobile"
 
-interface WebhookEditorPageProps {
-	webhook: Webhook | null
-	onBack: () => void
-	isMobileView?: boolean
-}
+export function WebhookEditorPage() {
+	const navigate = useNavigate()
+	const isMobileView = useIsMobile()
+	const location = useLocation()
+	const webhookFromNav = (location.state as any)?.webhook as Webhook | undefined
 
-export function WebhookEditorPage({ webhook, onBack, isMobileView }: WebhookEditorPageProps) {
+	const handleBack = () => {
+		if (window.history.length > 1) {
+			navigate(-1)
+		} else {
+			navigate("/webhooks")
+		}
+	}
 	const [formData, setFormData] = useState<Partial<Webhook>>({
 		name: '',
 		path: '',
@@ -38,8 +46,8 @@ export function WebhookEditorPage({ webhook, onBack, isMobileView }: WebhookEdit
 	const diffEditorRef = useRef<any>(null)
 
 	useEffect(() => {
-		if (webhook) setFormData(webhook)
-	}, [webhook])
+		if (webhookFromNav) setFormData(webhookFromNav)
+	}, [webhookFromNav])
 
 	const handleApplyAIChange = (newCode: string) => {
 		setProposedCode(newCode)
@@ -69,7 +77,7 @@ export function WebhookEditorPage({ webhook, onBack, isMobileView }: WebhookEdit
 				await api.createWebhook(formData as Webhook)
 				toast.success('Webhook created successfully')
 			}
-			onBack()
+			handleBack()
 		} catch (error) {
 			toast.error('Failed to save webhook')
 		} finally {
@@ -241,13 +249,13 @@ export function WebhookEditorPage({ webhook, onBack, isMobileView }: WebhookEdit
 		<div className="h-full w-full bg-background flex flex-col overflow-hidden relative">
 			<div className="p-4 md:p-6 border-b border-border/40 bg-muted/20 shrink-0 flex flex-wrap items-center justify-between gap-2">
 				<div className="flex items-center gap-2">
-					<Button variant="ghost" size="icon" onClick={onBack} className="rounded-full h-8 w-8 md:h-10 md:w-10 shrink-0">
+					<Button variant="ghost" size="icon" onClick={handleBack} className="rounded-full h-8 w-8 md:h-10 md:w-10 shrink-0">
 						<ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
 					</Button>
 					<h1 className="text-sm md:text-xl font-bold tracking-tight truncate max-w-[120px] sm:max-w-none">{formData.id ? 'Edit' : 'New'} <span className="hidden sm:inline">Webhook</span></h1>
 				</div>
 				<div className="flex items-center gap-2">
-					<Button variant="outline" onClick={onBack} className="rounded-xl h-8 md:h-10 px-2 md:px-4 text-xs md:text-sm">Cancel</Button>
+					<Button variant="outline" onClick={handleBack} className="rounded-xl h-8 md:h-10 px-2 md:px-4 text-xs md:text-sm">Cancel</Button>
 					<Button onClick={handleSave} disabled={isSaving} className="rounded-xl h-8 md:h-10 px-2 md:px-6 text-xs md:text-sm font-bold shadow-lg shadow-primary/20">
 						{isSaving ? <span className="w-3 h-3 md:w-4 md:h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-1 md:mr-2" /> : <Save className="mr-1 md:mr-2 h-3.5 w-3.5 md:h-4 md:w-4" />}
 						Save

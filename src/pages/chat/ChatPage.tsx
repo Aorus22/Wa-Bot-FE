@@ -3,23 +3,12 @@ import { ChatSidebar } from "./ChatSidebar"
 import { ChatArea } from "./ChatArea"
 import { cn } from "@/lib/utils"
 import type { Chat, Message } from "@/lib/api"
+import { useAuth } from "@/contexts/AuthContext"
+import { useIsMobile } from "@/hooks/use-mobile"
 
-interface ChatPageProps {
-	isMobileView: boolean
-	incomingMessage: { chatId: string; message: Message } | null
-	chatUpdate: {
-		chatId: string
-		lastMsg: string
-		lastTime: number
-		msgId: string
-		senderName?: string
-		chatName?: string
-		chatAvatar?: string
-	} | null
-	statusUpdate: { id: string; status: string } | null
-}
-
-export function ChatPage({ isMobileView, incomingMessage, chatUpdate, statusUpdate }: ChatPageProps) {
+export function ChatPage() {
+	const isMobileView = useIsMobile()
+	const { incomingMessage, chatUpdate, statusUpdate } = useAuth()
 	const [selectedChat, setSelectedChat] = useState<Chat | null>(null)
 	const [showSidebar, setShowSidebar] = useState(true)
 	const containerRef = useRef<HTMLDivElement>(null)

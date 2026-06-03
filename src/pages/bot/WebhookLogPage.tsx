@@ -6,11 +6,8 @@ import { Badge } from '@/components/ui/badge'
 import { api, type WebhookLog, type Webhook } from '@/lib/api'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-
-interface WebhookLogPageProps {
-    onBack: () => void
-    isMobileView?: boolean
-}
+import { useNavigate } from "react-router-dom"
+import { useIsMobile } from "@/hooks/use-mobile"
 
 const methodColors: Record<string, string> = {
     GET: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
@@ -39,7 +36,9 @@ function formatBody(body: string): string {
     }
 }
 
-export function WebhookLogPage({ onBack, isMobileView }: WebhookLogPageProps) {
+export function WebhookLogPage() {
+    const navigate = useNavigate()
+    const isMobileView = useIsMobile()
     const [logs, setLogs] = useState<WebhookLog[]>([])
     const [loading, setLoading] = useState(true)
     const [total, setTotal] = useState(0)
@@ -97,7 +96,7 @@ export function WebhookLogPage({ onBack, isMobileView }: WebhookLogPageProps) {
                 <div className="p-4 md:px-8 md:py-4">
                     <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
-                            <Button variant="ghost" size="icon" onClick={onBack} className="h-9 w-9 rounded-xl">
+                            <Button variant="ghost" size="icon" onClick={() => navigate("/webhooks")} className="h-9 w-9 rounded-xl">
                                 <ArrowLeft className="h-5 w-5" />
                             </Button>
                             <div>
