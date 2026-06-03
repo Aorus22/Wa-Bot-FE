@@ -28,30 +28,44 @@ export const ChatMessageItem = memo(({
 	setShowFavoriteBtn,
 	isHighlighted,
 }: any) => {
-	const [swipeX, setSwipeX] = useState(0)
+	const swipeRef = useRef(0)
+	const rowRef = useRef<HTMLDivElement>(null)
+	const iconRef = useRef<HTMLDivElement>(null)
 	const startX = useRef(0)
 	const startY = useRef(0)
 	const threshold = 60
 
+	const applySwipe = (x: number) => {
+		swipeRef.current = x
+		if (rowRef.current) rowRef.current.style.transform = `translateX(${x}px)`
+		if (iconRef.current) {
+			iconRef.current.style.opacity = String(Math.min(x / threshold, 1))
+			iconRef.current.style.transform = `translateX(${x - 40}px)`
+		}
+	}
+
 	const handleTouchStart = (e: React.TouchEvent) => {
 		startX.current = e.touches[0].clientX
 		startY.current = e.touches[0].clientY
+		if (rowRef.current) rowRef.current.style.transition = "none"
 	}
 
 	const handleTouchMove = (e: React.TouchEvent) => {
 		const diffX = e.touches[0].clientX - startX.current
 		const diffY = e.touches[0].clientY - startY.current
-		// Only activate swipe if horizontal movement dominates vertical
 		if (diffX > 0 && Math.abs(diffX) > Math.abs(diffY) * 1.3) {
-			setSwipeX(Math.min(diffX, threshold + 20))
+			applySwipe(Math.min(diffX, threshold + 20))
 		}
 	}
 
 	const handleTouchEnd = () => {
-		if (swipeX >= threshold) {
+		if (rowRef.current) rowRef.current.style.transition = "transform 300ms ease-out"
+		if (swipeRef.current >= threshold) {
+			applySwipe(0)
 			onReply()
+		} else {
+			applySwipe(0)
 		}
-		setSwipeX(0)
 	}
 
 	const isPending = message.status === "pending"
@@ -74,11 +88,9 @@ export const ChatMessageItem = memo(({
 			)}
 		>
 			<div
-				className="absolute left-0 top-1/2 -translate-y-1/2 transition-opacity duration-200"
-				style={{
-					opacity: swipeX / threshold,
-					transform: `translateX(${swipeX - 40}px)`,
-				}}
+				ref={iconRef}
+				className="absolute left-0 top-1/2 -translate-y-1/2"
+				style={{ opacity: 0, transform: "translateX(-40px)" }}
 			>
 				<div className="bg-primary/20 p-2 rounded-full">
 					<Reply className="h-4 w-4 text-primary" />
@@ -86,10 +98,11 @@ export const ChatMessageItem = memo(({
 			</div>
 
 			<div
+				ref={rowRef}
 			        className={cn(
-			                "max-w-[85%] sm:max-w-[70%] flex relative gap-3 transition-transform duration-200 will-change-transform min-w-0",
+			                "max-w-[85%] sm:max-w-[70%] flex relative gap-3 will-change-transform min-w-0",
 			                isMe ? "flex-row-reverse" : "flex-row"
-			        )}				style={{ transform: `translateX(${swipeX}px)` }}
+			        )}
 				onTouchStart={handleTouchStart}
 				onTouchMove={handleTouchMove}
 				onTouchEnd={handleTouchEnd}
