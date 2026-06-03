@@ -177,7 +177,7 @@ export const ChatMessageItem = memo(({
 										loading="lazy"
 										onClick={(e) => {
 											e.stopPropagation()
-											onImageClick(getMediaUrl(message.mediaUrl))
+											onImageClick(getMediaUrl(message.mediaUrl), e.currentTarget)
 										}}
 									/>
 								</div>

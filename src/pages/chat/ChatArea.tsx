@@ -128,6 +128,7 @@ const formatDate = (timestamp: number) => {
     const [isSearchOpen, setIsSearchOpen] = useState(false)
     const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null)
     const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null)
+    const [imageSourceRect, setImageSourceRect] = useState<DOMRect | null>(null)
 
     const scrollRef = useRef<HTMLDivElement>(null)
     const mediaInputRef = useRef<HTMLInputElement>(null)
@@ -610,7 +611,7 @@ const formatDate = (timestamp: number) => {
                                                 onEdit={() => handleEditMessage(message)}
                                                 onDelete={() => handleDeleteMessage(message.id)}
                                                 onStickerFavorite={(mediaUrl: string) => handleFavoriteSticker(message.id, mediaUrl || "", false)}
-                                                onImageClick={(url: string) => setSelectedImageUrl(url || null)}
+                                                onImageClick={(url: string, el?: HTMLElement) => { setSelectedImageUrl(url || null); setImageSourceRect(el?.getBoundingClientRect() || null) }}
                                                 onDownload={handleDownload}
                                                 formatTime={formatTime}
                                                 renderFormattedContent={renderFormattedContent}
@@ -781,7 +782,8 @@ const formatDate = (timestamp: number) => {
                 open={!!selectedImageUrl}
                 onOpenChange={(open) => !open && setSelectedImageUrl(null)}
                 imageUrl={selectedImageUrl}
-                onClose={() => setSelectedImageUrl(null)}
+                sourceRect={imageSourceRect}
+                onClose={() => { setSelectedImageUrl(null); setImageSourceRect(null) }}
             />
 
             <ChatSearchSheet
