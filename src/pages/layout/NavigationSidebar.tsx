@@ -1,8 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom"
-import { MessageSquare, Bot, LogOut, FileText, Clock, Globe } from "lucide-react"
+import { MessageSquare, Bot, LogOut, FileText, Clock, Globe, Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { ModeToggle } from "./ModeToggle"
 import { useAuth } from "@/contexts/AuthContext"
 
 export function NavigationSidebar() {
@@ -47,8 +46,25 @@ export function NavigationSidebar() {
 				/>
 			</div>
 
-			<div className="flex flex-col items-center gap-4 mt-auto">
-				<ModeToggle />
+			<div className="flex flex-col items-center gap-4 mt-auto mb-2">
+				<Tooltip delayDuration={0}>
+					<TooltipTrigger asChild>
+						<button
+							onClick={() => navigate("/settings")}
+							className={cn(
+								"p-3.5 rounded-2xl transition-all duration-200",
+								isActive("/settings")
+									? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-105"
+									: "text-muted-foreground hover:bg-muted hover:text-foreground"
+							)}
+						>
+							<Settings className="h-5 w-5" />
+						</button>
+					</TooltipTrigger>
+					<TooltipContent side="right" sideOffset={10} className="font-medium">
+						<p>Settings</p>
+					</TooltipContent>
+				</Tooltip>
 
 				<Tooltip delayDuration={0}>
 					<TooltipTrigger asChild>

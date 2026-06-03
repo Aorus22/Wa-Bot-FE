@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { ThemeProvider } from "@/components/theme-provider"
+import { AppThemeProvider } from "@/components/AppThemeProvider"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toaster } from "@/components/ui/sonner"
 import { Loader2 } from "lucide-react"
@@ -15,6 +16,7 @@ import { WebhookManagementPage } from "@/pages/bot/WebhookManagementPage"
 import { WebhookEditorPage } from "@/pages/bot/WebhookEditorPage"
 import { WebhookLogPage } from "@/pages/bot/WebhookLogPage"
 import { DocumentationPage } from "@/pages/documentation/DocumentationPage"
+import { SettingsPage } from "@/pages/settings/SettingsPage"
 
 function AppRoutes() {
 	const { isLoggedIn, qrCode, isConnected } = useAuth()
@@ -45,6 +47,7 @@ function AppRoutes() {
 				<Route path="/webhooks/new" element={<WebhookEditorPage />} />
 				<Route path="/webhooks/:id" element={<WebhookEditorPage />} />
 				<Route path="/webhooks/logs" element={<WebhookLogPage />} />
+				<Route path="/settings" element={<SettingsPage />} />
 				<Route path="/documentation" element={<DocumentationPage />} />
 				<Route path="*" element={<Navigate to="/chat" replace />} />
 			</Route>
@@ -57,10 +60,12 @@ function App() {
 		<BrowserRouter>
 			<AuthProvider>
 				<ThemeProvider defaultTheme="system" storageKey="wa-bot-theme">
-					<TooltipProvider>
-						<AppRoutes />
-						<Toaster position="top-center" />
-					</TooltipProvider>
+					<AppThemeProvider>
+						<TooltipProvider>
+							<AppRoutes />
+							<Toaster position="top-center" />
+						</TooltipProvider>
+					</AppThemeProvider>
 				</ThemeProvider>
 			</AuthProvider>
 		</BrowserRouter>

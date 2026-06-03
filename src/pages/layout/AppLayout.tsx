@@ -3,7 +3,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { NavigationSidebar } from "./NavigationSidebar"
 import { cn } from "@/lib/utils"
-import { MessageSquare, Bot, Clock, Globe, FileText } from "lucide-react"
+import { MessageSquare, Bot, Clock, Globe, FileText, Settings } from "lucide-react"
 import {
 	AlertDialog, AlertDialogAction, AlertDialogCancel,
 	AlertDialogContent, AlertDialogDescription,
@@ -65,6 +65,9 @@ export function AppLayout() {
 						</button>
 						<button onClick={() => navigate("/webhooks")} className={cn("flex flex-col items-center gap-1 p-2", isActive("/webhooks") ? "text-primary" : "text-muted-foreground")}>
 							<Globe className="h-5 w-5" /><span className="text-[10px] font-bold uppercase">Webhooks</span>
+						</button>
+						<button onClick={() => navigate("/settings")} className={cn("flex flex-col items-center gap-1 p-2", isActive("/settings") ? "text-primary" : "text-muted-foreground")}>
+							<Settings className="h-5 w-5" /><span className="text-[10px] font-bold uppercase">Settings</span>
 						</button>
 						<button onClick={() => navigate("/documentation")} className={cn("flex flex-col items-center gap-1 p-2", isActive("/documentation") ? "text-primary" : "text-muted-foreground")}>
 							<FileText className="h-5 w-5" /><span className="text-[10px] font-bold uppercase">Docs</span>
