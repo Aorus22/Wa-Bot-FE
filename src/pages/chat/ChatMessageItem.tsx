@@ -172,7 +172,7 @@ export const ChatMessageItem = memo(({
 							)}
 						>
 							{isImage && isMedia && (
-							        <div className={cn("mb-2 -mx-[14px] -mt-2 overflow-hidden relative z-10 w-full max-w-[320px] h-[240px] rounded-t-2xl", isMe ? "rounded-tr-none" : "rounded-tl-none")}>
+							        <div className="mb-2 -mx-[14px] -mt-2 overflow-hidden relative z-10 w-full h-[240px] rounded-none">
 							                <LazyMedia										src={getMediaUrl(message.mediaUrl)}
 										alt="Image"
 										className="w-full h-full object-cover object-center hover:scale-[1.02] transition-transform duration-500 cursor-zoom-in"
@@ -186,7 +186,7 @@ export const ChatMessageItem = memo(({
 								</div>
 							)}
 							{isVideo && isMedia && (
-							        <div className={cn("mb-2 -mx-[14px] -mt-2 overflow-hidden relative z-10 w-full max-w-[320px] h-[240px] rounded-t-2xl bg-black/10 flex items-center justify-center", isMe ? "rounded-tr-none" : "rounded-tl-none")}>
+							        <div className="mb-2 -mx-[14px] -mt-2 overflow-hidden relative z-10 w-full h-[240px] rounded-none bg-black/10 flex items-center justify-center">
 							                <LazyMedia 
 							                        type="video"
 							                        src={getMediaUrl(message.mediaUrl)} 
@@ -196,7 +196,7 @@ export const ChatMessageItem = memo(({
 							        </div>
 							)}
 							                {isDocument && isMedia && (
-							                        <div className={cn("flex flex-col gap-2 p-2 bg-black/5 dark:bg-white/5 rounded-t-2xl relative z-10 min-w-[200px] sm:min-w-[240px] max-w-[65vw] sm:max-w-[320px] -mx-[14px] -mt-2", isMe ? "rounded-tr-none" : "rounded-tl-none")}>
+							                        <div className={cn("flex flex-col gap-2 p-2 bg-black/5 dark:bg-white/5 rounded-none relative z-10 min-w-[200px] sm:min-w-[240px] max-w-[65vw] sm:max-w-[320px] -mx-[14px] -mt-2")}>
 									<div className="flex items-center gap-3">
 										<div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
 											<FileText className="h-6 w-6 text-primary" />
