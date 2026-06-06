@@ -1,9 +1,9 @@
-import { useState, useRef, memo } from "react"
+import { useRef, memo } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-import { FileText, MoreVertical, Reply, Edit3, Trash2, Star, Download, ExternalLink, Bot } from "lucide-react"
+import { FileText, MoreVertical, Reply, Edit3, Trash2, Download, ExternalLink, Bot } from "lucide-react"
 import { LazyMedia } from "@/components/LazyMedia"
 import { isMarkdownContent } from "./renderMd"
 
@@ -17,15 +17,15 @@ export const ChatMessageItem = memo(({
 	onReply,
 	onEdit,
 	onDelete,
-	onStickerFavorite,
+	onStickerFavorite: _onStickerFavorite,
 	onImageClick,
 	onDownload,
 	formatTime,
 	renderFormattedContent,
 	getMediaUrl,
 	getAvatarUrl,
-	showFavoriteBtn,
-	setShowFavoriteBtn,
+	showFavoriteBtn: _showFavoriteBtn,
+	setShowFavoriteBtn: _setShowFavoriteBtn,
 	isHighlighted,
 }: any) => {
 	const swipeRef = useRef(0)

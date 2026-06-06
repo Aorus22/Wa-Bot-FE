@@ -11,7 +11,7 @@ interface ChatImageViewerModalProps {
 	onFavorite?: (url: string) => void
 }
 
-export function ChatImageViewerModal({ open, onOpenChange, imageUrl, sourceRect, onClose, onFavorite }: ChatImageViewerModalProps) {
+export function ChatImageViewerModal({ open, onOpenChange: _onOpenChange, imageUrl, sourceRect: _sourceRect, onClose, onFavorite }: ChatImageViewerModalProps) {
 	const [ready, setReady] = useState(false)
 	const [closing, setClosing] = useState(false)
 	const containerRef = useRef<HTMLDivElement>(null)
@@ -34,17 +34,6 @@ export function ChatImageViewerModal({ open, onOpenChange, imageUrl, sourceRect,
 	}
 
 	if (!open || !imageUrl) return null
-
-	const fromStyle: React.CSSProperties = sourceRect ? {
-		position: "fixed",
-		top: sourceRect.top,
-		left: sourceRect.left,
-		width: sourceRect.width,
-		height: sourceRect.height,
-		borderRadius: "12px",
-		objectFit: "cover",
-		zIndex: 60,
-	} : {}
 
 	return (
 		<div
